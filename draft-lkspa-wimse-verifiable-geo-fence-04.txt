@@ -130,28 +130,28 @@ Internet-Draft                    GeoW                     February 2026
        8.5.2.  Advantages  . . . . . . . . . . . . . . . . . . . . .  23
        8.5.3.  Limitations . . . . . . . . . . . . . . . . . . . . .  24
      8.6.  Composite Geolocation and Policy Enforcement  . . . . . .  24
-   9.  Scaling the Solution  . . . . . . . . . . . . . . . . . . . .  24
+   9.  Scaling the Solution  . . . . . . . . . . . . . . . . . . . .  25
      9.1.  End user location anchor host . . . . . . . . . . . . . .  25
      9.2.  Data center location anchor host  . . . . . . . . . . . .  25
    10. Data Plane Geolocation Extensions . . . . . . . . . . . . . .  26
-     10.1.  HTTP: Workload-Geo-ID Header . . . . . . . . . . . . . .  26
-     10.2.  HTTP: Geolocation in SVID  . . . . . . . . . . . . . . .  27
-     10.3.  IPSEC: Geolocation in IKEv2  . . . . . . . . . . . . . .  27
+     10.1.  HTTP: Workload-Geo-ID Header . . . . . . . . . . . . . .  27
+     10.2.  HTTP: Geolocation in SVID  . . . . . . . . . . . . . . .  28
+     10.3.  IPSEC: Geolocation in IKEv2  . . . . . . . . . . . . . .  28
    11. Confidential Computing Considerations . . . . . . . . . . . .  28
    12. Solution Mapping to Industry Gaps . . . . . . . . . . . . . .  29
    13. Authorization Policy Implementers . . . . . . . . . . . . . .  30
-   14. Security Considerations . . . . . . . . . . . . . . . . . . .  30
-   15. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  31
-   16. Appendix - Items to follow up . . . . . . . . . . . . . . . .  31
+   14. Security Considerations . . . . . . . . . . . . . . . . . . .  31
+   15. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  32
+   16. Appendix - Items to follow up . . . . . . . . . . . . . . . .  32
      16.1.  OPEN ISSUES 1: Restart time attestation/remote
             verification of workload identity agent for integrity and
             proof of residency on Host . . . . . . . . . . . . . . .  32
      16.2.  OPEN ISSUES 2: Location privacy options  . . . . . . . .  32
      16.3.  OPEN ISSUES 3: Attested PTP  . . . . . . . . . . . . . .  32
      16.4.  OPEN ISSUES 4: Geotagging textual data . . . . . . . . .  32
-     16.5.  OPEN ISSUES 5: Attesting Geotags . . . . . . . . . . . .  32
+     16.5.  OPEN ISSUES 5: Attesting Geotags . . . . . . . . . . . .  33
    17. Appendix - Public References for Strict Data Residency
-           Rules . . . . . . . . . . . . . . . . . . . . . . . . . .  32
+           Rules . . . . . . . . . . . . . . . . . . . . . . . . . .  33
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  33
 
 1.  Conventions and Definitions
@@ -1318,9 +1318,33 @@ Internet-Draft                    GeoW                     February 2026
        via GSMA/CAMARA API using device IMEI/IMSI.  More resistant to
        spoofing than GNSS alone, as the mobile network independently
        verifies device location through cell tower triangulation.
-   3.  *Composite Location:* The system fuses GNSS and mobile network
-       locations, producing a composite location with a quality score.
-       Discrepancies between sources trigger alerts.
+   3.  *Auditor-Mediated Proof of Position (Fallback):* When no
+       geolocation sensor is available, the sensor is offline, or the
+       GNSS signal is weak (e.g., data center hosts deep inside a
+       building), an auditor-mediated endorsement can provide a
+       cryptographically verifiable physical position claim.  As
+       described in [[I-D.richardson-rats-pop-endorsement]], a human
+       auditor physically visits the device, connects via a USB or
+       serial console cable, and collects a signed Entity Attestation
+       Token (EAT) from the device's TPM Attestation Key. The auditor
+       then creates a signed Endorsement binding the device identity to
+       its physical position (e.g., "Building 4, Aisle 37, Cabinet 9,
+       Rack Unit 2-3").  This endorsement is periodically renewed
+       through re-audit and provides a level of position precision
+       (rack-level) that GPS cannot achieve indoors.  The endorsement
+       can be loaded directly into the device and passed along with
+       Evidence to a Verifier.
+   4.  *Composite Location:* The system fuses available location sources
+       (GNSS, mobile network, and/or auditor endorsement), producing a
+       composite location with a quality score.  Discrepancies between
+       sources trigger alerts.
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 24]
+
+Internet-Draft                    GeoW                     February 2026
+
 
    Policy enforcement can then use the composite location to verify that
    the host is within the approved geographic boundary defined by the
@@ -1338,13 +1362,6 @@ Internet-Draft                    GeoW                     February 2026
    hosts, the geolocation sensor can be on a host with Mobile network
    and/or GNSS capabilities which can be leveraged by other data center
    hosts.  This host serves as the location anchor host.
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 24]
-
-Internet-Draft                    GeoW                     February 2026
-
 
 9.1.  End user location anchor host
 
@@ -1371,6 +1388,20 @@ Internet-Draft                    GeoW                     February 2026
    center operators without requiring them to install a geolocation
    sensor on every data center host.
 
+
+
+
+
+
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 25]
+
+Internet-Draft                    GeoW                     February 2026
+
+
    PTP is a network protocol that enables precise synchronization of
    clocks across a computer network and can be used to measure the
    round-trip time (RTT) between the location anchor host and other data
@@ -1388,20 +1419,6 @@ Internet-Draft                    GeoW                     February 2026
       due to inherent software jitter, but it can still provide a
       reasonable approximation of the proximity of the other data center
       hosts to the location anchor host.
-
-
-
-
-
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 25]
-
-Internet-Draft                    GeoW                     February 2026
-
-
    *  Hardware-based: PTP hardware (e.g., SmartNIC), after adding
       timestamp to PTP message, signs the PTP message with its private
       key (e.g., SmartNIC DPU).  The corresponding public key, used to
@@ -1429,6 +1446,18 @@ Internet-Draft                    GeoW                     February 2026
    Proof of Residency (PoR) and DPoR mechanisms that bind workload
    identity to the WIA, see [[I-D.mw-wimse-transitive-attestation]].
 
+
+
+
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 26]
+
+Internet-Draft                    GeoW                     February 2026
+
+
 10.1.  HTTP: Workload-Geo-ID Header
 
    A new HTTP header field 'Workload-Geo-ID' is proposed for conveying
@@ -1446,17 +1475,6 @@ Internet-Draft                    GeoW                     February 2026
       thin client (e.g., Microsoft Teams thin client browser app).
    *  Type flag: Request signing with geolocation information or SVID
       with geolocation information.
-
-
-
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 26]
-
-Internet-Draft                    GeoW                     February 2026
-
 
    The HTTP request is signed as described in [[I-D.mw-wimse-transitive-
    attestation]] using the workload or WIA private key.  Intermediate
@@ -1489,6 +1507,13 @@ Internet-Draft                    GeoW                     February 2026
    based Secure Shell (ssh) terminals and Remote Desktop Protocol (RDP)
    terminals which tunnel traffic over HTTP/TLS.
 
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 27]
+
+Internet-Draft                    GeoW                     February 2026
+
+
 10.2.  HTTP: Geolocation in SVID
 
    The workload SVID can be used to convey the geolocation information
@@ -1503,16 +1528,6 @@ Internet-Draft                    GeoW                     February 2026
 
    In the IPSEC key exchange protocol (IKE), the following geolocation
    extensions are proposed:
-
-
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 27]
-
-Internet-Draft                    GeoW                     February 2026
-
 
    *  The IPSEC client includes the Geolocation Information from the
       Workload Identity Agent Geolocation Information Cache in the IPSEC
@@ -1546,6 +1561,15 @@ Internet-Draft                    GeoW                     February 2026
       -  AMD SEV-SNP "Versioned Chip Endorsement Key -- VCEK" is defined
          in the AMD SEV-SNP ABI specification (Chapter 1, Glossary,
          Table 2).
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 28]
+
+Internet-Draft                    GeoW                     February 2026
+
+
       -  Intel TDX, "Provisioning Certification Key -- PCK" is defined
          in the Intel TDX DCAP Quoting Library API documentation (Page
          6, Table 1-1: Terminology).  Role: Certifies the Attestation
@@ -1561,14 +1585,6 @@ Internet-Draft                    GeoW                     February 2026
       reported hardware-rooted certification key to the TPM EK.
    *  This binding produces a cryptographic proof that the workload is
       running on the expected physical CPU.
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 28]
-
-Internet-Draft                    GeoW                     February 2026
-
 
    Proof of Geolocation:
 
@@ -1602,6 +1618,14 @@ Internet-Draft                    GeoW                     February 2026
       Platform Attestation): The WIA private key is used for signing,
       and the WIA public key is signed by the Host TPM APP private key
       providing a cryptographically verifiable proof of residency of the
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 29]
+
+Internet-Draft                    GeoW                     February 2026
+
+
       WIA on the host.  Workloads use the WIA to sign requests, avoiding
       the TPM performance bottleneck (approximately 5 signatures/
       second).
@@ -1618,14 +1642,6 @@ Internet-Draft                    GeoW                     February 2026
       are addressed by Layer 3 (Geolocation HW-Based Attestation):
       Combination of host-local location sensors (e.g., GNSS) with
       direct hardware-based attestation and mobile network location
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 29]
-
-Internet-Draft                    GeoW                     February 2026
-
-
       services provides a more reliable and cryptographically verifiable
       location than IP address, Wi-Fi-based methods or existing Host OS
       location services.
@@ -1655,6 +1671,17 @@ Internet-Draft                    GeoW                     February 2026
    process scheduler or JVM class loader/deserializer, then malware can
    be prevented (similar to a code-signed application).
 
+
+
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 30]
+
+Internet-Draft                    GeoW                     February 2026
+
+
 14.  Security Considerations
 
    The proposed framework introduces several security considerations
@@ -1672,15 +1699,6 @@ Internet-Draft                    GeoW                     February 2026
       cryptographically authenticated signals (e.g., Galileo GNSS,
       mobile network) and cross-verification with multiple sources can
       mitigate this risk.
-
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 30]
-
-Internet-Draft                    GeoW                     February 2026
-
 
    *  *SIM and e-SIM Attacks*: Physical SIM removal or e-SIM swap
       attacks can break the binding between device and location.
@@ -1710,6 +1728,16 @@ Internet-Draft                    GeoW                     February 2026
       must be protected against unauthorized access and tampering, using
       encryption and access controls.
 
+
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 31]
+
+Internet-Draft                    GeoW                     February 2026
+
+
    *  *Management Processor Security* (Option B): The management
       processor firmware and its communication channels to the
       management plane must be secured against tampering.  OEM firmware
@@ -1724,19 +1752,6 @@ Internet-Draft                    GeoW                     February 2026
    This document has no IANA actions.
 
 16.  Appendix - Items to follow up
-
-
-
-
-
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 31]
-
-Internet-Draft                    GeoW                     February 2026
-
 
 16.1.  OPEN ISSUES 1: Restart time attestation/remote verification of
        workload identity agent for integrity and proof of residency on
@@ -1768,6 +1783,17 @@ Internet-Draft                    GeoW                     February 2026
    standard for geotagging textual data.  If there is no geolocation
    tag, data can be stored/processed in non-compliant locations.
 
+
+
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 32]
+
+Internet-Draft                    GeoW                     February 2026
+
+
 16.5.  OPEN ISSUES 5: Attesting Geotags
 
    There is no standard for attesting (signing) geolocation tag.  If
@@ -1783,16 +1809,6 @@ Internet-Draft                    GeoW                     February 2026
    only in India.  This data should include the full end-to-end
    transaction details / information collected / carried / processed as
    part of the message / payment instruction."
-
-
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 32]
-
-Internet-Draft                    GeoW                     February 2026
-
 
    South Korea's Data Localization Regulations -- Geospatial Information
    Management Act (Spatial Data Act): Article 16, Paragraph 1: Prohibits
@@ -1823,22 +1839,6 @@ Authors' Addresses
    Srinivasa Addepalli
    Aryaka
    Email: srinivasa.addepalli@aryaka.com
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

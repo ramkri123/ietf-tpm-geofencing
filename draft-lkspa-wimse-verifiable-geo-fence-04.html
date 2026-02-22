@@ -2456,7 +2456,10 @@ li > p:last-of-type:only-child {
             <strong>Mobile Network Location:</strong> Location from mobile network operator via GSMA/CAMARA API using device IMEI/IMSI. More resistant to spoofing than GNSS alone, as the mobile network independently verifies device location through cell tower triangulation.<a href="#section-8.6-2.2" class="pilcrow">¶</a>
 </li>
           <li id="section-8.6-2.3">
-            <strong>Composite Location:</strong> The system fuses GNSS and mobile network locations, producing a composite location with a quality score. Discrepancies between sources trigger alerts.<a href="#section-8.6-2.3" class="pilcrow">¶</a>
+            <strong>Auditor-Mediated Proof of Position (Fallback):</strong> When no geolocation sensor is available, the sensor is offline, or the GNSS signal is weak (e.g., data center hosts deep inside a building), an auditor-mediated endorsement can provide a cryptographically verifiable physical position claim. As described in [[I-D.richardson-rats-pop-endorsement]], a human auditor physically visits the device, connects via a USB or serial console cable, and collects a signed Entity Attestation Token (EAT) from the device's TPM Attestation Key. The auditor then creates a signed Endorsement binding the device identity to its physical position (e.g., "Building 4, Aisle 37, Cabinet 9, Rack Unit 2-3"). This endorsement is periodically renewed through re-audit and provides a level of position precision (rack-level) that GPS cannot achieve indoors. The endorsement can be loaded directly into the device and passed along with Evidence to a Verifier.<a href="#section-8.6-2.3" class="pilcrow">¶</a>
+</li>
+          <li id="section-8.6-2.4">
+            <strong>Composite Location:</strong> The system fuses available location sources (GNSS, mobile network, and/or auditor endorsement), producing a composite location with a quality score. Discrepancies between sources trigger alerts.<a href="#section-8.6-2.4" class="pilcrow">¶</a>
 </li>
         </ol>
 <p id="section-8.6-3">Policy enforcement can then use the composite location to verify that the host is within the approved geographic boundary defined by the geofence policy.<a href="#section-8.6-3" class="pilcrow">¶</a></p>

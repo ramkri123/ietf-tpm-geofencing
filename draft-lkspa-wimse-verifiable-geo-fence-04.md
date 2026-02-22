@@ -578,7 +578,8 @@ Regardless of the deployment option, the composite geolocation process combines 
 
 1. **GNSS Location:** Direct hardware-attested location from GNSS sensors (e.g., GPS, Galileo). Subject to spoofing risk but provides precise coordinates.
 2. **Mobile Network Location:** Location from mobile network operator via GSMA/CAMARA API using device IMEI/IMSI. More resistant to spoofing than GNSS alone, as the mobile network independently verifies device location through cell tower triangulation.
-3. **Composite Location:** The system fuses GNSS and mobile network locations, producing a composite location with a quality score. Discrepancies between sources trigger alerts.
+3. **Auditor-Mediated Proof of Position (Fallback):** When no geolocation sensor is available, the sensor is offline, or the GNSS signal is weak (e.g., data center hosts deep inside a building), an auditor-mediated endorsement can provide a cryptographically verifiable physical position claim. As described in [[I-D.richardson-rats-pop-endorsement]], a human auditor physically visits the device, connects via a USB or serial console cable, and collects a signed Entity Attestation Token (EAT) from the device's TPM Attestation Key. The auditor then creates a signed Endorsement binding the device identity to its physical position (e.g., "Building 4, Aisle 37, Cabinet 9, Rack Unit 2-3"). This endorsement is periodically renewed through re-audit and provides a level of position precision (rack-level) that GPS cannot achieve indoors. The endorsement can be loaded directly into the device and passed along with Evidence to a Verifier.
+4. **Composite Location:** The system fuses available location sources (GNSS, mobile network, and/or auditor endorsement), producing a composite location with a quality score. Discrepancies between sources trigger alerts.
 
 Policy enforcement can then use the composite location to verify that the host is within the approved geographic boundary defined by the geofence policy.
 
@@ -946,5 +947,13 @@ South Korea's Data Localization Regulations -- Geospatial Information Management
       <organization>Hewlett Packard Enterprise</organization>
     </author>
     <date/>
+  </front>
+</reference>
+
+<reference anchor="I-D.richardson-rats-pop-endorsement" target="https://datatracker.ietf.org/doc/html/draft-richardson-rats-pop-endorsement-00">
+  <front>
+    <title>Proof of Position for Auditor managed Endorsements</title>
+    <author initials="M." surname="Richardson" fullname="Michael Richardson"/>
+    <date year="2024"/>
   </front>
 </reference>
