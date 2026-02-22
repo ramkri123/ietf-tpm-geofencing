@@ -149,7 +149,7 @@ Internet-Draft                    GeoW                     February 2026
      16.2.  OPEN ISSUES 2: Location privacy options  . . . . . . . .  32
      16.3.  OPEN ISSUES 3: Attested PTP  . . . . . . . . . . . . . .  32
      16.4.  OPEN ISSUES 4: Geotagging textual data . . . . . . . . .  32
-     16.5.  OPEN ISSUES 5: Attesting Geotags . . . . . . . . . . . .  33
+     16.5.  OPEN ISSUES 5: Attesting Geotags . . . . . . . . . . . .  32
    17. Appendix - Public References for Strict Data Residency
            Rules . . . . . . . . . . . . . . . . . . . . . . . . . .  33
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  33
@@ -1434,10 +1434,10 @@ Internet-Draft                    GeoW                     February 2026
    them.  The PTP daemon is another workload managed by the workload
    identity manager.
 
-   Note that this is a proposed enhancement to the existing PTP hardware
-   and software, and there is currently no standard for attested PTP
-   (see OPEN ISSUES 3).  Further work is needed to define and
-   standardize this enhancement to ensure interoperability and security.
+   Note that attested PTP is a proposed enhancement to the existing PTP
+   hardware and software.  For a detailed specification of hardware-
+   rooted attestation for PTP, including verifiable residency and
+   proximity proofs, see [[I-D.ramki-ptp-hardware-rooted-attestation]].
 
 10.  Data Plane Geolocation Extensions
 
@@ -1772,10 +1772,8 @@ Internet-Draft                    GeoW                     February 2026
 
    Attested PTP is a software/hardware-based solution using Precision
    Time Protocol (PTP) for measuring proximity between hosts in a data
-   center.  However, this is a proposed enhancement to the existing PTP
-   hardware and software, and there is currently no standard for
-   attested PTP.  There is a proposed authentication framework for PTP
-   using symmetric key distribution.
+   center.  For a detailed specification, see [[I-D.ramki-ptp-hardware-
+   rooted-attestation]].
 
 16.4.  OPEN ISSUES 4: Geotagging textual data
 
@@ -1783,9 +1781,11 @@ Internet-Draft                    GeoW                     February 2026
    standard for geotagging textual data.  If there is no geolocation
    tag, data can be stored/processed in non-compliant locations.
 
+16.5.  OPEN ISSUES 5: Attesting Geotags
 
-
-
+   There is no standard for attesting (signing) geolocation tag.  If
+   geolocation tag is not signed, it can be manipulated through
+   techniques such as VPNs.
 
 
 
@@ -1793,12 +1793,6 @@ Krishnan, et al.         Expires 26 August 2026                [Page 32]
 
 Internet-Draft                    GeoW                     February 2026
 
-
-16.5.  OPEN ISSUES 5: Attesting Geotags
-
-   There is no standard for attesting (signing) geolocation tag.  If
-   geolocation tag is not signed, it can be manipulated through
-   techniques such as VPNs.
 
 17.  Appendix - Public References for Strict Data Residency Rules
 
@@ -1839,6 +1833,12 @@ Authors' Addresses
    Srinivasa Addepalli
    Aryaka
    Email: srinivasa.addepalli@aryaka.com
+
+
+
+
+
+
 
 
 

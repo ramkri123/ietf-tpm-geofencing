@@ -625,7 +625,7 @@
 <li>Hardware-based: PTP hardware (e.g., SmartNIC), after adding timestamp to PTP message, signs the PTP message with its private key (e.g., SmartNIC DPU). The corresponding public key, used to verify the signatures, can be attested by the Host TPM Attestation Key (AK). This approach provides sub-microsecond accuracy and the perfect proximity measure of the other data center hosts to the location anchor host, and is suitable for data center environments where precise timing is critical.</li>
 </ul>
 <t>Host proximity manager periodically verifies that the PTP daemon in the location anchor hosts provide proof that the PTP daemon in the application hosts are within the maximum DC round-trip delay from them. The PTP daemon is another workload managed by the workload identity manager.</t>
-<t>Note that this is a proposed enhancement to the existing PTP hardware and software, and there is currently no standard for attested PTP (see OPEN ISSUES 3). Further work is needed to define and standardize this enhancement to ensure interoperability and security.</t>
+<t>Note that attested PTP is a proposed enhancement to the existing PTP hardware and software. For a detailed specification of hardware-rooted attestation for PTP, including verifiable residency and proximity proofs, see [[I-D.ramki-ptp-hardware-rooted-attestation]].</t>
 </section>
 </section>
 
@@ -775,7 +775,7 @@
 </section>
 
 <section anchor="open-issues-3-attested-ptp"><name>OPEN ISSUES 3: Attested PTP</name>
-<t>Attested PTP is a software/hardware-based solution using Precision Time Protocol (PTP) for measuring proximity between hosts in a data center. However, this is a proposed enhancement to the existing PTP hardware and software, and there is currently no standard for attested PTP. There is a proposed authentication framework for PTP using symmetric key distribution.</t>
+<t>Attested PTP is a software/hardware-based solution using Precision Time Protocol (PTP) for measuring proximity between hosts in a data center. For a detailed specification, see [[I-D.ramki-ptp-hardware-rooted-attestation]].</t>
 </section>
 
 <section anchor="open-issues-4-geotagging-textual-data"><name>OPEN ISSUES 4: Geotagging textual data</name>

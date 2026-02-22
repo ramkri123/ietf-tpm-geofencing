@@ -611,7 +611,7 @@ This signing can be done in two ways:
 
 Host proximity manager periodically verifies that the PTP daemon in the location anchor hosts provide proof that the PTP daemon in the application hosts are within the maximum DC round-trip delay from them. The PTP daemon is another workload managed by the workload identity manager.
 
-Note that this is a proposed enhancement to the existing PTP hardware and software, and there is currently no standard for attested PTP (see OPEN ISSUES 3). Further work is needed to define and standardize this enhancement to ensure interoperability and security.
+Note that attested PTP is a proposed enhancement to the existing PTP hardware and software. For a detailed specification of hardware-rooted attestation for PTP, including verifiable residency and proximity proofs, see [[I-D.ramki-ptp-hardware-rooted-attestation]].
 
 # Data Plane Geolocation Extensions
 
@@ -749,7 +749,7 @@ The current approach includes some location privacy options for the geolocation 
 
 ## OPEN ISSUES 3: Attested PTP
 
-Attested PTP is a software/hardware-based solution using Precision Time Protocol (PTP) for measuring proximity between hosts in a data center. However, this is a proposed enhancement to the existing PTP hardware and software, and there is currently no standard for attested PTP. There is a proposed authentication framework for PTP using symmetric key distribution.
+Attested PTP is a software/hardware-based solution using Precision Time Protocol (PTP) for measuring proximity between hosts in a data center. For a detailed specification, see [[I-D.ramki-ptp-hardware-rooted-attestation]].
 
 ## OPEN ISSUES 4: Geotagging textual data
 
@@ -955,5 +955,13 @@ South Korea's Data Localization Regulations -- Geospatial Information Management
     <title>Proof of Position for Auditor managed Endorsements</title>
     <author initials="M." surname="Richardson" fullname="Michael Richardson"/>
     <date year="2024"/>
+  </front>
+</reference>
+
+<reference anchor="I-D.ramki-ptp-hardware-rooted-attestation" target="https://github.com/ramkri123/ptp-asymmetric-authentication">
+  <front>
+    <title>Hardware-Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity Proofs</title>
+    <author initials="R." surname="Krishnan" fullname="Ram Krishnan"/>
+    <date year="2025"/>
   </front>
 </reference>
