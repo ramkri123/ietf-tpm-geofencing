@@ -162,7 +162,8 @@ The three layers are:
 
 Together, the complete chain is:
 
-    Hardware (TPM) -> WIA (this draft, Layers 2+3) -> Workload (transitive attestation draft, Layer 1)
+  * TPM Hardware -> WIA (this draft, Layers 2) -> Workload (transitive attestation draft, Layer 1)
+  * TPM/Geolocation Hardware -> WIA (this draft, Layers 2+3) -> Workload (transitive attestation draft, Layer 1)
 
 This document focuses exclusively on Layers 2 and 3: the hardware-dependent attestation of the WIA itself. For how workloads prove they are co-located with an attested WIA, and for the data-plane protocol flows (mTLS PoR, DPoR), see [[I-D.mw-wimse-transitive-attestation]].
 
@@ -392,30 +393,65 @@ The SPIRE Agent TPM Plugin Server runs as an out-of-process sidecar (gRPC/HTTP v
 
 ## Deployment Option B: External Management Processor (e.g., HPE iLO)
 
-In this option, the management processor (BMC) has independent access to the host TPM and performs attestation independently of the host operating system.
+In this option, the management processor (BMC) has independent access to the host TPM and performs attestation independently of the host operating system. This provides a higher-trust attestation path that solves the "compromised kernel" problem: if a hacker gains root access to the host OS, they can potentially blind in-band agents (e.g., Keylime agent, SPIRE agent) by feeding them fake data, but they cannot spoof the management processor's independent hardware path to the TPM.
 
-**Architecture:**
+### Dual TPM Access Paths
 
-1. **Management Processor (e.g., HPE iLO):** Has direct access to the host TPM via a dedicated bus (e.g., SPI/LPC), independent of the host CPU and OS. The management processor collects TPM measurements and can perform attestation even when the host OS is not running or is compromised.
+Both the Host CPU and the management processor can communicate with the TPM, but through different interfaces and with different levels of authority:
+
+* **Host CPU Path (LPC/SPI Bus):** This is the standard "in-band" path. When the OS (Linux/ESXi/Windows) or the UEFI BIOS needs to extend a PCR (e.g., recording a hash of a workload binary), it talks to the TPM over the LPC or SPI bus.
+
+* **Management Processor Path (I2C/Private Bus):** The management processor (e.g., HPE iLO) has a dedicated, private connection to the TPM chip that does not go through the Host CPU. This allows the management processor to query the TPM even if the Host CPU is powered off, crashed, or compromised by a rootkit. This is the "out-of-band" (OOB) path.
+
+While both paths share the same physical TPM silicon, their roles are logically separated:
+
+* The **Host CPU** sees the TPM as a local device (e.g., /dev/tpm0). It can extend PCRs (add new measurements) but cannot easily reset the TPM. It requires the OS network stack (SSH/gRPC) to report attestation status remotely.
+
+* The **Management Processor** sees the TPM as a managed component via the Silicon Root of Trust. It can verify the TPM's Endorsement Key (EK) and Platform Certificate to ensure the TPM itself has not been tampered with. It uses the dedicated management NIC (via Redfish API) to report status independently of the OS network stack.
+
+### Silicon Root of Trust and IMA Integrity Protection
+
+To ensure that the attestation measurements themselves are trustworthy, the management processor architecture provides multiple layers of protection against the "who watches the watcher" problem:
+
+**Layer 1 -- Secure Boot / Silicon Root of Trust:** Before the OS starts, the management processor ASIC (e.g., HPE iLO) verifies the UEFI BIOS firmware. The BIOS then verifies the Bootloader (GRUB), and the Bootloader verifies the Linux Kernel signature. This ensures that the version of the Linux kernel -- and thus the IMA subsystem code -- being loaded is the authentic, signed version.
+
+**Layer 2 -- TPM PCR Extension (Hardware Enforcement):** Linux IMA does not just keep a list of hashes in RAM; it extends those hashes into TPM PCR 10. PCR extension is a one-way operation -- data can be added (extended) to a PCR, but it cannot be overwritten or deleted without a full system reboot. Even if a compromised kernel tries to stop IMA from recording a malicious binary, it cannot undo the previous clean measurements in the TPM. A remote verifier will detect that the aggregate hash in PCR 10 no longer matches the provided IMA log, triggering a trust failure.
+
+**Layer 3 -- IMA Appraisal Mode:** By default, IMA only measures (logs). In IMA Appraisal mode, the kernel refuses to execute any binary or load any library that does not have a valid cryptographic signature (stored as an extended attribute on the file). IMA policies can themselves be digitally signed, preventing tampering.
+
+**Layer 4 -- Out-of-Band (OOB) Attestation:** This is the critical layer. Since the kernel could potentially be tricked into lying about its internal state, the remote verifier asks the management processor for a TPM Quote. The management processor talks directly to the TPM (bypassing the Host CPU/Kernel), and the TPM signs the PCR values with its internal, hardware-protected key. The verifier compares this hardware-signed value against the software-reported IMA log. Any discrepancy means the Linux kernel/IMA subsystem has been tampered with.
+
+**Layer 5 -- Kernel Lockdown Mode:** Linux Kernel Lockdown (integrity or confidentiality mode) prevents even the root user from modifying kernel memory via /dev/mem, replacing the running kernel via kexec, or accessing sensitive debug interfaces that could be used to bypass IMA checks.
+
+### TPM Swap Attack Protection
+
+In modern server implementations (e.g., HPE Gen11), the management processor acts as a gatekeeper during the boot process. It uses its independent path to verify that the TPM is authentic. If the management processor detects that the TPM has been physically replaced (a "TPM Swap" attack), it can prevent the Host CPU from starting, effectively blocking the server until an administrator intervenes.
+
+### Architecture
+
+1. **Management Processor (e.g., HPE iLO):** Has direct access to the host TPM via a dedicated bus (I2C/private bus), independent of the host CPU and OS. The management processor collects TPM measurements and can perform attestation even when the host OS is not running or is compromised.
 2. **External Management Plane (e.g., HPE OneView, HPE GreenLake):** Centralized management platform that receives attestation evidence from the management processor. Validates TPM quotes against golden measurements maintained in the management platform's database. Provides fleet-wide attestation visibility and policy enforcement.
 
-**Attestation Flow:**
+### Attestation Flow
 
-1. The management processor reads TPM PCR values and the TCGLog independently of the host OS.
+1. The management processor reads TPM PCR values and the TCGLog independently of the host OS via its dedicated hardware bus.
 2. The management processor signs the attestation evidence using its own identity key (e.g., iLO certificate signed by the OEM CA).
-3. The management plane receives the attestation evidence and validates:
+3. The management plane receives the attestation evidence via the dedicated management NIC (Redfish API) and validates:
     - TPM quote integrity and PCR values against golden reference measurements.
     - Management processor identity (OEM CA chain).
     - Freshness via nonce or timestamp.
+    - PCR 10 (IMA measurements) against the expected IMA log.
 4. Upon successful validation, the management plane provides attestation results to the Workload Identity Manager.
 
-**Advantages:**
+### Advantages
 
 - Out-of-band attestation: works even when the host OS is compromised, rebooting, or offline.
 - Hardware-isolated attestation path: the management processor is physically separate from the host CPU.
+- Detects compromised kernel / IMA subversion through hardware-signed TPM quotes.
+- TPM Swap attack protection at boot time.
 - Enterprise fleet management integration (HPE OneView, Dell iDRAC, Lenovo XClarity, etc.).
 
-**Limitations:**
+### Limitations
 
 - Vendor-specific management processor implementations.
 - Requires enterprise management plane infrastructure.
@@ -508,25 +544,29 @@ A mobile location verification microservice acts as a thin CAMARA API wrapper. I
 
 ## Deployment Option B: External Management Processor (e.g., HPE iLO)
 
-In this option, geolocation sensors are connected to or accessible from the management processor, providing out-of-band geolocation attestation independent of the host OS.
+In this option, geolocation sensors are connected to or accessible from the management processor, providing out-of-band geolocation attestation independent of the host OS. This leverages the same dual-path architecture described in the Layer 2 Option B: the management processor uses its dedicated hardware bus (I2C/private bus) to access both the TPM and the geolocation sensors, completely bypassing the Host CPU and OS.
 
-**Architecture:**
+This architecture is critical for geolocation integrity because a compromised Host OS could feed spoofed GNSS coordinates to an in-band Keylime agent. By routing sensor readings through the management processor's isolated hardware path, the geolocation data is collected and attested without any Host OS involvement.
 
-1. **Management Processor Sensor Interface:** The management processor (BMC/iLO) interfaces with geolocation sensors (GNSS receivers, mobile modems) through dedicated I/O channels separate from the host CPU bus. Sensor readings are collected by the management processor independently of the host OS.
-2. **Management Processor Attestation:** The management processor reads sensor data, signs it with its own identity key (OEM CA chain), and associates the geolocation evidence with the host TPM EK identity.
-3. **External Management Plane:** The management plane receives geolocation evidence from the management processor and validates:
+### Architecture
+
+1. **Management Processor Sensor Interface:** The management processor (BMC/iLO) interfaces with geolocation sensors (GNSS receivers, mobile modems) through dedicated I/O channels separate from the host CPU bus. Sensor readings are collected by the management processor independently of the host OS. The management processor can verify sensor firmware integrity as part of its Silicon Root of Trust chain.
+2. **Management Processor Attestation:** The management processor reads sensor data, signs it with its own identity key (OEM CA chain), and associates the geolocation evidence with the host TPM EK identity. The geolocation hash can be extended into the TPM via the management processor's dedicated TPM bus, providing the same PCR binding as the Keylime option but through the out-of-band path.
+3. **External Management Plane:** The management plane receives geolocation evidence from the management processor via the dedicated management NIC (Redfish API) and validates:
     - Sensor identity against registered sensor inventory.
     - Location reading against geofence policies.
     - Cross-verification with mobile network operator location services.
     - Association with the TPM EK identity from the Layer 2 attestation.
+    - Consistency between the hardware-signed TPM Quote (obtained OOB) and the geolocation PCR value.
 
-**Advantages:**
+### Advantages
 
-- Geolocation readings are hardware-isolated from the host OS -- immune to host-level malware.
+- Geolocation readings are hardware-isolated from the host OS -- immune to host-level malware and GNSS spoofing at the OS layer.
 - Integrated with enterprise fleet management (same management plane as Layer 2 Option B).
 - Suitable for high-security environments (defense, critical infrastructure).
+- The same out-of-band TPM Quote that detects IMA/kernel subversion also verifies the geolocation PCR, providing a single hardware-attested evidence bundle.
 
-**Limitations:**
+### Limitations
 
 - Requires management processor with geolocation sensor I/O capability.
 - Vendor-specific sensor integration.
