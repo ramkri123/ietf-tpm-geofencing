@@ -78,21 +78,21 @@ Table of Contents
 
    1.  Conventions and Definitions . . . . . . . . . . . . . . . . .   4
    2.  Introduction  . . . . . . . . . . . . . . . . . . . . . . . .   5
-   3.  Relationship to Transitive Attestation  . . . . . . . . . . .   5
-   4.  Use Cases . . . . . . . . . . . . . . . . . . . . . . . . . .   6
+   3.  Relationship to Transitive Attestation  . . . . . . . . . . .   6
+   4.  Use Cases . . . . . . . . . . . . . . . . . . . . . . . . . .   7
      4.1.  Category 1: Server-centric Location . . . . . . . . . . .   7
        4.1.1.  Server workload to Server workload - General  . . . .   7
        4.1.2.  Server workload to Server workload - Agentic AI . . .   7
        4.1.3.  Server workload to Server workload - Federated AI . .   7
-       4.1.4.  User workload to Server workload  . . . . . . . . . .   7
+       4.1.4.  User workload to Server workload  . . . . . . . . . .   8
      4.2.  Category 2: User-centric Location . . . . . . . . . . . .   8
      4.3.  Category 3: Regulatory Compliance . . . . . . . . . . . .   8
    5.  Industry Gaps and Problem Statements  . . . . . . . . . . . .   8
-     5.1.  Data Generation/at-Rest Challenges  . . . . . . . . . . .   8
+     5.1.  Data Generation/at-Rest Challenges  . . . . . . . . . . .   9
      5.2.  Data-in-Use Challenges  . . . . . . . . . . . . . . . . .   9
        5.2.1.  Authentication and Authorization Challenges . . . . .   9
        5.2.2.  Location and Geofencing Challenges  . . . . . . . . .   9
-       5.2.3.  Implicit Trust Challenges . . . . . . . . . . . . . .   9
+       5.2.3.  Implicit Trust Challenges . . . . . . . . . . . . . .  10
    6.  Approach Overview . . . . . . . . . . . . . . . . . . . . . .  10
      6.1.  Server Hosts - Solution highlights  . . . . . . . . . . .  10
      6.2.  End user/IoT hosts - Solution highlights  . . . . . . . .  11
@@ -100,7 +100,7 @@ Table of Contents
      7.1.  Overview  . . . . . . . . . . . . . . . . . . . . . . . .  12
      7.2.  Measured Boot and OS Integrity Attestation  . . . . . . .  12
      7.3.  WIA Attestation and Identity Issuance . . . . . . . . . .  13
-     7.4.  Deployment Option A: Host OS-Based (Keylime)  . . . . . .  14
+     7.4.  Deployment Option A: Host OS-Based (Keylime)  . . . . . .  15
        7.4.1.  Architecture  . . . . . . . . . . . . . . . . . . . .  15
        7.4.2.  Integration with SPIRE  . . . . . . . . . . . . . . .  15
        7.4.3.  Advantages  . . . . . . . . . . . . . . . . . . . . .  15
@@ -122,46 +122,46 @@ Internet-Draft                    GeoW                     February 2026
        7.5.4.  Root Adversary and IMA Tampering  . . . . . . . . . .  18
        7.5.5.  TPM Swap Attack Protection  . . . . . . . . . . . . .  19
        7.5.6.  Periodic Attestation Cycle: Step-by-Step  . . . . . .  19
-       7.5.7.  Advantages  . . . . . . . . . . . . . . . . . . . . .  22
-       7.5.8.  Limitations . . . . . . . . . . . . . . . . . . . . .  22
-     7.6.  Privacy Options for TPM-Based Attestation . . . . . . . .  22
-   8.  Geolocation HW-Based Attestation (Layer 3)  . . . . . . . . .  23
-     8.1.  Overview  . . . . . . . . . . . . . . . . . . . . . . . .  23
-     8.2.  Sensor Composition and Binding to TPM EK  . . . . . . . .  24
-     8.3.  Geolocation Gathering Workflow  . . . . . . . . . . . . .  24
-     8.4.  Deployment Option A: Host OS-Based (Keylime)  . . . . . .  25
-       8.4.1.  Architecture  . . . . . . . . . . . . . . . . . . . .  25
-       8.4.2.  Mobile Location Verification  . . . . . . . . . . . .  26
-       8.4.3.  Advantages  . . . . . . . . . . . . . . . . . . . . .  26
-       8.4.4.  Limitations . . . . . . . . . . . . . . . . . . . . .  26
+       7.5.7.  Workload Identity Fusion: SPIRE Re-Attestation via
+               Management Processor  . . . . . . . . . . . . . . . .  22
+       7.5.8.  Advantages  . . . . . . . . . . . . . . . . . . . . .  23
+       7.5.9.  Limitations . . . . . . . . . . . . . . . . . . . . .  23
+     7.6.  Privacy Options for TPM-Based Attestation . . . . . . . .  24
+   8.  Geolocation HW-Based Attestation (Layer 3)  . . . . . . . . .  24
+     8.1.  Overview  . . . . . . . . . . . . . . . . . . . . . . . .  24
+     8.2.  Sensor Composition and Binding to TPM EK  . . . . . . . .  25
+     8.3.  Geolocation Gathering Workflow  . . . . . . . . . . . . .  25
+     8.4.  Deployment Option A: Host OS-Based (Keylime)  . . . . . .  27
+       8.4.1.  Architecture  . . . . . . . . . . . . . . . . . . . .  27
+       8.4.2.  Mobile Location Verification  . . . . . . . . . . . .  27
+       8.4.3.  Advantages  . . . . . . . . . . . . . . . . . . . . .  27
+       8.4.4.  Limitations . . . . . . . . . . . . . . . . . . . . .  28
      8.5.  Deployment Option B: External Management Processor (e.g.,
-           HPE iLO)  . . . . . . . . . . . . . . . . . . . . . . . .  26
-       8.5.1.  Architecture  . . . . . . . . . . . . . . . . . . . .  27
-       8.5.2.  Advantages  . . . . . . . . . . . . . . . . . . . . .  27
-       8.5.3.  Limitations . . . . . . . . . . . . . . . . . . . . .  27
-     8.6.  Composite Geolocation and Policy Enforcement  . . . . . .  28
-   9.  Scaling the Solution  . . . . . . . . . . . . . . . . . . . .  29
-     9.1.  End user location anchor host . . . . . . . . . . . . . .  29
-     9.2.  Data center location anchor host  . . . . . . . . . . . .  29
-   10. Data Plane Geolocation Extensions . . . . . . . . . . . . . .  30
-     10.1.  HTTP: Workload-Geo-ID Header . . . . . . . . . . . . . .  30
-     10.2.  HTTP: Geolocation in SVID  . . . . . . . . . . . . . . .  31
-     10.3.  IPSEC: Geolocation in IKEv2  . . . . . . . . . . . . . .  32
-   11. Confidential Computing Considerations . . . . . . . . . . . .  32
-   12. Solution Mapping to Industry Gaps . . . . . . . . . . . . . .  33
-   13. Authorization Policy Implementers . . . . . . . . . . . . . .  34
-   14. Security Considerations . . . . . . . . . . . . . . . . . . .  34
-   15. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  35
-   16. Appendix - Items to follow up . . . . . . . . . . . . . . . .  36
+           HPE iLO)  . . . . . . . . . . . . . . . . . . . . . . . .  28
+       8.5.1.  Architecture  . . . . . . . . . . . . . . . . . . . .  28
+       8.5.2.  Advantages  . . . . . . . . . . . . . . . . . . . . .  29
+       8.5.3.  Limitations . . . . . . . . . . . . . . . . . . . . .  29
+     8.6.  Composite Geolocation and Policy Enforcement  . . . . . .  29
+   9.  Scaling the Solution  . . . . . . . . . . . . . . . . . . . .  30
+     9.1.  End user location anchor host . . . . . . . . . . . . . .  30
+     9.2.  Data center location anchor host  . . . . . . . . . . . .  31
+   10. Data Plane Geolocation Extensions . . . . . . . . . . . . . .  32
+     10.1.  HTTP: Workload-Geo-ID Header . . . . . . . . . . . . . .  32
+     10.2.  HTTP: Geolocation in SVID  . . . . . . . . . . . . . . .  33
+     10.3.  IPSEC: Geolocation in IKEv2  . . . . . . . . . . . . . .  33
+   11. Confidential Computing Considerations . . . . . . . . . . . .  33
+   12. Solution Mapping to Industry Gaps . . . . . . . . . . . . . .  35
+   13. Authorization Policy Implementers . . . . . . . . . . . . . .  35
+   14. Security Considerations . . . . . . . . . . . . . . . . . . .  36
+   15. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  37
+   16. Appendix - Items to follow up . . . . . . . . . . . . . . . .  37
      16.1.  OPEN ISSUES 1: Restart time attestation/remote
             verification of workload identity agent for integrity and
-            proof of residency on Host . . . . . . . . . . . . . . .  36
-     16.2.  OPEN ISSUES 2: Location privacy options  . . . . . . . .  36
-     16.3.  OPEN ISSUES 3: Attested PTP (Partially Addressed)  . . .  36
-     16.4.  OPEN ISSUES 4: Geotagging textual data . . . . . . . . .  36
-     16.5.  OPEN ISSUES 5: Attesting Geotags . . . . . . . . . . . .  36
-   17. Appendix - Public References for Strict Data Residency
-           Rules . . . . . . . . . . . . . . . . . . . . . . . . . .  36
+            proof of residency on Host . . . . . . . . . . . . . . .  37
+     16.2.  OPEN ISSUES 2: Location privacy options  . . . . . . . .  37
+     16.3.  OPEN ISSUES 3: Attested PTP (Partially Addressed)  . . .  37
+     16.4.  OPEN ISSUES 4: Geotagging textual data . . . . . . . . .  37
+     16.5.  OPEN ISSUES 5: Attesting Geotags . . . . . . . . . . . .  38
 
 
 
@@ -170,7 +170,9 @@ Krishnan, et al.         Expires 26 August 2026                 [Page 3]
 Internet-Draft                    GeoW                     February 2026
 
 
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  37
+   17. Appendix - Public References for Strict Data Residency
+           Rules . . . . . . . . . . . . . . . . . . . . . . . . . .  38
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  38
 
 1.  Conventions and Definitions
 
@@ -215,9 +217,7 @@ Internet-Draft                    GeoW                     February 2026
       explicitly trusted computing environments or hosts, governing
       where storage and processing occur.
    Data Residency Geolocation-Affinity Requirement:  Data must not be
-      transferred beyond defined geographic regions.  All storage and
-      computation must remain within the specified boundaries.
-   Data Residency Host Geolocation Affinity (aka Geofencing):  A
+
 
 
 
@@ -226,6 +226,9 @@ Krishnan, et al.         Expires 26 August 2026                 [Page 4]
 Internet-Draft                    GeoW                     February 2026
 
 
+      transferred beyond defined geographic regions.  All storage and
+      computation must remain within the specified boundaries.
+   Data Residency Host Geolocation Affinity (aka Geofencing):  A
       compound enforcement mechanism requiring that data and workloads
       are executed only on authorized hosts located within the approved
       geographic regions.
@@ -266,6 +269,19 @@ Internet-Draft                    GeoW                     February 2026
    environments, and directly addresses the limitations of bearer
    tokens, proof-of-possession, IPSEC, and trust-in-transit.
 
+
+
+
+
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                 [Page 5]
+
+Internet-Draft                    GeoW                     February 2026
+
+
 3.  Relationship to Transitive Attestation
 
    This document is part of a layered attestation architecture that,
@@ -274,13 +290,6 @@ Internet-Draft                    GeoW                     February 2026
    through to workload identity.
 
    The three layers are:
-
-
-
-Krishnan, et al.         Expires 26 August 2026                 [Page 5]
-
-Internet-Draft                    GeoW                     February 2026
-
 
    *  *Layer 1 -- Workload Identity Attestation (Hardware-Independent):*
       Covered by [[I-D.mw-wimse-transitive-attestation]].  Proves that a
@@ -322,21 +331,18 @@ Internet-Draft                    GeoW                     February 2026
    *  The *Workload Identity Agent* is represented by the SPIFFE/SPIRE
       agent.
 
-4.  Use Cases
-
-   Data residency use cases can be divided into three categories: (1)
-   server-centric location, (2) user-centric location, and (3)
-   regulatory compliance.
-
-
-
-
 
 
 Krishnan, et al.         Expires 26 August 2026                 [Page 6]
 
 Internet-Draft                    GeoW                     February 2026
 
+
+4.  Use Cases
+
+   Data residency use cases can be divided into three categories: (1)
+   server-centric location, (2) user-centric location, and (3)
+   regulatory compliance.
 
 4.1.  Category 1: Server-centric Location
 
@@ -378,12 +384,6 @@ Internet-Draft                    GeoW                     February 2026
    the training process is occurring on trusted hosts within the defined
    boundaries.
 
-4.1.4.  User workload to Server workload
-
-   Enterprises ensure that they are communicating with a server (e.g.,
-   cloud services) located within a specific geographic boundary.
-
-
 
 
 
@@ -393,6 +393,11 @@ Krishnan, et al.         Expires 26 August 2026                 [Page 7]
 
 Internet-Draft                    GeoW                     February 2026
 
+
+4.1.4.  User workload to Server workload
+
+   Enterprises ensure that they are communicating with a server (e.g.,
+   cloud services) located within a specific geographic boundary.
 
 4.2.  Category 2: User-centric Location
 
@@ -437,11 +442,6 @@ Internet-Draft                    GeoW                     February 2026
    sources, and authentication mechanisms.  This section outlines the
    key gaps and problems that this specification aims to address.
 
-5.1.  Data Generation/at-Rest Challenges
-
-   Textual Geotags:  No standard for textual geotags (EXIF covers media
-      only).
-   Attesting Geotags:  Existing geotag formats are unsigned and
 
 
 
@@ -450,6 +450,11 @@ Krishnan, et al.         Expires 26 August 2026                 [Page 8]
 Internet-Draft                    GeoW                     February 2026
 
 
+5.1.  Data Generation/at-Rest Challenges
+
+   Textual Geotags:  No standard for textual geotags (EXIF covers media
+      only).
+   Attesting Geotags:  Existing geotag formats are unsigned and
       forgeable via VPN/MITM attacks.
 
 5.2.  Data-in-Use Challenges
@@ -492,11 +497,6 @@ Internet-Draft                    GeoW                     February 2026
       navigation systems, can be spoofed.  A practical example is the
       Israel GPS spoofing attacks.
 
-5.2.3.  Implicit Trust Challenges
-
-   *  *Cloud Region Trust*: Implicit trust in cloud region assignment
-      with no cryptographic proof of physical locality.  There is no
-      auditable link between stored blobs and actual geography.
 
 
 
@@ -505,6 +505,12 @@ Krishnan, et al.         Expires 26 August 2026                 [Page 9]
 
 Internet-Draft                    GeoW                     February 2026
 
+
+5.2.3.  Implicit Trust Challenges
+
+   *  *Cloud Region Trust*: Implicit trust in cloud region assignment
+      with no cryptographic proof of physical locality.  There is no
+      auditable link between stored blobs and actual geography.
 
    *  *Trust in Transit:* HTTP requests can be intercepted and modified
       by compromised intermediate proxies (e.g., API gateways, SASE
@@ -548,12 +554,6 @@ Internet-Draft                    GeoW                     February 2026
    This section assumes that the maximum round-trip delay within a data
    center typically ranges from 500-1000 microseconds.
 
-   Scalable hierarchical approach -- enhancements to Workload Identity
-   (SPIFFE/SPIRE) solution:
-
-   *  Each of the hosts runs a workload identity agent (SPIFFE/SPIRE
-      agent) with TPM plugin which connects to a workload identity
-      manager (SPIFFE/SPIRE server).
 
 
 
@@ -561,6 +561,13 @@ Krishnan, et al.         Expires 26 August 2026                [Page 10]
 
 Internet-Draft                    GeoW                     February 2026
 
+
+   Scalable hierarchical approach -- enhancements to Workload Identity
+   (SPIFFE/SPIRE) solution:
+
+   *  Each of the hosts runs a workload identity agent (SPIFFE/SPIRE
+      agent) with TPM plugin which connects to a workload identity
+      manager (SPIFFE/SPIRE server).
 
    *  Location anchor hosts are directly attached to trusted location
       source - Mobile modem, GNSS Galileo receiver etc.
@@ -603,13 +610,6 @@ Internet-Draft                    GeoW                     February 2026
 
    Similar to the server hosts solution:
 
-   *  Each of the hosts runs a workload identity agent (SPIFFE/SPIRE
-      agent) which connects to a workload identity manager (SPIFFE/SPIRE
-      server).
-
-
-
-
 
 
 
@@ -617,6 +617,10 @@ Krishnan, et al.         Expires 26 August 2026                [Page 11]
 
 Internet-Draft                    GeoW                     February 2026
 
+
+   *  Each of the hosts runs a workload identity agent (SPIFFE/SPIRE
+      agent) which connects to a workload identity manager (SPIFFE/SPIRE
+      server).
 
 7.  TPM Platform Attestation (Layer 2)
 
@@ -658,12 +662,8 @@ Internet-Draft                    GeoW                     February 2026
    referred to as the TCGLog, and stored in the TPM's Platform
    Configuration Registers (PCRs).
 
-   *Attestation Report*: The TPM generates an attestation report, which
-   includes the signed measurements and the boot configuration log.  The
-   signature of the attestation report (aka quote) is by a TPM
-   Attestation Key (AK).  This attestation includes data about the TPM's
-   state and can be used to verify that the AK is indeed
-   cryptographically backed by the TPM Endorsement Key (EK) certificate.
+
+
 
 
 
@@ -673,6 +673,13 @@ Krishnan, et al.         Expires 26 August 2026                [Page 12]
 
 Internet-Draft                    GeoW                     February 2026
 
+
+   *Attestation Report*: The TPM generates an attestation report, which
+   includes the signed measurements and the boot configuration log.  The
+   signature of the attestation report (aka quote) is by a TPM
+   Attestation Key (AK).  This attestation includes data about the TPM's
+   state and can be used to verify that the AK is indeed
+   cryptographically backed by the TPM Endorsement Key (EK) certificate.
 
    *Transmission*: The attestation report is then sent to an external
    verifier (Workload Identity Manager), through a secure TLS
@@ -713,13 +720,6 @@ Internet-Draft                    GeoW                     February 2026
 
    Step 1 (Workload Identity Agent TPM APP ID issuance):
 
-   1.  The Workload Identity Agent TPM plugin generates a TPM APP
-       private key for proof of residency on the host for each start/
-       restart.
-   2.  The Workload Identity Agent TPM plugin sends the TPM APP public
-       key, TPM AK public key and TPM EK certificate attestation
-       parameters to the Workload Identity Manager.
-
 
 
 
@@ -730,6 +730,12 @@ Krishnan, et al.         Expires 26 August 2026                [Page 13]
 Internet-Draft                    GeoW                     February 2026
 
 
+   1.  The Workload Identity Agent TPM plugin generates a TPM APP
+       private key for proof of residency on the host for each start/
+       restart.
+   2.  The Workload Identity Agent TPM plugin sends the TPM APP public
+       key, TPM AK public key and TPM EK certificate attestation
+       parameters to the Workload Identity Manager.
    3.  The Workload Identity Manager verifies the attestation
        parameters.  It then validates that the TPM EK certificate is in
        the trusted TPM EK certificate list with the Host Identity
@@ -772,12 +778,6 @@ Internet-Draft                    GeoW                     February 2026
         signature of the Workload Identity Agent public key, and the
         Workload Identity Agent TPM APP ID.
 
-7.4.  Deployment Option A: Host OS-Based (Keylime)
-
-   In this option, the TPM attestation agent runs on the host operating
-   system with direct TPM access.  An external Keylime Verifier performs
-   remote verification.
-
 
 
 
@@ -785,6 +785,12 @@ Krishnan, et al.         Expires 26 August 2026                [Page 14]
 
 Internet-Draft                    GeoW                     February 2026
 
+
+7.4.  Deployment Option A: Host OS-Based (Keylime)
+
+   In this option, the TPM attestation agent runs on the host operating
+   system with direct TPM access.  An external Keylime Verifier performs
+   remote verification.
 
 7.4.1.  Architecture
 
@@ -827,12 +833,6 @@ Internet-Draft                    GeoW                     February 2026
       process to be running.
    *  Agent compromise could potentially affect attestation integrity
       (mitigated by TPM-bound keys).
-
-
-
-
-
-
 
 
 
@@ -1195,7 +1195,79 @@ Internet-Draft                    GeoW                     February 2026
       -  *Log delivery suppressed* → detected by absence of log at Step
          4 (trust failure due to missing evidence).
 
-7.5.7.  Advantages
+7.5.7.  Workload Identity Fusion: SPIRE Re-Attestation via Management
+        Processor
+
+   Both deployment options (A and B) can integrate periodic SPIRE Agent
+   re-attestation with host platform attestation to fuse workload
+   identity with hardware-verified host integrity.  The core pattern is:
+   the SPIRE Server's challenge nonce is forwarded to the host
+   attestation verifier, which uses it to fetch a fresh TPM Quote,
+   creating a cryptographic binding between the workload SVID and the
+   host's hardware-attested state.
+
+   *In-band implementation (Option A):* In the reference implementation
+   [[AegisSovereignAI]], the SPIRE Server sends a challenge nonce to the
+   SPIRE Agent, which assembles a SovereignAttestation message.  The
+   SPIRE Server delegates verification to the Keylime Verifier, which
+   contacts the in-band Keylime agent to fetch a fresh TPM Quote using
+   the same nonce.  The verifier validates the Quote, IMA log, and
+   geolocation, then returns attested claims to the SPIRE Server for
+   SVID issuance.  This flow is entirely in-band: the TPM Quote travels
+   through the host OS network stack.
+
+   *OOB upgrade (Option B):* When a management processor is available,
+   the verification step is upgraded to use the OOB path.  The SPIRE
+   Server still sends a challenge nonce to the SPIRE Agent, and the
+   SPIRE Agent still assembles a SovereignAttestation message.  However,
+   the management plane verifier (e.g., HPE OneView/GreenLake) forwards
+   the nonce to the management processor (iLO) instead of the in-band
+   agent.  The management processor fetches the TPM Quote via its
+   dedicated I2C/private bus (Step 3 of the Periodic Attestation Cycle),
+   and the IMA log is collected separately as untrusted input from the
+   host (Step 4).  The verifier performs the full validation (Step 6),
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 22]
+
+Internet-Draft                    GeoW                     February 2026
+
+
+   and the attested claims -- including platform integrity, IMA status,
+   and geolocation -- are returned to the SPIRE Server for SVID
+   issuance.
+
+   *Periodic re-attestation:* The SPIRE Agent's SVID has a short TTL
+   (e.g., 60 seconds) and is periodically re-issued.  Each re-
+   attestation cycle triggers the full OOB verification flow, meaning
+   the workload identity is continuously re-bound to the host's current
+   hardware-attested state.  If the host platform fails attestation
+   (e.g., IMA log tampering detected, unauthorized binary loaded), the
+   SPIRE Server refuses to re-issue the SVID, effectively revoking the
+   workload's identity and blocking it from communicating with other
+   services.
+
+   This fusion achieves several properties:
+
+   1.  *Single nonce, dual binding:* The same cryptographic nonce binds
+       both the workload identity proof (TPM App Key certification) and
+       the host platform integrity proof (TPM Quote via OOB path),
+       preventing an attacker from combining a valid workload credential
+       with a compromised host.
+   2.  *Continuous assurance:* Unlike one-time boot attestation, the
+       short SVID TTL forces re-attestation every 20-60 seconds,
+       ensuring that host compromise is detected within one attestation
+       cycle.
+   3.  *Automatic revocation:* SVID non-renewal on attestation failure
+       is an implicit revocation mechanism that requires no revocation
+       lists or OCSP infrastructure.
+   4.  *Defense in depth:* The OOB path ensures that even if the in-band
+       SPIRE Agent and Keylime Agent are both compromised, the
+       management processor's independent TPM Quote reveals the true
+       platform state.
+
+7.5.8.  Advantages
 
    *  Out-of-band attestation: works even when the host OS is
       compromised, rebooting, or offline.
@@ -1207,9 +1279,17 @@ Internet-Draft                    GeoW                     February 2026
    *  Enterprise fleet management integration (HPE OneView, Dell iDRAC,
       Lenovo XClarity, etc.).
 
-7.5.8.  Limitations
+7.5.9.  Limitations
 
    *  Vendor-specific management processor implementations.
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 23]
+
+Internet-Draft                    GeoW                     February 2026
+
+
    *  Requires enterprise management plane infrastructure.
    *  Management processor firmware must itself be trusted and kept up
       to date.
@@ -1225,15 +1305,6 @@ Internet-Draft                    GeoW                     February 2026
       -  Only the Workload Identity Agent's TPM APP public key and Host
          identity agent's (e.g. Keylime agent) TPM AK public key are
          shared outside the host-owner organization.
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 22]
-
-Internet-Draft                    GeoW                     February 2026
-
-
       -  The consuming organization's Workload Identity Manager verifies
          that AK against its own list of trusted AK public keys.
       -  A unique TPM AK is generated and attested per tenant, so no
@@ -1268,6 +1339,13 @@ Internet-Draft                    GeoW                     February 2026
    Geolocation HW-Based Attestation establishes two additional
    properties beyond TPM Platform Attestation:
 
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 24]
+
+Internet-Draft                    GeoW                     February 2026
+
+
    1.  *Sensor Integrity:* The geolocation sensors (GNSS, mobile modem)
        attached to the host are genuine, their firmware is measured, and
        their identities (sensor hardware ID, IMEI, IMSI) are bound to
@@ -1276,19 +1354,6 @@ Internet-Draft                    GeoW                     February 2026
        geographic boundary, as determined by cryptographically attested
        sensor readings cross-verified with independent sources (e.g.,
        mobile network operator location services).
-
-
-
-
-
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 23]
-
-Internet-Draft                    GeoW                     February 2026
-
 
 8.2.  Sensor Composition and Binding to TPM EK
 
@@ -1322,6 +1387,21 @@ Internet-Draft                    GeoW                     February 2026
    minutes for stationary hosts) to check if the host's location has
    changed and to obtain an attested location.
 
+
+
+
+
+
+
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 25]
+
+Internet-Draft                    GeoW                     February 2026
+
+
    1.  The Workload Identity Agent gathers the location using the
        geolocation plugin (a) directly from host-local location sensors
        (e.g., GNSS), which provide a hardware-attested location, and/or
@@ -1338,14 +1418,6 @@ Internet-Draft                    GeoW                     February 2026
        clients (browser clients), the workload ID is the website URL.
        This ensures that the privacy of the workload is preserved while
        still allowing for geolocation enforcement.
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 24]
-
-Internet-Draft                    GeoW                     February 2026
-
-
    3.  All the above details are captured in the Geolocation Information
        Cache which contains the following fields:
        1.  Time of collection (timestamp)
@@ -1375,6 +1447,17 @@ Internet-Draft                    GeoW                     February 2026
    (relevant to all thin clients and indexed using user in OAuth bearer
    token/server website URL).
 
+
+
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 26]
+
+Internet-Draft                    GeoW                     February 2026
+
+
 8.4.  Deployment Option A: Host OS-Based (Keylime)
 
    In this option, the Keylime agent collects geolocation sensor data on
@@ -1392,16 +1475,6 @@ Internet-Draft                    GeoW                     February 2026
           sensor_serial_number, latitude, longitude, accuracy.
        *  *NOT TPM-Attested:* sim_msisdn (looked up from sidecar
           database using IMEI+IMSI composite key).
-
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 25]
-
-Internet-Draft                    GeoW                     February 2026
-
-
    2.  *PCR 15 Extension:* The agent generates a geolocation response
        where the hash of (geolocation data + challenge nonce) is
        extended into TPM PCR 15, cryptographically binding the location
@@ -1432,6 +1505,15 @@ Internet-Draft                    GeoW                     February 2026
       and TPM identity.
    *  Mobile network cross-verification mitigates GNSS spoofing.
 
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 27]
+
+Internet-Draft                    GeoW                     February 2026
+
+
 8.4.4.  Limitations
 
    *  Requires GNSS sensor and/or mobile modem to be physically attached
@@ -1449,14 +1531,6 @@ Internet-Draft                    GeoW                     February 2026
    management processor uses its dedicated hardware bus (I2C/private
    bus) to access both the TPM and the geolocation sensors, completely
    bypassing the Host CPU and OS.
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 26]
-
-Internet-Draft                    GeoW                     February 2026
-
 
    This architecture is critical for geolocation integrity because a
    compromised Host OS could feed spoofed GNSS coordinates to an in-band
@@ -1487,6 +1561,15 @@ Internet-Draft                    GeoW                     February 2026
        *  Location reading against geofence policies.
        *  Cross-verification with mobile network operator location
           services.
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 28]
+
+Internet-Draft                    GeoW                     February 2026
+
+
        *  Association with the TPM EK identity from the Layer 2
           attestation.
        *  Consistency between the hardware-signed TPM Quote (obtained
@@ -1505,14 +1588,6 @@ Internet-Draft                    GeoW                     February 2026
       attested evidence bundle.
 
 8.5.3.  Limitations
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 27]
-
-Internet-Draft                    GeoW                     February 2026
-
 
    *  Requires management processor with geolocation sensor I/O
       capability.
@@ -1543,6 +1618,14 @@ Internet-Draft                    GeoW                     February 2026
        Token (EAT) from the device's TPM Attestation Key. The auditor
        then creates a signed Endorsement binding the device identity to
        its physical position (e.g., "Building 4, Aisle 37, Cabinet 9,
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 29]
+
+Internet-Draft                    GeoW                     February 2026
+
+
        Rack Unit 2-3").  This endorsement is periodically renewed
        through re-audit and provides a level of position precision
        (rack-level) that GPS cannot achieve indoors.  The endorsement
@@ -1556,19 +1639,6 @@ Internet-Draft                    GeoW                     February 2026
    Policy enforcement can then use the composite location to verify that
    the host is within the approved geographic boundary defined by the
    geofence policy.
-
-
-
-
-
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 28]
-
-Internet-Draft                    GeoW                     February 2026
-
 
 9.  Scaling the Solution
 
@@ -1602,6 +1672,16 @@ Internet-Draft                    GeoW                     February 2026
    provides proof that the laptop/desktop host is in proximity using the
    measured signal strength and RTT.
 
+
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 30]
+
+Internet-Draft                    GeoW                     February 2026
+
+
 9.2.  Data center location anchor host
 
    The goal is to provide an easy-to-use solution that can be used by
@@ -1617,14 +1697,6 @@ Internet-Draft                    GeoW                     February 2026
    enhanced so that all PTP messages are signed with a private key.
 
    This signing can be done in two ways:
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 29]
-
-Internet-Draft                    GeoW                     February 2026
-
 
    *  Software-based: PTP software (e.g. Linux PTP daemon), after adding
       timestamp to PTP message, signs the PTP message with its private
@@ -1653,6 +1725,19 @@ Internet-Draft                    GeoW                     February 2026
    rooted attestation for PTP, including verifiable residency and
    proximity proofs, see [[I-D.ramki-ptp-hardware-rooted-attestation]].
 
+
+
+
+
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 31]
+
+Internet-Draft                    GeoW                     February 2026
+
+
 10.  Data Plane Geolocation Extensions
 
    This section describes how geolocation information from Layer 3
@@ -1672,16 +1757,6 @@ Internet-Draft                    GeoW                     February 2026
       workload location, client workload location type (e.g. precise,
       approximated, geographic region based), client workload location
       quality (e.g. GNSS, mobile network, Wi-Fi, IP address).
-
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 30]
-
-Internet-Draft                    GeoW                     February 2026
-
-
    *  Thick or Thin client flag: Indicates whether the client workload
       is a thick client (e.g., Microsoft Teams thick client app) or a
       thin client (e.g., Microsoft Teams thin client browser app).
@@ -1710,6 +1785,15 @@ Internet-Draft                    GeoW                     February 2026
    *  server website URL,
    *  client workload ID (relevant only for thick clients),
    *  client workload location,
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 32]
+
+Internet-Draft                    GeoW                     February 2026
+
+
    *  client workload location type (e.g. precise, approximated,
       geographic region based),
    *  client workload location quality (e.g. GNSS, mobile network, Wi-
@@ -1728,15 +1812,6 @@ Internet-Draft                    GeoW                     February 2026
 
    The workload SVID can be conveyed in the 'Workload-Geo-ID' header
    field.
-
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 31]
-
-Internet-Draft                    GeoW                     February 2026
-
 
 10.3.  IPSEC: Geolocation in IKEv2
 
@@ -1768,6 +1843,13 @@ Internet-Draft                    GeoW                     February 2026
    trusted.  Instead, the platform owner must maintain and verify the
    relationships between three hardware identifiers:
 
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 33]
+
+Internet-Draft                    GeoW                     February 2026
+
+
    *  Hardware-rooted certification key -- Vendor-issued, CPU-bound
       asymmetric key pair used to either sign attestation evidence
       directly (AMD VCEK) or certify an attestation signing key (Intel
@@ -1786,14 +1868,6 @@ Internet-Draft                    GeoW                     February 2026
 
    *  The confidential workload generates a hardware attestation that
       includes its hardware-rooted certification key.
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 32]
-
-Internet-Draft                    GeoW                     February 2026
-
-
    *  The platform owner receives this attestation and binds the
       reported hardware-rooted certification key to the TPM EK.
    *  This binding produces a cryptographic proof that the workload is
@@ -1822,6 +1896,16 @@ Internet-Draft                    GeoW                     February 2026
    related in structure and trust model -- both are part of Intel's Data
    Center Attestation Primitives (DCAP).
 
+
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 34]
+
+Internet-Draft                    GeoW                     February 2026
+
+
 12.  Solution Mapping to Industry Gaps
 
    This section maps the layered attestation framework to the industry
@@ -1842,13 +1926,6 @@ Internet-Draft                    GeoW                     February 2026
       proof of residency on host and workload identity.  The transitive
       attestation draft defines the mTLS PoR and DPoR protocol flows
       that consume the WIA attestation established here.
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 33]
-
-Internet-Draft                    GeoW                     February 2026
-
 
    *  *IP Address-Based Location* and *Wi-Fi-Based Location* challenges
       are addressed by Layer 3 (Geolocation HW-Based Attestation):
@@ -1878,6 +1955,13 @@ Internet-Draft                    GeoW                     February 2026
    *  K8s node agent.
    *  OS process scheduler.
 
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 35]
+
+Internet-Draft                    GeoW                     February 2026
+
+
    If the policy implementer is at the SaaS application level, things
    are simpler.  However, if it is pushed down to, say, K8s or OS
    process scheduler or JVM class loader/deserializer, then malware can
@@ -1894,17 +1978,6 @@ Internet-Draft                    GeoW                     February 2026
       Physical attacks, firmware vulnerabilities, or supply chain
       compromises could undermine attestation.  Regular updates, secure
       provisioning, and monitoring are required.
-
-
-
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 34]
-
-Internet-Draft                    GeoW                     February 2026
-
 
    *  *Geolocation Spoofing*: Location sensors (e.g., GPS) are
       susceptible to spoofing or replay attacks.  Use of
@@ -1935,6 +2008,16 @@ Internet-Draft                    GeoW                     February 2026
       prevent replay attacks and ensure the freshness of attestation
       data.
 
+
+
+
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 36]
+
+Internet-Draft                    GeoW                     February 2026
+
+
    *  *Datastore Security*: The Host hardware identity datastore
       containing trusted host compositions and location sensor details
       must be protected against unauthorized access and tampering, using
@@ -1952,15 +2035,6 @@ Internet-Draft                    GeoW                     February 2026
 15.  IANA Considerations
 
    This document has no IANA actions.
-
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 35]
-
-Internet-Draft                    GeoW                     February 2026
-
 
 16.  Appendix - Items to follow up
 
@@ -1993,6 +2067,13 @@ Internet-Draft                    GeoW                     February 2026
    standard for geotagging textual data.  If there is no geolocation
    tag, data can be stored/processed in non-compliant locations.
 
+
+
+Krishnan, et al.         Expires 26 August 2026                [Page 37]
+
+Internet-Draft                    GeoW                     February 2026
+
+
 16.5.  OPEN ISSUES 5: Attesting Geotags
 
    There is no standard for attesting (signing) geolocation tag.  If
@@ -2008,15 +2089,6 @@ Internet-Draft                    GeoW                     February 2026
    only in India.  This data should include the full end-to-end
    transaction details / information collected / carried / processed as
    part of the message / payment instruction."
-
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 36]
-
-Internet-Draft                    GeoW                     February 2026
-
 
    South Korea's Data Localization Regulations -- Geospatial Information
    Management Act (Spatial Data Act): Article 16, Paragraph 1: Prohibits
@@ -2053,20 +2125,4 @@ Authors' Addresses
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Krishnan, et al.         Expires 26 August 2026                [Page 37]
+Krishnan, et al.         Expires 26 August 2026                [Page 38]

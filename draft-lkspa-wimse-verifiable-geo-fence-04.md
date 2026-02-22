@@ -514,6 +514,23 @@ The external verifier (management plane) performs the following validation:
     * **Unauthorized binary loaded** → detected at Step 6 sub-step 6 (policy violation).
     * **Log delivery suppressed** → detected by absence of log at Step 4 (trust failure due to missing evidence).
 
+### Workload Identity Fusion: SPIRE Re-Attestation via Management Processor
+
+Both deployment options (A and B) can integrate periodic SPIRE Agent re-attestation with host platform attestation to fuse workload identity with hardware-verified host integrity. The core pattern is: the SPIRE Server's challenge nonce is forwarded to the host attestation verifier, which uses it to fetch a fresh TPM Quote, creating a cryptographic binding between the workload SVID and the host's hardware-attested state.
+
+**In-band implementation (Option A):** In the reference implementation [[AegisSovereignAI]], the SPIRE Server sends a challenge nonce to the SPIRE Agent, which assembles a SovereignAttestation message. The SPIRE Server delegates verification to the Keylime Verifier, which contacts the in-band Keylime agent to fetch a fresh TPM Quote using the same nonce. The verifier validates the Quote, IMA log, and geolocation, then returns attested claims to the SPIRE Server for SVID issuance. This flow is entirely in-band: the TPM Quote travels through the host OS network stack.
+
+**OOB upgrade (Option B):** When a management processor is available, the verification step is upgraded to use the OOB path. The SPIRE Server still sends a challenge nonce to the SPIRE Agent, and the SPIRE Agent still assembles a SovereignAttestation message. However, the management plane verifier (e.g., HPE OneView/GreenLake) forwards the nonce to the management processor (iLO) instead of the in-band agent. The management processor fetches the TPM Quote via its dedicated I2C/private bus (Step 3 of the Periodic Attestation Cycle), and the IMA log is collected separately as untrusted input from the host (Step 4). The verifier performs the full validation (Step 6), and the attested claims -- including platform integrity, IMA status, and geolocation -- are returned to the SPIRE Server for SVID issuance.
+
+**Periodic re-attestation:** The SPIRE Agent's SVID has a short TTL (e.g., 60 seconds) and is periodically re-issued. Each re-attestation cycle triggers the full OOB verification flow, meaning the workload identity is continuously re-bound to the host's current hardware-attested state. If the host platform fails attestation (e.g., IMA log tampering detected, unauthorized binary loaded), the SPIRE Server refuses to re-issue the SVID, effectively revoking the workload's identity and blocking it from communicating with other services.
+
+This fusion achieves several properties:
+
+1. **Single nonce, dual binding:** The same cryptographic nonce binds both the workload identity proof (TPM App Key certification) and the host platform integrity proof (TPM Quote via OOB path), preventing an attacker from combining a valid workload credential with a compromised host.
+2. **Continuous assurance:** Unlike one-time boot attestation, the short SVID TTL forces re-attestation every 20-60 seconds, ensuring that host compromise is detected within one attestation cycle.
+3. **Automatic revocation:** SVID non-renewal on attestation failure is an implicit revocation mechanism that requires no revocation lists or OCSP infrastructure.
+4. **Defense in depth:** The OOB path ensures that even if the in-band SPIRE Agent and Keylime Agent are both compromised, the management processor's independent TPM Quote reveals the true platform state.
+
 ### Advantages
 
 - Out-of-band attestation: works even when the host OS is compromised, rebooting, or offline.
@@ -1032,6 +1049,14 @@ South Korea's Data Localization Regulations -- Geospatial Information Management
 <reference anchor="I-D.ramki-ptp-hardware-rooted-attestation" target="https://github.com/ramkri123/ptp-asymmetric-authentication">
   <front>
     <title>Hardware-Rooted Attestation for Precision Time Protocol: Verifiable Residency and Proximity Proofs</title>
+    <author initials="R." surname="Krishnan" fullname="Ram Krishnan"/>
+    <date year="2025"/>
+  </front>
+</reference>
+
+<reference anchor="AegisSovereignAI" target="https://github.com/lfedgeai/AegisSovereignAI/blob/main/hybrid-cloud-poc/README-arch-sovereign-unified-identity.md">
+  <front>
+    <title>Aegis Sovereign AI: End-to-End Sovereign Unified Identity and Trust Framework</title>
     <author initials="R." surname="Krishnan" fullname="Ram Krishnan"/>
     <date year="2025"/>
   </front>
