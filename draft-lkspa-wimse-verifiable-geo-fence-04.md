@@ -471,40 +471,46 @@ In modern server implementations (e.g., HPE Gen11), the management processor act
 
 ### Periodic Attestation Cycle: Step-by-Step
 
-The following describes what happens during each periodic attestation cycle (e.g., every 20-60 seconds) across the three components, and how each step detects IMA or kernel compromise.
+The following describes what happens during each periodic attestation cycle (e.g., every 20-60 seconds) across the three components, and how each step detects IMA or kernel compromise. A challenge nonce is used end-to-end to guarantee freshness.
 
-**Step 1 -- Host OS: Normal Operation (Continuous)**
+**Step 1 -- External Verifier: Initiate Attestation Challenge**
+
+The external management plane (verifier) generates a cryptographically random nonce and sends it to the management processor (iLO) via the dedicated management NIC (Redfish API). This nonce will be embedded in the TPM Quote to prove that the attestation evidence is fresh and was produced in response to this specific request.
+
+* _Compromise detection:_ The nonce originates outside the host entirely (at the management plane). The host OS never sees or handles this nonce because it travels over the dedicated management network to iLO.
+
+**Step 2 -- Host OS: Normal Operation (Continuous)**
 
 During normal operation, the Linux kernel's IMA subsystem continuously measures every binary, library, and kernel module loaded on the host. Each measurement is extended into TPM PCR 10 via the in-band LPC/SPI bus. The IMA event log accumulates in kernel memory at /sys/kernel/security/ima/ascii_runtime_measurements.
 
 * _Compromise detection:_ If the kernel is compromised and IMA is disabled, measurements stop being extended into PCR 10. The PCR freezes at its last legitimate value. No new entries appear in the IMA log.
 
-**Step 2 -- Management Processor (iLO): Fetch TPM Quote (OOB)**
+**Step 3 -- Management Processor (iLO): Fetch TPM Quote (OOB)**
 
-At each attestation interval, the management processor sends a TPM2_Quote command to the TPM via its dedicated I2C/private bus, including a fresh nonce (from the management plane or locally generated). The TPM returns a signed Quote containing all PCR values (including PCR 10) and the nonce, signed by the TPM's Attestation Key. The management processor also reads the TCG Boot Event Log from firmware memory.
+The management processor passes the verifier's nonce to the TPM via the TPM2_Quote command over its dedicated I2C/private bus. The TPM constructs a Quote structure containing: (a) all PCR values (including PCR 10), (b) the verifier's nonce, and (c) the TPM's internal clock value (TPMS_CLOCK_INFO). The TPM signs this entire structure with its hardware-protected Attestation Key (AK). The management processor also reads the TCG Boot Event Log from firmware memory.
 
-* _Compromise detection:_ This step is entirely independent of the host OS. A compromised kernel cannot intercept, delay, or modify the Quote because it has no access to the I2C/private bus or the management processor's execution environment.
+* _Compromise detection:_ This step is entirely independent of the host OS. A compromised kernel cannot intercept, delay, or modify the Quote because it has no access to the I2C/private bus or the management processor's execution environment. The nonce is embedded inside the TPM-signed Quote, so it cannot be stripped or replaced without invalidating the signature.
 
-**Step 3 -- Host OS: Provide IMA Log (In-Band)**
+**Step 4 -- Host OS: Provide IMA Log (In-Band)**
 
 The management plane (or Keylime Verifier) requests the current IMA event log from the host OS via the host network stack (SSH/gRPC). The IMA log is transmitted as untrusted input.
 
-* _Compromise detection:_ A compromised kernel can tamper with this log (remove entries, alter hashes, truncate). This is expected behavior and is why the log is treated as untrusted. The verifier will detect any tampering in Step 5.
-* _Compromise detection:_ A compromised kernel may refuse to deliver the log entirely (e.g., kill the agent). In this case, the verifier has a TPM Quote (from Step 2) but no log to verify against it, which triggers a trust failure.
+* _Compromise detection:_ A compromised kernel can tamper with this log (remove entries, alter hashes, truncate). This is expected behavior and is why the log is treated as untrusted. The verifier will detect any tampering in Step 6.
+* _Compromise detection:_ A compromised kernel may refuse to deliver the log entirely (e.g., kill the agent). In this case, the verifier has a TPM Quote (from Step 3) but no log to verify against it, which triggers a trust failure.
 
-**Step 4 -- Management Processor (iLO): Forward Evidence to Management Plane**
+**Step 5 -- Management Processor (iLO): Forward Evidence to Management Plane**
 
-The management processor transmits the hardware-signed TPM Quote and the TCG Boot Event Log to the external management plane (e.g., HPE OneView/GreenLake) via the dedicated management NIC using the Redfish API. The management processor signs this transmission with its own OEM CA-chained identity key.
+The management processor transmits the hardware-signed TPM Quote (which contains the verifier's nonce and the TPM clock value inside the signed payload) and the TCG Boot Event Log to the external management plane (e.g., HPE OneView/GreenLake) via the dedicated management NIC using the Redfish API. The management processor signs this transmission with its own OEM CA-chained identity key.
 
 * _Compromise detection:_ The management processor's identity is verified by the OEM CA chain. A spoofed or tampered management processor would fail certificate validation.
 
-**Step 5 -- External Verifier: Validate Evidence**
+**Step 6 -- External Verifier: Validate Evidence**
 
 The external verifier (management plane or Keylime Verifier) performs the following validation:
 
 1. **Verify TPM Quote signature** using the TPM's AK public key. If invalid, the TPM or Quote has been tampered with.
-2. **Verify nonce** in the Quote matches the challenge nonce. If mismatched, the Quote is a replay of an older attestation.
-3. **Verify TPM clock** monotonicity: the clock value must be greater than the previous attestation cycle's clock value. A rollback indicates tampering.
+2. **Verify nonce** embedded in the signed Quote matches the nonce sent in Step 1. If mismatched, the Quote is a replay of an older attestation or was generated in response to a different challenge.
+3. **Verify TPM clock** monotonicity: the clock value embedded in the signed Quote must be greater than the previous attestation cycle's clock value. A rollback indicates tampering.
 4. **Replay the IMA log** entry by entry, recomputing PCR 10: for each log entry, compute Hash(entry) and extend it into a running PCR accumulator starting from the initial PCR value (all zeros after reset).
 5. **Compare the recomputed PCR 10** against the hardware-signed PCR 10 from the TPM Quote:
     * **Match:** The IMA log is consistent with the TPM's measurements. The system is running approved software.
@@ -513,11 +519,11 @@ The external verifier (management plane or Keylime Verifier) performs the follow
 7. **Check for log staleness:** Compare the number of IMA log entries and the TPM clock against the previous cycle. If the system is active (network traffic, CPU load) but the log has not grown, IMA may have been disabled by a compromised kernel.
 
 * _Compromise detection summary:_
-    * **Tampered IMA log** → detected at sub-step 5 (log-vs-PCR mismatch).
-    * **Disabled IMA** → detected at sub-step 7 (stale log with active system).
-    * **Replayed old Quote** → detected at sub-steps 2-3 (nonce/clock mismatch).
-    * **Unauthorized binary loaded** → detected at sub-step 6 (policy violation).
-    * **Log delivery suppressed** → detected by absence of log (trust failure due to missing evidence).
+    * **Tampered IMA log** → detected at Step 6 sub-step 5 (log-vs-PCR mismatch).
+    * **Disabled IMA** → detected at Step 6 sub-step 7 (stale log with active system).
+    * **Replayed old Quote** → detected at Step 6 sub-steps 2-3 (nonce from Step 1 / clock mismatch).
+    * **Unauthorized binary loaded** → detected at Step 6 sub-step 6 (policy violation).
+    * **Log delivery suppressed** → detected by absence of log at Step 4 (trust failure due to missing evidence).
 
 ### Advantages
 
