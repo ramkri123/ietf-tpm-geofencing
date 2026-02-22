@@ -417,13 +417,19 @@ While both paths share the same physical TPM silicon, their roles are logically 
 
 * The **Management Processor** sees the TPM as a managed component via the Silicon Root of Trust. It can verify the TPM's Endorsement Key (EK) and Platform Certificate to ensure the TPM itself has not been tampered with. It uses the dedicated management NIC (via Redfish API) to report status independently of the OS network stack.
 
+The end-to-end attestation paths are therefore:
+
+* **In-band (Option A):** TPM --[LPC/SPI bus]--> Host CPU/OS --[host NIC, SSH/gRPC]--> Remote Verifier. The IMA event log and TPM Quote both travel through the host OS network stack. A compromised kernel sits on this path and can interfere with log delivery, though it cannot forge the hardware-signed TPM Quote.
+
+* **Out-of-band (Option B):** TPM --[I2C/private bus]--> Management Processor --[dedicated mgmt NIC, Redfish API]--> Management Plane. The host OS has no visibility into this path. The management processor fetches the TPM Quote independently, so a compromised kernel cannot intercept, delay, or suppress the attestation evidence.
+
 ### Silicon Root of Trust and IMA Integrity Protection
 
 To ensure that the attestation measurements themselves are trustworthy, the management processor architecture provides multiple layers of protection against the "who watches the watcher" problem:
 
 **Protection 1 -- Secure Boot / Silicon Root of Trust:** Before the OS starts, the management processor ASIC (e.g., HPE iLO) verifies the UEFI BIOS firmware. The BIOS then verifies the Bootloader (GRUB), and the Bootloader verifies the Linux Kernel signature. This ensures that the version of the Linux kernel -- and thus the IMA subsystem code -- being loaded is the authentic, signed version.
 
-**Protection 2 -- TPM PCR Extension (Hardware Enforcement):** Linux IMA does not just keep a list of hashes in RAM; it extends those hashes into TPM PCR 10. PCR extension is a one-way operation -- data can be added (extended) to a PCR, but it cannot be overwritten or deleted without a full system reboot. Even if a compromised kernel tries to stop IMA from recording a malicious binary, it cannot undo the previous clean measurements in the TPM. A remote verifier will detect that the aggregate hash in PCR 10 no longer matches the provided IMA log, triggering a trust failure.
+**Protection 2 -- TPM PCR Extension (Hardware Enforcement):** Linux IMA does not just keep a list of hashes in RAM; it extends those hashes into TPM PCR 10. PCR extension is a one-way operation -- data can be added (extended) to a PCR, but it cannot be overwritten or deleted without a full system reboot. Even if a compromised kernel tries to stop IMA from recording a malicious binary, it cannot undo the previous clean measurements in the TPM. To verify integrity, the remote verifier obtains two pieces of evidence: (1) the IMA event log, which is software-provided from the host OS and could be tampered with, and (2) the TPM Quote, which is hardware-signed by the TPM's Attestation Key and cannot be forged. The verifier replays the IMA log to recompute the expected PCR 10 value and compares it against the hardware-signed TPM Quote. Any mismatch -- such as a missing or altered log entry -- means the IMA log has been tampered with, triggering a trust failure.
 
 **Protection 3 -- IMA Appraisal Mode:** By default, IMA only measures (logs). In IMA Appraisal mode, the kernel refuses to execute any binary or load any library that does not have a valid cryptographic signature (stored as an extended attribute on the file). IMA policies can themselves be digitally signed, preventing tampering.
 
