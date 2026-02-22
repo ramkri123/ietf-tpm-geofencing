@@ -1366,8 +1366,8 @@ Internet-Draft                    GeoW                     February 2026
    host.  In addition to obtaining location from device location sources
    (e.g., GNSS), it connects to mobile location service providers (e.g.,
    Telefonica) using the GSMA Location API.  The process described below
-   is run periodically (e.g., every 5 minutes) to check if the host
-   hardware composition has changed.  Host hardware composition
+   is run at a programmable interval (e.g., every 5 minutes) to check if
+   the host hardware composition has changed.  Host hardware composition
    comprises TPM EK, GNSS sensor hardware ID, mobile sensor hardware ID
    (IMEI), and mobile-SIM IMSI.  Note that this workflow is feasible
    only in enterprise environments where the host hardware is owned and
@@ -1386,11 +1386,11 @@ Internet-Draft                    GeoW                     February 2026
 
 8.3.  Geolocation Gathering Workflow
 
-   The process described below is run periodically (e.g., every 30
-   seconds for frequently mobile hosts such as smartphones; every 5
-   minutes for less frequently mobile hosts such as laptops; every 50
-   minutes for stationary hosts) to check if the host's location has
-   changed and to obtain an attested location.
+   The process described below is run at a programmable interval (e.g.,
+   every 30 seconds for frequently mobile hosts such as smartphones;
+   every 5 minutes for less frequently mobile hosts such as laptops;
+   every 50 minutes for stationary hosts) to check if the host's
+   location has changed and to obtain an attested location.
 
 
 
