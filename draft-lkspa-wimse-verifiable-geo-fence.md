@@ -54,6 +54,30 @@ organization = "Aryaka"
   [author.address]
   email = "srinivasa.addepalli@aryaka.com"
 
+[[contributor]]
+initials = "G."
+surname = "Arfaoui"
+fullname = "Ghada Arfaoui"
+organization = "Orange"
+  [contributor.address]
+  email = "ghada.arfaoui@orange.com"
+
+[[contributor]]
+initials = "M."
+surname = "Epley"
+fullname = "Michael Epley"
+organization = "Red Hat"
+  [contributor.address]
+  email = "mepley@redhat.com"
+
+[[contributor]]
+initials = "V."
+surname = "Masilamani"
+fullname = "Vijay Masilamani"
+organization = "Independent"
+  [contributor.address]
+  email = "saanvijay20@gmail.com"
+
 %%%
 
 .# Abstract
