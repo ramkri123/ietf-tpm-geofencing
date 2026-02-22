@@ -460,7 +460,7 @@ In modern server implementations (e.g., HPE Gen11), the management processor act
 
 ### Periodic Attestation Cycle: Step-by-Step
 
-The following describes what happens during each periodic attestation cycle (e.g., every 20-60 seconds) across the three components, and how each step detects IMA or kernel compromise. A challenge nonce is used end-to-end to guarantee freshness.
+The following describes what happens during each periodic attestation cycle (at a programmable period, e.g., every 30 seconds) across the three components, and how each step detects IMA or kernel compromise. A challenge nonce is used end-to-end to guarantee freshness.
 
 **Step 1 -- External Verifier: Initiate Attestation Challenge**
 
@@ -514,8 +514,6 @@ The external verifier (management plane) performs the following validation:
     * **Unauthorized binary loaded** → detected at Step 6 sub-step 6 (policy violation).
     * **Log delivery suppressed** → detected by absence of log at Step 4 (trust failure due to missing evidence).
 
-
-
 ### Advantages
 
 - Out-of-band attestation: works even when the host OS is compromised, rebooting, or offline.
@@ -538,12 +536,12 @@ Both deployment options (A and B) can integrate periodic SPIRE Agent re-attestat
 
 **OOB upgrade (Option B):** When a management processor is available, the verification step is upgraded to use the OOB path. The SPIRE Server still sends a challenge nonce to the SPIRE Agent, and the SPIRE Agent still assembles a SovereignAttestation message. However, the management plane verifier (e.g., HPE OneView/GreenLake) forwards the nonce to the management processor (iLO) instead of the in-band agent. The management processor fetches the TPM Quote via its dedicated I2C/private bus (Step 3 of the Periodic Attestation Cycle), and the IMA log is collected separately as untrusted input from the host (Step 4). The verifier performs the full validation (Step 6), and the attested claims -- including platform integrity, IMA status, and geolocation -- are returned to the SPIRE Server for SVID issuance.
 
-**Periodic re-attestation:** The SPIRE Agent's SVID has a short TTL (e.g., 60 seconds) and is periodically re-issued. Each re-attestation cycle triggers the full OOB verification flow, meaning the workload identity is continuously re-bound to the host's current hardware-attested state. If the host platform fails attestation (e.g., IMA log tampering detected, unauthorized binary loaded), the SPIRE Server refuses to re-issue the SVID, effectively revoking the workload's identity and blocking it from communicating with other services.
+**Periodic re-attestation:** The SPIRE Agent's SVID has a short programmable TTL (e.g., 30 seconds) and is periodically re-issued. Each re-attestation cycle triggers the full OOB verification flow, meaning the workload identity is continuously re-bound to the host's current hardware-attested state. If the host platform fails attestation (e.g., IMA log tampering detected, unauthorized binary loaded), the SPIRE Server refuses to re-issue the SVID, effectively revoking the workload's identity and blocking it from communicating with other services.
 
 This fusion achieves several properties:
 
 1. **Single nonce, dual binding:** The same cryptographic nonce binds both the workload identity proof (TPM App Key certification) and the host platform integrity proof (TPM Quote via OOB path), preventing an attacker from combining a valid workload credential with a compromised host.
-2. **Continuous assurance:** Unlike one-time boot attestation, the short SVID TTL forces re-attestation every 20-60 seconds, ensuring that host compromise is detected within one attestation cycle.
+2. **Continuous assurance:** Unlike one-time boot attestation, the short SVID TTL forces re-attestation at a programmable interval (e.g., every 30 seconds), ensuring that host compromise is detected within one attestation cycle.
 3. **Automatic revocation:** SVID non-renewal on attestation failure is an implicit revocation mechanism that requires no revocation lists or OCSP infrastructure.
 4. **Defense in depth:** The OOB path ensures that even if the in-band SPIRE Agent and Keylime Agent are both compromised, the management processor's independent TPM Quote reveals the true platform state.
 

@@ -1030,9 +1030,9 @@ Internet-Draft                    GeoW                     February 2026
 7.5.6.  Periodic Attestation Cycle: Step-by-Step
 
    The following describes what happens during each periodic attestation
-   cycle (e.g., every 20-60 seconds) across the three components, and
-   how each step detects IMA or kernel compromise.  A challenge nonce is
-   used end-to-end to guarantee freshness.
+   cycle (at a programmable period, e.g., every 30 seconds) across the
+   three components, and how each step detects IMA or kernel compromise.
+   A challenge nonce is used end-to-end to guarantee freshness.
 
    *Step 1 -- External Verifier: Initiate Attestation Challenge*
 
@@ -1258,15 +1258,15 @@ Internet-Draft                    GeoW                     February 2026
    and geolocation -- are returned to the SPIRE Server for SVID
    issuance.
 
-   *Periodic re-attestation:* The SPIRE Agent's SVID has a short TTL
-   (e.g., 60 seconds) and is periodically re-issued.  Each re-
-   attestation cycle triggers the full OOB verification flow, meaning
-   the workload identity is continuously re-bound to the host's current
-   hardware-attested state.  If the host platform fails attestation
-   (e.g., IMA log tampering detected, unauthorized binary loaded), the
-   SPIRE Server refuses to re-issue the SVID, effectively revoking the
-   workload's identity and blocking it from communicating with other
-   services.
+   *Periodic re-attestation:* The SPIRE Agent's SVID has a short
+   programmable TTL (e.g., 30 seconds) and is periodically re-issued.
+   Each re-attestation cycle triggers the full OOB verification flow,
+   meaning the workload identity is continuously re-bound to the host's
+   current hardware-attested state.  If the host platform fails
+   attestation (e.g., IMA log tampering detected, unauthorized binary
+   loaded), the SPIRE Server refuses to re-issue the SVID, effectively
+   revoking the workload's identity and blocking it from communicating
+   with other services.
 
    This fusion achieves several properties:
 
@@ -1276,9 +1276,9 @@ Internet-Draft                    GeoW                     February 2026
        preventing an attacker from combining a valid workload credential
        with a compromised host.
    2.  *Continuous assurance:* Unlike one-time boot attestation, the
-       short SVID TTL forces re-attestation every 20-60 seconds,
-       ensuring that host compromise is detected within one attestation
-       cycle.
+       short SVID TTL forces re-attestation at a programmable interval
+       (e.g., every 30 seconds), ensuring that host compromise is
+       detected within one attestation cycle.
    3.  *Automatic revocation:* SVID non-renewal on attestation failure
        is an implicit revocation mechanism that requires no revocation
        lists or OCSP infrastructure.
