@@ -475,7 +475,7 @@ The following describes what happens during each periodic attestation cycle (e.g
 
 **Step 1 -- External Verifier: Initiate Attestation Challenge**
 
-The external management plane (verifier) generates a cryptographically random nonce and sends it to the management processor (iLO) via the dedicated management NIC (Redfish API). This nonce will be embedded in the TPM Quote to prove that the attestation evidence is fresh and was produced in response to this specific request.
+The external management plane verifier (e.g., HPE OneView/GreenLake) generates a cryptographically random nonce and sends it to the management processor (iLO) via the dedicated management NIC (Redfish API). This nonce will be embedded in the TPM Quote to prove that the attestation evidence is fresh and was produced in response to this specific request.
 
 * _Compromise detection:_ The nonce originates outside the host entirely (at the management plane). The host OS never sees or handles this nonce because it travels over the dedicated management network to iLO.
 
@@ -493,7 +493,7 @@ The management processor passes the verifier's nonce to the TPM via the TPM2_Quo
 
 **Step 4 -- Host OS: Provide IMA Log (In-Band)**
 
-The external management plane (e.g., HPE OneView/GreenLake) requests the current IMA event log from the host OS via the host network stack (SSH/gRPC). The IMA log is transmitted as untrusted input.
+The external management plane verifier (e.g., HPE OneView/GreenLake) requests the current IMA event log from the host OS via the host network stack (SSH/gRPC). The IMA log is transmitted as untrusted input.
 
 * _Compromise detection:_ A compromised kernel can tamper with this log (remove entries, alter hashes, truncate). This is expected behavior and is why the log is treated as untrusted. The verifier will detect any tampering in Step 6.
 * _Compromise detection:_ A compromised kernel may refuse to deliver the log entirely (e.g., kill the agent). In this case, the verifier has a TPM Quote (from Step 3) but no log to verify against it, which triggers a trust failure.
@@ -506,7 +506,7 @@ The management processor transmits the hardware-signed TPM Quote (which contains
 
 **Step 6 -- External Verifier: Validate Evidence**
 
-The external verifier (management plane or Keylime Verifier) performs the following validation:
+The external verifier (management plane) performs the following validation:
 
 1. **Verify TPM Quote signature** using the TPM's AK public key. If invalid, the TPM or Quote has been tampered with.
 2. **Verify nonce** embedded in the signed Quote matches the nonce sent in Step 1. If mismatched, the Quote is a replay of an older attestation or was generated in response to a different challenge.

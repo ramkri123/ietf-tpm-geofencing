@@ -458,7 +458,7 @@
 <section anchor="periodic-attestation-cycle-step-by-step"><name>Periodic Attestation Cycle: Step-by-Step</name>
 <t>The following describes what happens during each periodic attestation cycle (e.g., every 20-60 seconds) across the three components, and how each step detects IMA or kernel compromise. A challenge nonce is used end-to-end to guarantee freshness.</t>
 <t><strong>Step 1 -- External Verifier: Initiate Attestation Challenge</strong></t>
-<t>The external management plane (verifier) generates a cryptographically random nonce and sends it to the management processor (iLO) via the dedicated management NIC (Redfish API). This nonce will be embedded in the TPM Quote to prove that the attestation evidence is fresh and was produced in response to this specific request.</t>
+<t>The external management plane verifier (e.g., HPE OneView/GreenLake) generates a cryptographically random nonce and sends it to the management processor (iLO) via the dedicated management NIC (Redfish API). This nonce will be embedded in the TPM Quote to prove that the attestation evidence is fresh and was produced in response to this specific request.</t>
 
 <ul spacing="compact">
 <li><em>Compromise detection:</em> The nonce originates outside the host entirely (at the management plane). The host OS never sees or handles this nonce because it travels over the dedicated management network to iLO.</li>
@@ -476,7 +476,7 @@
 <li><em>Compromise detection:</em> This step is entirely independent of the host OS. A compromised kernel cannot intercept, delay, or modify the Quote because it has no access to the I2C/private bus or the management processor's execution environment. The nonce is embedded inside the TPM-signed Quote, so it cannot be stripped or replaced without invalidating the signature.</li>
 </ul>
 <t><strong>Step 4 -- Host OS: Provide IMA Log (In-Band)</strong></t>
-<t>The external management plane (e.g., HPE OneView/GreenLake) requests the current IMA event log from the host OS via the host network stack (SSH/gRPC). The IMA log is transmitted as untrusted input.</t>
+<t>The external management plane verifier (e.g., HPE OneView/GreenLake) requests the current IMA event log from the host OS via the host network stack (SSH/gRPC). The IMA log is transmitted as untrusted input.</t>
 
 <ul spacing="compact">
 <li><em>Compromise detection:</em> A compromised kernel can tamper with this log (remove entries, alter hashes, truncate). This is expected behavior and is why the log is treated as untrusted. The verifier will detect any tampering in Step 6.</li>
@@ -489,7 +489,7 @@
 <li><em>Compromise detection:</em> The management processor's identity is verified by the OEM CA chain. A spoofed or tampered management processor would fail certificate validation.</li>
 </ul>
 <t><strong>Step 6 -- External Verifier: Validate Evidence</strong></t>
-<t>The external verifier (management plane or Keylime Verifier) performs the following validation:</t>
+<t>The external verifier (management plane) performs the following validation:</t>
 
 <ol spacing="compact">
 <li><strong>Verify TPM Quote signature</strong> using the TPM's AK public key. If invalid, the TPM or Quote has been tampered with.</li>

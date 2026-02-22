@@ -1075,12 +1075,12 @@ Internet-Draft                    GeoW                     February 2026
 
    *Step 1 -- External Verifier: Initiate Attestation Challenge*
 
-   The external management plane (verifier) generates a
-   cryptographically random nonce and sends it to the management
-   processor (iLO) via the dedicated management NIC (Redfish API).  This
-   nonce will be embedded in the TPM Quote to prove that the attestation
-   evidence is fresh and was produced in response to this specific
-   request.
+   The external management plane verifier (e.g., HPE OneView/GreenLake)
+   generates a cryptographically random nonce and sends it to the
+   management processor (iLO) via the dedicated management NIC (Redfish
+   API).  This nonce will be embedded in the TPM Quote to prove that the
+   attestation evidence is fresh and was produced in response to this
+   specific request.
 
    *  _Compromise detection:_ The nonce originates outside the host
       entirely (at the management plane).  The host OS never sees or
@@ -1128,9 +1128,10 @@ Internet-Draft                    GeoW                     February 2026
 
    *Step 4 -- Host OS: Provide IMA Log (In-Band)*
 
-   The external management plane (e.g., HPE OneView/GreenLake) requests
-   the current IMA event log from the host OS via the host network stack
-   (SSH/gRPC).  The IMA log is transmitted as untrusted input.
+   The external management plane verifier (e.g., HPE OneView/GreenLake)
+   requests the current IMA event log from the host OS via the host
+   network stack (SSH/gRPC).  The IMA log is transmitted as untrusted
+   input.
 
    *  _Compromise detection:_ A compromised kernel can tamper with this
       log (remove entries, alter hashes, truncate).  This is expected
@@ -1157,8 +1158,8 @@ Internet-Draft                    GeoW                     February 2026
 
    *Step 6 -- External Verifier: Validate Evidence*
 
-   The external verifier (management plane or Keylime Verifier) performs
-   the following validation:
+   The external verifier (management plane) performs the following
+   validation:
 
    1.  *Verify TPM Quote signature* using the TPM's AK public key.  If
        invalid, the TPM or Quote has been tampered with.
@@ -1169,7 +1170,6 @@ Internet-Draft                    GeoW                     February 2026
    3.  *Verify TPM clock* monotonicity: the clock value embedded in the
        signed Quote must be greater than the previous attestation
        cycle's clock value.  A rollback indicates tampering.
-
 
 
 
