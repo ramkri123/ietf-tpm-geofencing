@@ -523,10 +523,41 @@
 </section>
 </section>
 
+<section anchor="deployment-option-c-cloud-based-virtual-tpm-vtpm"><name>Deployment Option C: Cloud-based Virtual TPM (vTPM)</name>
+<t>In cloud environments, physical TPM access is typically virtualized. Cloud providers (e.g., AWS, GCP, Azure) provide a Virtual TPM (vTPM) to each guest Virtual Machine (VM). This vTPM is a software-emulated TPM 2.0 device that is cryptographically bound to the physical hardware's Silicon Root of Trust (e.g., AWS Nitro Security Chip).</t>
+
+<section anchor="architecture-2"><name>Architecture</name>
+
+<ol spacing="compact">
+<li><strong>Virtual TPM (vTPM):</strong> Provided by the hypervisor to the guest VM. It supports standard TPM 2.0 commands, including PCR extension and Quote generation. The vTPM's state is preserved across VM reboots and migrations.</li>
+<li><strong>Guest OS Agent (SPIRE Agent):</strong> Runs as a system daemon within the VM. It interacts with the vTPM to record boot measurements and workload identities.</li>
+<li><strong>Cloud Attestation Service:</strong> Most cloud providers offer an API (e.g., AWS Nitro Enclaves Attestation, GCP Instance Identity) that provides a signed document containing the vTPM measurements, VM identity, and potentially the host hardware's status.</li>
+</ol>
+</section>
+
+<section anchor="advantages-2"><name>Advantages</name>
+
+<ul spacing="compact">
+<li><strong>Scalability:</strong> Deployment is fully automated through cloud APIs, requiring no manual hardware configuration.</li>
+<li><strong>Transitive Trust:</strong> The vTPM is rooted in the physical host's TPM, providing hardware-backed assurance even in a virtualized environment.</li>
+<li><strong>Standardized Interface:</strong> Inside the VM, the vTPM appears as a standard <tt>/dev/tpm0</tt> device, allowing the reuse of existing tools like Keylime and SPIRE.</li>
+</ul>
+</section>
+
+<section anchor="limitations-2"><name>Limitations</name>
+
+<ul spacing="compact">
+<li><strong>Trust in Hypervisor:</strong> The cloud consumer must trust the provider's hypervisor to correctly emulate the TPM and not tamper with the guest's PCR values.</li>
+<li><strong>Provider-Specific APIs:</strong> While the TPM interface is standard, the mechanism for verifying the &quot;outer&quot; cloud attestation document varies by provider.</li>
+</ul>
+</section>
+</section>
+
 <section anchor="workload-identity-fusion-periodic-spire-re-attestation"><name>Workload Identity Fusion: Periodic SPIRE Re-Attestation</name>
-<t>Both deployment options (A and B) can integrate periodic SPIRE Agent re-attestation with host platform attestation to fuse workload identity with hardware-verified host integrity. The core pattern is: the SPIRE Server's challenge nonce is forwarded to the host attestation verifier, which uses it to fetch a fresh TPM Quote, creating a cryptographic binding between the workload SVID and the host's hardware-attested state.</t>
+<t>The three deployment options (A, B, and C) can integrate periodic SPIRE Agent re-attestation with platform attestation to fuse workload identity with hardware-verified host integrity. The core pattern is: the SPIRE Server's challenge nonce is forwarded to the attestation verifier, which uses it to fetch a fresh TPM Quote (from either a physical or virtual TPM), creating a cryptographic binding between the workload SVID and the platform's hardware-attested state.</t>
 <t><strong>In-band implementation (Option A):</strong> In the reference implementation [[AegisSovereignAI]], the SPIRE Server sends a challenge nonce to the SPIRE Agent, which assembles a SovereignAttestation message. The SPIRE Server delegates verification to the Keylime Verifier, which contacts the in-band Keylime agent to fetch a fresh TPM Quote using the same nonce. The verifier validates the Quote, IMA log, and geolocation, then returns attested claims to the SPIRE Server for SVID issuance. This flow is entirely in-band: the TPM Quote travels through the host OS network stack.</t>
-<t><strong>OOB upgrade (Option B):</strong> When a management processor is available, the verification step is upgraded to use the OOB path. The SPIRE Server still sends a challenge nonce to the SPIRE Agent, and the SPIRE Agent still assembles a SovereignAttestation message. However, the management plane verifier (e.g., HPE OneView/GreenLake) forwards the nonce to the management processor (iLO) instead of the in-band agent. The management processor fetches the TPM Quote via its dedicated I2C/private bus (Step 3 of the Periodic Attestation Cycle), and the IMA log is collected separately as untrusted input from the host (Step 4). The verifier performs the full validation (Step 6), and the attested claims -- including platform integrity, IMA status, and geolocation -- are returned to the SPIRE Server for SVID issuance.</t>
+<t><strong>OOB upgrade (Option B):</strong> When a management processor is available, the verification step is upgraded to use the OOB path. The SPIRE Server still sends a challenge nonce to the SPIRE Agent, and the SPIRE Agent still assembles a SovereignAttestation message. However, the management plane verifier (e.g., HPE OneView/GreenLake) forwards the nonce to the management processor (iLO) instead of the in-band agent. The management processor fetches the TPM Quote via its dedicated I2C/private bus, and the IMA log is collected separately as untrusted input from the host. The verifier performs the full validation, and the attested claims -- including platform integrity and geolocation -- are returned to the SPIRE Server for SVID issuance.</t>
+<t><strong>Cloud vTPM (Option C):</strong> In a cloud deployment, the SPIRE Server sends a challenge nonce to the SPIRE Agent running as a system daemon on the guest VM. The agent utilizes the vTPM to certify its identity and potentially fetches a cloud attestation document (e.g., AWS Nitro document) that includes the challenge nonce. The SPIRE Server (or a delegated verifier) validates the cloud provider's signature and the vTPM Quote, ensuring the VM is running in a trusted environment before issuing the SVID.</t>
 <t><strong>Periodic re-attestation:</strong> The SPIRE Agent's SVID has a short programmable TTL (e.g., 30 seconds) and is periodically re-issued. Each re-attestation cycle triggers the full OOB verification flow, meaning the workload identity is continuously re-bound to the host's current hardware-attested state. If the host platform fails attestation (e.g., IMA log tampering detected, unauthorized binary loaded), the SPIRE Server refuses to re-issue the SVID, effectively revoking the workload's identity and blocking it from communicating with other services.</t>
 <t>This fusion achieves several properties:</t>
 
@@ -612,7 +643,7 @@
 <section anchor="deployment-option-a-host-os-based-keylime-1"><name>Deployment Option A: Host OS-Based (Keylime)</name>
 <t>In this option, the Keylime agent collects geolocation sensor data on the host OS and extends TPM PCR 15 with a hash of the geolocation evidence, binding the location to the TPM attestation.</t>
 
-<section anchor="architecture-2"><name>Architecture</name>
+<section anchor="architecture-3"><name>Architecture</name>
 
 <ol spacing="compact">
 <li><t><strong>Keylime Agent (on host):</strong> In addition to its TPM attestation role (Layer 2), the agent interfaces with GNSS sensors and mobile modems attached to the host. It collects:</t>
@@ -638,7 +669,7 @@
 <t>A mobile location verification microservice acts as a thin CAMARA API wrapper. It receives the MSISDN (from SVID claims or Keylime DB lookup via IMEI+IMSI) and queries the mobile network operator's location service to obtain an independent location fix and cross-verify the GNSS-reported location.</t>
 </section>
 
-<section anchor="advantages-2"><name>Advantages</name>
+<section anchor="advantages-3"><name>Advantages</name>
 
 <ul spacing="compact">
 <li>Reuses the same Keylime infrastructure as Layer 2.</li>
@@ -647,7 +678,7 @@
 </ul>
 </section>
 
-<section anchor="limitations-2"><name>Limitations</name>
+<section anchor="limitations-3"><name>Limitations</name>
 
 <ul spacing="compact">
 <li>Requires GNSS sensor and/or mobile modem to be physically attached to the host.</li>
@@ -660,7 +691,7 @@
 <t>In this option, geolocation sensors are connected to or accessible from the management processor, providing out-of-band geolocation attestation independent of the host OS. This leverages the same dual-path architecture described in the Layer 2 Option B: the management processor uses its dedicated hardware bus (I2C/private bus) to access both the TPM and the geolocation sensors, completely bypassing the Host CPU and OS.</t>
 <t>This architecture is critical for geolocation integrity because a compromised Host OS could feed spoofed GNSS coordinates to an in-band Keylime agent. By routing sensor readings through the management processor's isolated hardware path, the geolocation data is collected and attested without any Host OS involvement.</t>
 
-<section anchor="architecture-3"><name>Architecture</name>
+<section anchor="architecture-4"><name>Architecture</name>
 
 <ol spacing="compact">
 <li><strong>Management Processor Sensor Interface:</strong> The management processor (BMC/iLO) interfaces with geolocation sensors (GNSS receivers, mobile modems) through dedicated I/O channels separate from the host CPU bus. Sensor readings are collected by the management processor independently of the host OS. The management processor can verify sensor firmware integrity as part of its Silicon Root of Trust chain.</li>
@@ -677,7 +708,7 @@
 </ol>
 </section>
 
-<section anchor="advantages-3"><name>Advantages</name>
+<section anchor="advantages-4"><name>Advantages</name>
 
 <ul spacing="compact">
 <li>Geolocation readings are hardware-isolated from the host OS -- immune to host-level malware and GNSS spoofing at the OS layer.</li>
@@ -687,7 +718,7 @@
 </ul>
 </section>
 
-<section anchor="limitations-3"><name>Limitations</name>
+<section anchor="limitations-4"><name>Limitations</name>
 
 <ul spacing="compact">
 <li>Requires management processor with geolocation sensor I/O capability.</li>

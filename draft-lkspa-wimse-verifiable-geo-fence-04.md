@@ -528,13 +528,36 @@ The external verifier (management plane) performs the following validation:
 - Requires enterprise management plane infrastructure.
 - Management processor firmware must itself be trusted and kept up to date.
 
+## Deployment Option C: Cloud-based Virtual TPM (vTPM)
+
+In cloud environments, physical TPM access is typically virtualized. Cloud providers (e.g., AWS, GCP, Azure) provide a Virtual TPM (vTPM) to each guest Virtual Machine (VM). This vTPM is a software-emulated TPM 2.0 device that is cryptographically bound to the physical hardware's Silicon Root of Trust (e.g., AWS Nitro Security Chip).
+
+### Architecture
+
+1. **Virtual TPM (vTPM):** Provided by the hypervisor to the guest VM. It supports standard TPM 2.0 commands, including PCR extension and Quote generation. The vTPM's state is preserved across VM reboots and migrations.
+2. **Guest OS Agent (SPIRE Agent):** Runs as a system daemon within the VM. It interacts with the vTPM to record boot measurements and workload identities.
+3. **Cloud Attestation Service:** Most cloud providers offer an API (e.g., AWS Nitro Enclaves Attestation, GCP Instance Identity) that provides a signed document containing the vTPM measurements, VM identity, and potentially the host hardware's status.
+
+### Advantages
+
+- **Scalability:** Deployment is fully automated through cloud APIs, requiring no manual hardware configuration.
+- **Transitive Trust:** The vTPM is rooted in the physical host's TPM, providing hardware-backed assurance even in a virtualized environment.
+- **Standardized Interface:** Inside the VM, the vTPM appears as a standard `/dev/tpm0` device, allowing the reuse of existing tools like Keylime and SPIRE.
+
+### Limitations
+
+- **Trust in Hypervisor:** The cloud consumer must trust the provider's hypervisor to correctly emulate the TPM and not tamper with the guest's PCR values.
+- **Provider-Specific APIs:** While the TPM interface is standard, the mechanism for verifying the "outer" cloud attestation document varies by provider.
+
 ## Workload Identity Fusion: Periodic SPIRE Re-Attestation
 
-Both deployment options (A and B) can integrate periodic SPIRE Agent re-attestation with host platform attestation to fuse workload identity with hardware-verified host integrity. The core pattern is: the SPIRE Server's challenge nonce is forwarded to the host attestation verifier, which uses it to fetch a fresh TPM Quote, creating a cryptographic binding between the workload SVID and the host's hardware-attested state.
+The three deployment options (A, B, and C) can integrate periodic SPIRE Agent re-attestation with platform attestation to fuse workload identity with hardware-verified host integrity. The core pattern is: the SPIRE Server's challenge nonce is forwarded to the attestation verifier, which uses it to fetch a fresh TPM Quote (from either a physical or virtual TPM), creating a cryptographic binding between the workload SVID and the platform's hardware-attested state.
 
 **In-band implementation (Option A):** In the reference implementation [[AegisSovereignAI]], the SPIRE Server sends a challenge nonce to the SPIRE Agent, which assembles a SovereignAttestation message. The SPIRE Server delegates verification to the Keylime Verifier, which contacts the in-band Keylime agent to fetch a fresh TPM Quote using the same nonce. The verifier validates the Quote, IMA log, and geolocation, then returns attested claims to the SPIRE Server for SVID issuance. This flow is entirely in-band: the TPM Quote travels through the host OS network stack.
 
-**OOB upgrade (Option B):** When a management processor is available, the verification step is upgraded to use the OOB path. The SPIRE Server still sends a challenge nonce to the SPIRE Agent, and the SPIRE Agent still assembles a SovereignAttestation message. However, the management plane verifier (e.g., HPE OneView/GreenLake) forwards the nonce to the management processor (iLO) instead of the in-band agent. The management processor fetches the TPM Quote via its dedicated I2C/private bus (Step 3 of the Periodic Attestation Cycle), and the IMA log is collected separately as untrusted input from the host (Step 4). The verifier performs the full validation (Step 6), and the attested claims -- including platform integrity, IMA status, and geolocation -- are returned to the SPIRE Server for SVID issuance.
+**OOB upgrade (Option B):** When a management processor is available, the verification step is upgraded to use the OOB path. The SPIRE Server still sends a challenge nonce to the SPIRE Agent, and the SPIRE Agent still assembles a SovereignAttestation message. However, the management plane verifier (e.g., HPE OneView/GreenLake) forwards the nonce to the management processor (iLO) instead of the in-band agent. The management processor fetches the TPM Quote via its dedicated I2C/private bus, and the IMA log is collected separately as untrusted input from the host. The verifier performs the full validation, and the attested claims -- including platform integrity and geolocation -- are returned to the SPIRE Server for SVID issuance.
+
+**Cloud vTPM (Option C):** In a cloud deployment, the SPIRE Server sends a challenge nonce to the SPIRE Agent running as a system daemon on the guest VM. The agent utilizes the vTPM to certify its identity and potentially fetches a cloud attestation document (e.g., AWS Nitro document) that includes the challenge nonce. The SPIRE Server (or a delegated verifier) validates the cloud provider's signature and the vTPM Quote, ensuring the VM is running in a trusted environment before issuing the SVID.
 
 **Periodic re-attestation:** The SPIRE Agent's SVID has a short programmable TTL (e.g., 30 seconds) and is periodically re-issued. Each re-attestation cycle triggers the full OOB verification flow, meaning the workload identity is continuously re-bound to the host's current hardware-attested state. If the host platform fails attestation (e.g., IMA log tampering detected, unauthorized binary loaded), the SPIRE Server refuses to re-issue the SVID, effectively revoking the workload's identity and blocking it from communicating with other services.
 
