@@ -55,6 +55,14 @@ organization = "Aryaka"
   email = "srinivasa.addepalli@aryaka.com"
 
 [[contributor]]
+initials = "B."
+surname = "Malepati"
+fullname = "Bala Siva Sai Akhil Malepati"
+organization = "Independent"
+  [contributor.address]
+  email = "saiakhil2012@yahoo.com"
+
+[[contributor]]
 initials = "G."
 surname = "Arfaoui"
 fullname = "Ghada Arfaoui"
@@ -77,14 +85,6 @@ fullname = "Vijay Masilamani"
 organization = "Independent"
   [contributor.address]
   email = "saanvijay20@gmail.com"
-
-[[contributor]]
-initials = "B."
-surname = "Malepati"
-fullname = "Bala Siva Sai Akhil Malepati"
-organization = "Independent"
-  [contributor.address]
-  email = "saiakhil2012@yahoo.com"
 
 %%%
 
