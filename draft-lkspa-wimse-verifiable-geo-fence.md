@@ -78,6 +78,14 @@ organization = "Independent"
   [contributor.address]
   email = "saanvijay20@gmail.com"
 
+[[contributor]]
+initials = "B."
+surname = "Malepati"
+fullname = "Bala Siva Sai Akhil Malepati"
+organization = "Independent"
+  [contributor.address]
+  email = "saiakhil2012@yahoo.com"
+
 %%%
 
 .# Abstract
