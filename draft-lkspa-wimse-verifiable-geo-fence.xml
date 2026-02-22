@@ -1,0 +1,649 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- name="GENERATOR" content="github.com/mmarkdown/mmark Mmark Markdown Processor - mmark.miek.nl" -->
+<rfc version="3" ipr="trust200902" docName="draft-lkspa-wimse-verifiable-geo-fence-latest" submissionType="IETF" category="info" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true">
+
+<front>
+<title abbrev="GeoW">Zero-Trust Sovereign AI: Verifiable Geofencing and Residency Proofs for Cybersecure Workloads</title><seriesInfo value="draft-lkspa-wimse-verifiable-geo-fence-latest" stream="IETF" status="informational" name="Internet-Draft"></seriesInfo>
+<author initials="R." surname="Krishnan" fullname="Ramki Krishnan"><organization>Intel</organization><address><postal><street></street>
+</postal><email>ramki.krishnan@intel.com</email>
+</address></author><author initials="N." surname="Smith" fullname="Ned Smith"><organization>Intel</organization><address><postal><street></street>
+</postal><email>ned.smith@intel.com</email>
+</address></author><author initials="D." surname="Lopez" fullname="Diego R. Lopez"><organization>Telefonica</organization><address><postal><street></street>
+</postal><email>diego.r.lopez@telefonica.com</email>
+</address></author><author initials="A." surname="Prasad" fullname="A Prasad"><organization>Oracle</organization><address><postal><street></street>
+</postal><email>a.prasad@oracle.com</email>
+</address></author><author initials="S." surname="Addepalli" fullname="Srinivasa Addepalli"><organization>Aryaka</organization><address><postal><street></street>
+</postal><email>srinivasa.addepalli@aryaka.com</email>
+</address></author><date/>
+<area>Security</area>
+<workgroup>Workload Identity in Multi System Environments</workgroup>
+<keyword>geofencing</keyword>
+<keyword>attestation</keyword>
+<keyword>workload identity</keyword>
+<keyword>residency</keyword>
+<keyword>TPM</keyword>
+<keyword>GNSS</keyword>
+
+<abstract>
+<t>Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. This document presents a framework for modernizing workload security through cryptographically verifiable geofencing, proof-of-possession, and protocol-aware residency enforcement.</t>
+<t>By binding workload identity to both geographic and host attributes, and supplementing bearer tokens with verifiable, location- and host-bound claims, the framework addresses the challenges of bearer token theft, proof-of-possession and trust-in-transit for all networking protocols. Leveraging trusted hardware, attestation protocols, and geolocation services, this approach ensures that only authorized workloads in approved locations and environments can access sensitive data or services, even in the presence of advanced threats.</t>
+</abstract>
+
+</front>
+
+<middle>
+
+<section anchor="conventions-and-definitions"><name>Conventions and Definitions</name>
+<t>The key words &quot;MUST&quot;, &quot;MUST NOT&quot;, &quot;REQUIRED&quot;, &quot;SHALL&quot;, &quot;SHALL NOT&quot;, &quot;SHOULD&quot;, &quot;SHOULD NOT&quot;, &quot;RECOMMENDED&quot;, &quot;NOT RECOMMENDED&quot;, &quot;MAY&quot;, and &quot;OPTIONAL&quot; in this document are to be interpreted as described in BCP 14 [[RFC2119]] [[RFC8174]] when, and only when, they appear in all capitals, as shown here.</t>
+<t><strong>Acronyms used in this document:</strong></t>
+
+<ul spacing="compact">
+<li><strong>TPM</strong>: Trusted Platform Module</li>
+<li><strong>GNSS</strong>: Global Navigation Satellite System</li>
+<li><strong>IMEI</strong>: International Mobile Equipment Identity</li>
+<li><strong>IMSI</strong>: International Mobile Subscriber Identity</li>
+<li><strong>PCR</strong>: Platform Configuration Register</li>
+<li><strong>MDM</strong>: Mobile Device Management</li>
+<li><strong>IPSEC</strong>: Internet Protocol Security</li>
+</ul>
+<t><strong>Key Terms:</strong></t>
+
+<dl spacing="compact">
+<dt>Data Residency:</dt>
+<dd>Technical and Legal Challenges Ensuring compliance with global and local data protection regulations and mandates (e.g., EU GDPR, US HIPAA, PCI DSS, and jurisdiction-specific laws; see Appendix for public references on strict data residency rules). Strict data residency rules require that specific categories of data must be stored and processed exclusively within designated geographic boundaries. Enforcing these mandates relies on a combination of trusted computing, host-affinity, geolocation-affinity, and geofencing—each defined below.</dd>
+<dt>Data Residency Host-Affinity Requirement:</dt>
+<dd>Data must remain bound to explicitly trusted computing environments or hosts, governing where storage and processing occur.</dd>
+<dt>Data Residency Geolocation-Affinity Requirement:</dt>
+<dd>Data must not be transferred beyond defined geographic regions. All storage and computation must remain within the specified boundaries.</dd>
+<dt>Data Residency Host Geolocation Affinity (aka Geofencing):</dt>
+<dd>A compound enforcement mechanism requiring that data and workloads are executed only on authorized hosts located within the approved geographic regions.</dd>
+<dt>Workload Identity Agent (WIA):</dt>
+<dd>SPIRE agent on each host, with TPM plugin to issue X.509 SVIDs and sign requests.</dd>
+<dt>Location Anchor Host (LAH):</dt>
+<dd>Host with a trusted GNSS/5G modem attached to its TPM endorsement key.</dd>
+<dt>Composite Geolocation:</dt>
+<dd>Fused location estimate from local GNSS plus mobile-API data.</dd>
+<dt>Proof-Of-Residency (POR):</dt>
+<dd>Cryptographic proof that a workload is executing within approved geographic and host boundaries.</dd>
+</dl>
+</section>
+
+<section anchor="introduction"><name>Introduction</name>
+<t>As organizations increasingly adopt cloud and distributed computing, the need to enforce data residency, geolocation affinity, and host affinity has become critical for regulatory compliance and risk management. Traditional approaches to geographic and host enforcement rely on trust in infrastructure providers or network-based controls, which are insufficient in adversarial or multi-tenant environments.</t>
+<t>Modern workload security faces new challenges from stolen bearer tokens, protocol replay, and the lack of trust in transit. Attackers can exploit bearer tokens from unauthorized hosts or locations, bypassing traditional controls.</t>
+<t>This document introduces a framework for modernizing workload security by enabling cryptographically verifiable geofencing, proof-of-possession, and protocol-aware residency enforcement. The solution cryptographically binds workload identity to both platform and geographic attributes, supplementing bearer tokens with signed, verifiable claims about workload residency and location.</t>
+<t>This enables enforcement of data residency, geolocation affinity, and host affinity policies, even in adversarial or multi-tenant environments, and directly addresses the limitations of bearer tokens, proof-of-possession, IPSEC, and trust-in-transit.</t>
+</section>
+
+<section anchor="use-cases"><name>Use Cases</name>
+<t>Data residency use cases can be divided into three categories: (1) server-centric location, (2) user-centric location, and (3) regulatory compliance.</t>
+
+<section anchor="category-1-server-centric-location"><name>Category 1: Server-centric Location</name>
+<t>Enterprises (e.g., healthcare, banking) need cryptographic proof of a trustworthy geographic boundary (i.e., region, zone, country, state, etc.) for cloud-facing workloads.</t>
+
+<section anchor="server-workload-to-server-workload-general"><name>Server workload to Server workload - General</name>
+<t>Enterprises handling sensitive data rely on dedicated cloud hosts (e.g., EU sovereign cloud providers) that ensure compliance with data residency laws, while also ensuring appropriate levels of service (e.g., high availability). To meet data residency legal requirements, enterprises need to verify that workload data is processed by hosts within a geographic boundary and that workload data is only transmitted between specified geographic boundaries.</t>
+</section>
+
+<section anchor="server-workload-to-server-workload-agentic-ai"><name>Server workload to Server workload - Agentic AI</name>
+<t>Enterprises need to ensure that the AI agent is located within a specific geographic boundary when downloading sensitive data or performing other sensitive operations. A secure AI agent, running on a trusted host with TPM-backed attestation, interacts with geolocation and geofencing services to obtain verifiable proof of its geographic boundary. The agent periodically collects location data from trusted sensors, obtains attested composite location from a geolocation service, and enforces geofence policies via a geofencing service. The resulting attested geofence proof is used to bind workload identity to both the host and its geographic location, enabling secure, policy-driven execution of AI workloads and compliance with data residency requirements.</t>
+</section>
+
+<section anchor="server-workload-to-server-workload-federated-ai"><name>Server workload to Server workload - Federated AI</name>
+<t>In federated learning scenarios, multiple organizations collaborate to train machine learning models without sharing raw data. Each organization needs to ensure that its training data remains within a specific geographic boundary. This requires cryptographic proof that the training process is occurring on trusted hosts within the defined boundaries.</t>
+</section>
+
+<section anchor="user-workload-to-server-workload"><name>User workload to Server workload</name>
+<t>Enterprises ensure that they are communicating with a server (e.g., cloud services) located within a specific geographic boundary.</t>
+</section>
+</section>
+
+<section anchor="category-2-user-centric-location"><name>Category 2: User-centric Location</name>
+<t>Enterprises need cryptographic proof of trustworthy geographic boundary for user-facing workloads.</t>
+
+<ul>
+<li><t>A server (or proxy) authenticates to clients using different TLS certificates, each signed by a different Certificate Authority (CA), based on the geographic boundaries of user workloads.</t>
+</li>
+<li><t>Enterprise Customer Premise Equipment (CPE) provides on-premises computing that is a basis for defining geolocation boundaries. A telco network provides a means for communication between premises.</t>
+</li>
+<li><t>Construction &amp; Engineering of SaaS workloads can benefit from attested geographic boundary data from end-user devices to restrict access within specific geopolitical regions (e.g., California). Enabling per-user or group-level geofencing helps prevent fraudulent access originating outside the authorized area.</t>
+</li>
+<li><t>Healthcare providers need to ensure that the host is located in a specific geographic boundary when downloading patient data or performing other sensitive operations.</t>
+</li>
+<li><t>U.S. Presidential Executive Order compliance directs Cloud Service Provider (CSP) support personnel be located in restricted geographies (e.g., Venezuela, Iran, China, North Korea). However, those personnel should not be allowed to support U.S. customers. Geolocation enforcement can ensure policy compliance.</t>
+</li>
+</ul>
+</section>
+
+<section anchor="category-3-regulatory-compliance"><name>Category 3: Regulatory Compliance</name>
+<t>Geographic boundary attestation helps satisfy data residency and data sovereignty requirements for regulatory compliance.</t>
+</section>
+</section>
+
+<section anchor="industry-gaps-and-problem-statements"><name>Industry Gaps and Problem Statements</name>
+<t>Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. Current geofencing and location verification solutions face significant challenges across different data states, location sources, and authentication mechanisms. This section outlines the key gaps and problems that this specification aims to address.</t>
+
+<section anchor="data-generation-at-rest-challenges"><name>Data Generation/at-Rest Challenges</name>
+
+<dl spacing="compact">
+<dt>Textual Geotags:</dt>
+<dd>No standard for textual geotags (EXIF covers media only).</dd>
+<dt>Attesting Geotags:</dt>
+<dd>Existing geotag formats are unsigned and forgeable via VPN/MITM attacks.</dd>
+</dl>
+</section>
+
+<section anchor="data-in-use-challenges"><name>Data-in-Use Challenges</name>
+
+<section anchor="authentication-and-authorization-challenges"><name>Authentication and Authorization Challenges</name>
+
+<section anchor="bearer-token-vulnerabilities"><name>Bearer Token Vulnerabilities</name>
+<t>Bearer tokens are typically generated via user MFA and used to establish HTTP sessions. A malicious actor can steal a bearer token (e.g., from a still-valid HAR file uploaded to a support portal, as seen in the Okta attack) and present it to a server workload. The attacker may be in a forbidden location and on an unauthorized host (e.g., their own laptop). Current solution options for addressing bearer token issue and their challenges:</t>
+
+<ul spacing="compact">
+<li>PoP Token: Not easy to establish trust between the presenter (client) and the token issuer.</li>
+<li>PoP via Mutual TLS: Client certificates are generally not supported in browsers. MITM entities such as API gateways often terminate TLS connections.</li>
+<li>Host TPMs for API call signature: Not scalable to sign every API call with a TPM key, as typical enterprise laptops/servers TPMs support only about 5 signatures per second.</li>
+<li>Non-HTTP protocols: No solution for IPSEC etc.</li>
+</ul>
+</section>
+</section>
+
+<section anchor="location-and-geofencing-challenges"><name>Location and Geofencing Challenges</name>
+
+<ul>
+<li><t><strong>IP Address-Based Location:</strong> This is the typical approach, but it has limitations: network providers can use geographic-region-based IANA-assigned IP addresses anywhere in the world, and enterprise VPNs can hide the user's real IP address.</t>
+</li>
+<li><t><strong>Wi-Fi-Based Location:</strong> For user laptop endpoints with agents (e.g., ZTNA), traditional geographic enforcement relies on trusting the Wi-Fi access point's location. However, Wi-Fi access points are mobile and can be moved, undermining this trust.</t>
+</li>
+<li><t><strong>GNSS:</strong> Certain GNSS, e.g., civilian GPS in smartphones and navigation systems, can be spoofed. A practical example is the Israel GPS spoofing attacks.</t>
+</li>
+</ul>
+</section>
+
+<section anchor="implicit-trust-challenges"><name>Implicit Trust Challenges</name>
+
+<ul>
+<li><t><strong>Cloud Region Trust</strong>: Implicit trust in cloud region assignment with no cryptographic proof of physical locality. There is no auditable link between stored blobs and actual geography.</t>
+</li>
+<li><t><strong>Trust in Transit:</strong> HTTP requests can be intercepted and modified by compromised intermediate proxies (e.g., API gateways, SASE firewalls).</t>
+</li>
+</ul>
+</section>
+</section>
+</section>
+
+<section anchor="approach-overview"><name>Approach Overview</name>
+<t>This approach enables cryptographically verifiable geofencing by binding workload identity to both platform and geographic attributes using trusted hardware (e.g., TPM), attestation protocols, and geolocation services. The framework supports secure, policy-driven enforcement of data residency and location requirements for workloads in multi-system environments.</t>
+<t>Key elements of the approach include:</t>
+
+<ul spacing="compact">
+<li><strong>Trusted Hardware Roots:</strong> Workload identity is anchored in hardware roots of trust such as TPMs, GNSS sensors, and mobile network modules, ensuring device integrity and authentic location data.</li>
+<li><strong>Remote Attestation:</strong> Workload Identity Agents collect measurements from the platform and location sensors, and use TPM-backed attestation to prove the integrity and residency of the workload to a remote Workload Identity Manager.</li>
+<li><strong>Composite Location Claims:</strong> The system combines multiple sources of location (e.g., GNSS, mobile network, Wi-Fi) and device composition (e.g., SIM, TPM EK) to create a composite, quality-scored location claim, which is cryptographically signed and verifiable.</li>
+<li><strong>Policy Enforcement:</strong> Workload Identity Managers and downstream policy implementers (e.g. Firewall) use these verifiable claims to enforce geofencing and data residency policies, ensuring that workloads only run or access data within approved geographic or jurisdictional boundaries.</li>
+<li><strong>Continuous Monitoring:</strong> The framework supports periodic re-attestation and monitoring of device composition and location, detecting changes such as SIM swaps or sensor removal that could affect trust.</li>
+<li><strong>Interoperability:</strong> The approach is designed to integrate with existing workload identity frameworks (e.g., SPIFFE/SPIRE), enabling adoption in cloud, edge, and enterprise environments.</li>
+</ul>
+<t>For example, in this document:</t>
+
+<ul spacing="compact">
+<li>The <strong>Workload Identity Manager</strong> is represented by the SPIFFE/SPIRE server.</li>
+<li>The <strong>Workload Identity Agent</strong> is represented by the SPIFFE/SPIRE agent.</li>
+</ul>
+
+<section anchor="server-hosts-solution-highlights"><name>Server Hosts - Solution highlights</name>
+<t>Assumptions: The maximum round-trip delay within a data center typically ranges from 500-1000 microseconds.</t>
+<t>Scalable hierarchical approach -- enhancements to Workload Identity (SPIFFE/SPIRE) solution:</t>
+
+<ul>
+<li><t>Each of the hosts runs a workload identity agent (SPIFFE/SPIRE agent) with TPM plugin which connects to a workload identity manager (SPIFFE/SPIRE server).</t>
+</li>
+<li><t>Location anchor hosts are directly attached to trusted location source - Mobile modem, GNSS Galileo receiver etc.</t>
+
+<ul spacing="compact">
+<li>Use of multiple location anchor hosts can enhance security and trust.</li>
+<li>For mobile sensors, the location can be tracked outside of host using a GSMA standards based mobile service provider API.</li>
+</ul></li>
+<li><t>Host geolocation sensor composition manager periodically verifies location anchor hosts device composition (primarily location sensors).</t>
+
+<ul spacing="compact">
+<li>Use SPIFFE/SPIRE agent host geolocation plugin (new).</li>
+</ul></li>
+<li><t>Host proximity manager periodically verifies that location anchor hosts provide proof that application hosts are within the maximum data center round-trip delay from them.</t>
+
+<ul spacing="compact">
+<li>SW-based Attested PTP - Modified Linux PTP daemon (SPIFFE/SPIRE workload) will sign PTP messages.</li>
+<li>HW-based Attested PTP - Relevant for sub microsecond precision timing solutions.</li>
+</ul></li>
+<li><t>Workload identity agent provides proof that workloads run only on workload/location anchor hosts.</t>
+
+<ul spacing="compact">
+<li>This is done using enhancements to existing SPIFFE/SPIRE agent and TPM plugin and addresses bearer token issue.</li>
+</ul></li>
+</ul>
+</section>
+
+<section anchor="end-user-iot-hosts-solution-highlights"><name>End user/IoT hosts - Solution highlights</name>
+<t>Browser solution -- new browser extension for proof residency and geofencing:</t>
+
+<ul spacing="compact">
+<li>Application proxy which intercepts every HTTP request; connects to workload identity agent to add geolocation; signs request using workload identity agent key which is attested by TPM attestation key.</li>
+</ul>
+<t>Similar to the server hosts solution:</t>
+
+<ul spacing="compact">
+<li>Each of the hosts runs a workload identity agent (SPIFFE/SPIRE agent) which connects to a workload identity manager (SPIFFE/SPIRE server).</li>
+</ul>
+</section>
+</section>
+
+<section anchor="control-plane-end-to-end-workflow"><name>Control Plane End-to-End Workflow</name>
+<t>The end-to-end workflow for the proposed framework consists of several key steps, including attestation for system bootstrap and Workload Identity Agent initialization, Workload Identity Agent geolocation and geofencing processing, workload attestation, and remote verification.</t>
+
+<section anchor="spiffe-spire-architecture-modifications"><name>SPIFFE/SPIRE Architecture Modifications</name>
+<t>In the context of the SPIFFE/SPIRE architecture, the SPIFFE/SPIRE Agent includes a new geolocation plugin. The Agent is a daemon running on bare-metal Linux OS host (H) as a process with direct access to TPM (root permissions for TPM 2.0 access may be needed for certain Linux distributions for certain host hardware configurations). The Agent, using the geolocation plugin, can gather the location from host-local location sensors (e.g., GNSS). The Agent has a TPM plugin which interacts with the TPM. The Workload Identity Manager (SPIFFE/SPIRE server) is running in a cluster which is isolated from the cluster in which the Agent is running.</t>
+</section>
+
+<section anchor="attestation-of-os-integrity-and-proof-of-residency-on-host"><name>Attestation of OS Integrity and Proof of Residency on Host</name>
+<t>As part of system boot/reboot process, boot loader-based measured system boot with remote Workload Identity Manager verification is used to ensure only approved OS is running on an approved hardware platform.</t>
+<t><strong>Measurement Collection</strong>: During the boot process, the boot loader collects measurements (hashes) of the boot components and configurations. The boot components are Firmware/BIOS/UEFI, bootloader, OS, drivers, location devices, and initial programs. All the location devices (e.g., GNSS sensor, mobile sensor) version/firmware in a platform are measured during each boot -- this is a boot loader enhancement. Any new location device which is hot-swapped in will be evaluated for inclusion only during next reboot.</t>
+<t><strong>Log Creation</strong>: These measurements are recorded in a log, often referred to as the TCGLog, and stored in the TPM's Platform Configuration Registers (PCRs).</t>
+<t><strong>Attestation Report</strong>: The TPM generates an attestation report, which includes the signed measurements and the boot configuration log. The signature of the attestation report (aka quote) is by a TPM Attestation Key (AK). This attestation includes data about the TPM's state and can be used to verify that the AK is indeed cryptographically backed by the TPM Endorsement Key (EK) certificate.</t>
+<t><strong>Transmission</strong>: The attestation report is then sent to an external verifier (Workload Identity Manager), through a secure TLS connection.</t>
+<t><strong>Remote Verification</strong>: The remote Workload Identity Manager checks the integrity of the attestation report and validates the measurements against known good values from the set of trusted hosts in the Host hardware identity datastore. The Workload Identity Manager also validates that the TPM EK certificate has not been revoked and is part of the approved list of TPM EK identifiers associated with the hardware platform. At this point, we can be sure that the hardware platform is approved for running workloads and is running an approved OS.</t>
+</section>
+
+<section anchor="start-restart-time-attestation-remote-verification-of-workload-identity-agent-for-integrity-and-proof-of-residency-on-host"><name>Start/Restart time attestation/remote verification of Workload Identity Agent for integrity and proof of residency on Host</name>
+<t>The Workload Identity Agent TPM plugin is a process with elevated privileges with access to TPM and location sensor hardware. Linux IMA and Workload Identity Agent public/private key attestation are the changes compared to the original SPIFFE/SPIRE architecture with the TPM plugin.</t>
+<t><strong>Measurement Collection</strong>: For the Workload Identity Agent start case, the Agent executable is measured by Linux IMA, for example through cloud init and stored in TPM PCR through tools e.g., Linux ima-evm-utils before it is loaded. For the Workload Identity Agent restart case, it is not clear how the storage in TPM PCR will be accomplished - ideally this should be natively handled in the IMA measurement process with an ability to retrigger on restart or refresh cycles (OPEN ISSUES 1).</t>
+<t><strong>Local Verification</strong>: Enforce local validation of a measurement against an approved value stored in an extended attribute of the file.</t>
+<t><strong>TPM attestation and remote Workload Identity Manager verification</strong>:</t>
+<t>Step 1 (Workload Identity Agent TPM APP ID issuance):</t>
+
+<ol spacing="compact">
+<li>The Workload Identity Agent TPM plugin generates a TPM APP private key for proof of residency on the host for each start/restart.</li>
+<li>The Workload Identity Agent TPM plugin sends the TPM APP public key, TPM AK public key and TPM EK certificate attestation parameters to the Workload Identity Manager.</li>
+<li>The Workload Identity Manager verifies the attestation parameters. It then validates that the TPM EK certificate is in the trusted TPM EK certificate list with the Host Identity Manager (e.g. Keylime Verifier).</li>
+<li>If validation passes, the Workload Identity Manager generates a credential activation challenge. The challenge's secret is encrypted using the Workload Identity Agent TPM APP public key.</li>
+<li>The Workload Identity Manager sends the challenge to the Workload Identity Agent.</li>
+<li>The Workload Identity Agent decrypts the challenge's secret using its TPM APP private key.</li>
+<li>The Workload Identity Agent sends back the decrypted secret.</li>
+<li>The Workload Identity Manager verifies that the decrypted secret matches the original secret used to build the challenge.</li>
+<li>The Workload Identity Manager issues a Workload Identity Agent TPM APP ID using the TPM APP public key, TPM AK public key and TPM EK certificate.</li>
+</ol>
+<t>Step 2 (Workload Identity Agent ID issuance):</t>
+
+<ol spacing="compact">
+<li>The Workload Identity Agent generates a private/public key pair.</li>
+<li>The Workload Identity Agent uses the TPM APP private key, stored in the TPM, to sign the public key.</li>
+<li>The Workload Identity Agent sends the public key, signed by the TPM APP private key, to the Workload Identity Manager.</li>
+<li>The Workload Identity Manager ensures the public key is associated with a Workload Identity Agent TPM APP ID.</li>
+<li>If validation passes, the Workload Identity Manager generates a credential activation challenge. The challenge's secret is encrypted using the Workload Identity Agent public key.</li>
+<li>The Workload Identity Manager sends the challenge to the Workload Identity Agent.</li>
+<li>The Workload Identity Agent decrypts the challenge's secret using its private key.</li>
+<li>The Workload Identity Agent sends back the decrypted secret.</li>
+<li>The Workload Identity Manager verifies that the decrypted secret matches the original secret used to build the challenge.</li>
+<li>The Workload Identity Manager issues the Workload Identity Agent ID using the Workload Identity Agent public key, the TPM APP signature of the Workload Identity Agent public key, and the Workload Identity Agent TPM APP ID.</li>
+</ol>
+<t>Design Options for TPM-Based Workload Identity with Privacy:</t>
+
+<ul spacing="compact">
+<li>From a privacy standpoint, sharing TPM details—especially the EK certificate—across organizational boundaries can be problematic. Below are two approaches that let you attest workload identities without exposing raw EK data.</li>
+<li><t>Option 1 -- Pseudonymity:</t>
+
+<ul spacing="compact">
+<li>Only the Workload Identity Agent's TPM APP public key and Host identity agent's (e.g. Keylime agent) TPM AK public key are shared outside the host-owner organization.</li>
+<li>The consuming organization's Workload Identity Manager verifies that AK against its own list of trusted AK public keys.</li>
+<li>A unique TPM AK is generated and attested per tenant, so no single AK maps across tenants.</li>
+<li>Supported by all TPM 2.0+ devices, this gives you per-tenant pseudonymity without ever revealing the EK.</li>
+</ul></li>
+<li><t>Option 2 -- Full Anonymity:</t>
+
+<ul spacing="compact">
+<li>Leverage TPM 2.0+ Direct Anonymous Attestation (DAA) or EPID. Note that this requires TPM 2.0+ devices with DAA support.</li>
+<li>Each host's TPM runs the DAA Join protocol with a Privacy CA to obtain a group credential.</li>
+<li>The Workload Identity Agent signs its public key with that DAA credential (using a session-specific basename).</li>
+<li>The Workload Identity Manager verifies the signature against the DAA group public key—proving membership without exposing or linking any device identity.</li>
+</ul></li>
+<li>Both options remove direct TPM EK exposure. Pseudonymity uses the standard TPM AK model, while TPM DAA offers unlinkable, anonymous proofs of TPM possession.</li>
+</ul>
+</section>
+
+<section anchor="host-geolocation-sensor-composition-manager-and-host-composition-change-tracking"><name>Host geolocation sensor composition manager and Host Composition Change Tracking</name>
+<t>The Host geolocation sensor composition manager runs outside of the host. In addition to obtaining location from device location sources (e.g., GNSS), it connects to mobile location service providers (e.g., Telefonica) using the GSMA Location API. The process described below is run periodically (e.g., every 5 minutes) to check if the host hardware composition has changed. Host hardware composition comprises TPM EK, GNSS sensor hardware ID, mobile sensor hardware ID (IMEI), and mobile-SIM IMSI. Note that this workflow is feasible only in enterprise environments where the host hardware is owned and managed by the enterprise.</t>
+
+<ol spacing="compact">
+<li>The Workload Identity Agent periodically gathers host composition details (e.g., mobile sensor hardware ID (IMEI), mobile-SIM IMSI) and sends them to the Host geolocation sensor composition manager.</li>
+<li>The Host geolocation sensor composition manager cross-verifies that the components of the host are still intact or detects if anything has been removed. (Plugging out components can decrease the quality of location. Host hardware composition comprises TPM EK, GNSS sensor hardware ID, mobile sensor hardware ID (IMEI), and mobile-SIM IMSI. Note that e-SIM does not have the plugging out problem like standard SIM but could be subject to e-SIM swap attack.)</li>
+</ol>
+</section>
+
+<section anchor="workload-identity-agent-geolocation-gathering-workflow"><name>Workload Identity Agent Geolocation Gathering Workflow</name>
+<t>The process described below is run periodically (e.g., every 30 seconds for frequently mobile hosts such as smartphones; every 5 minutes for less frequently mobile hosts such as laptops; every 50 minutes for stationary hosts) to check if the host's location has changed and to obtain an attested location.</t>
+
+<ol spacing="compact">
+<li>The Workload Identity Agent gathers the location using the geolocation plugin (a) directly from host-local location sensors (e.g., GNSS), which provide a hardware-attested location, and/or (b) using existing Operating System (OS) APIs, which gather a composite location from location providers (e.g., Google, Apple). Location has a quality associated with it. For example, IP address-based or Wi-Fi-based location is of lower quality compared to other sources.</li>
+<li>For each of the registered workload IDs (or website URL), based on the configured location policy (precise, approximated within a fixed radius, geographic region-based indicating city/state/country - see OPEN ISSUES 2), the location is converted appropriately to a workload ID-specific location. For thin clients (browser clients), the workload ID is the website URL. This ensures that the privacy of the workload is preserved while still allowing for geolocation enforcement.</li>
+<li><t>All the above details are captured in the Geolocation Information Cache which contains the following fields:</t>
+
+<ol spacing="compact">
+<li>Time of collection (timestamp)</li>
+<li><t>Workload ID specific location details for each client workload where each entry contains:</t>
+
+<ol spacing="compact">
+<li>client workload ID - relevant for thick clients (e.g. Microsoft Teams client)</li>
+<li>server workload ID (or website URL) - relevant for thin clients (e.g. Microsoft Teams browser version)</li>
+<li>client location type (e.g. precise, approximated, geographic region based)</li>
+<li>client location (e.g. latitude/longitude, city/state/country)</li>
+<li>client location quality (e.g. GNSS, mobile network, Wi-Fi, IP address)</li>
+</ol></li>
+</ol></li>
+</ol>
+<t>It is important to note that the Geolocation Information Cache is kept in the Workload Identity Agent memory and is not stored on disk. The information is refreshed periodically to ensure that the location is up-to-date. This information is used only by workloads in the host and never leaves the host.</t>
+<t>If the location is gathered only using existing OS APIs, it may be done in the workload (thick client) or browser extension (thin client). The Geolocation Information Cache is stored in thick client memory (relevant only to specific client) or browser extension memory (relevant to all thin clients and indexed using user in OAuth bearer token/server website URL).</t>
+</section>
+
+<section anchor="workload-public-key-attestation-and-remote-verification"><name>Workload Public Key Attestation and Remote Verification</name>
+<t>Workload Identity Agent public/private key attestation, rather than TPM Attestation Key (AK) attestation, is the key change compared to the original SPIFFE/SPIRE architecture with the TPM plugin. Optionally, the workload geolocation can be attested to the Workload Identity Manager by supplying the geolocation information in the Geolocation Information Cache.</t>
+
+<ol spacing="compact">
+<li>The Workload Identity Agent ensures that the workload connects to it on a host-local socket (e.g., Unix-domain socket).</li>
+<li>The Workload Identity Agent generates a private/public key pair for the workload.</li>
+<li>The Workload Identity Agent signs the workload public key with its own private key.</li>
+<li>The Workload Identity Agent sends the signed workload public key, along with its cryptographically attested Workload Identity Agent ID, to the Workload Identity Manager. (Note: The Workload Identity Agent ID has already been verified by the Workload Identity Manager during the agent attestation process, establishing proof of residency of the Workload Identity Agent on the host.)</li>
+<li>The Workload Identity Manager verifies that the TPM Endorsement Key (EK) associated with the Workload Identity Agent ID is present in the trusted host hardware database.</li>
+<li>The Workload Identity Manager verifies the workload public key signature using the Workload Identity Agent's public key (which was previously attested).</li>
+<li>The Workload Identity Manager sends an encrypted challenge to the Workload Identity Agent. The challenge's secret is encrypted using the workload's public key. (This step proves that the workload controls the corresponding private key.)</li>
+<li>The Workload Identity Agent decrypts the challenge using the workload's private key and sends the response back to the Workload Identity Manager.</li>
+<li>The Workload Identity Manager verifies that the decrypted secret matches the original secret used to build the challenge.</li>
+<li><t>The Workload Identity Manager issues a workload ID (e.g., SPIFFE ID) for the workload's public key. The workload ID is signed by the Workload Identity Manager and contains the workload's public key and the Workload Identity Agent ID.</t>
+
+<ul spacing="compact">
+<li>Optionally, the workload geolocation can be attested to the Workload Identity Manager by supplying the geolocation information in the Geolocation Information Cache. The SVID of the workload is signed by the Workload Identity Manager and contains the workload's public key, the Workload Identity Agent ID, and the workload geolocation information.</li>
+</ul></li>
+<li><t>Design Options:</t>
+
+<ul spacing="compact">
+<li><strong>Option 1:</strong> The workload can use the Workload Identity Agent to manage its keys and perform cryptographic operations on its behalf. In this case, the workload receives its workload ID from the Workload Identity Agent.</li>
+<li><strong>Option 2:</strong> The workload can manage its own keys and perform cryptographic operations independently. In this case, the workload receives its private key and workload ID from the Workload Identity Agent.</li>
+<li><strong>Comparison:</strong> Option 1 (software HSM delegated model) is more secure, as the workload's private key is never exposed outside the Workload Identity Agent. Option 2 provides more flexibility for workloads that require independent key management and may offer slightly better performance, since the workload can optimize cryptographic operations without going through the Workload Identity Agent.</li>
+</ul></li>
+</ol>
+</section>
+</section>
+
+<section anchor="scaling-the-solution"><name>Scaling the Solution</name>
+<t>Having a geolocation sensor on every host is not scalable from a deployment and management perspective and can be cost prohibitive. In the case of end user hosts, the geolocation sensor can be on a mobile host (e.g., smartphone with Mobile network capabilities and optionally GNSS capabilities) which can be leveraged by a laptop/desktop host which is proximal to the mobile host. The mobile host serves as the location anchor host. In the case of data center hosts, the geolocation sensor can be on a host with Mobile network and/or GNSS capabilities which can be leveraged by other data center hosts. This host serves as the location anchor host.</t>
+
+<section anchor="end-user-location-anchor-host"><name>End user location anchor host</name>
+<t>Goal is to provide an easy to use wireless solution that can be used by end users without requiring them to install a geolocation sensor on their laptop/desktop host.</t>
+<t>The smartphone can be used as a location anchor host for the laptop/desktop host. The smartphone connects to the laptop/desktop host using Bluetooth Low Energy (BLE) or Ultra-Wideband (UWB) technology and continuously measures the following:</t>
+
+<ul spacing="compact">
+<li>signal strength of the laptop/desktop host</li>
+<li>round-trip time (RTT) between the smartphone and laptop/desktop host</li>
+</ul>
+<t>Host proximity manager periodically verifies that the smartphone provides proof that the laptop/desktop host is in proximity using the measured signal strength and RTT.</t>
+</section>
+
+<section anchor="data-center-location-anchor-host"><name>Data center location anchor host</name>
+<t>Goal is to provide an easy to use solution that can be used by data center operators without requiring them to install a geolocation sensor on every data center host.</t>
+<t>PTP is a network protocol that enables precise synchronization of clocks across a computer network and can be used to measure the round-trip time (RTT) between the location anchor host and other data center hosts with sub-microsecond accuracy. To provide cryptographically verifiable proof of residency on the host -- referred to as &quot;attested PTP&quot; -- the PTP software/hardware can be enhanced so that all PTP messages are signed with a private key.</t>
+<t>This signing can be done in two ways:</t>
+
+<ul spacing="compact">
+<li>Software-based: PTP software (e.g. Linux PTP daemon), after adding timestamp to PTP message, signs the PTP message with its private key -- Linux PTP daemon is a workload managed by workload identity manager. This approach may not provide sub-microsecond accuracy due to inherent software jitter, but it can still provide a reasonable approximation of the proximity of the other data center hosts to the location anchor host.</li>
+<li>Hardware-based: PTP hardware (e.g., SmartNIC), after adding timestamp to PTP message, signs the PTP message with its private key (e.g., SmartNIC DPU). The corresponding public key, used to verify the signatures, can be attested by the Host TPM Attestation Key (AK). This approach provides sub-microsecond accuracy and the perfect proximity measure of the other data center hosts to the location anchor host, and is suitable for data center environments where precise timing is critical.</li>
+</ul>
+<t>Host proximity manager periodically verifies that the PTP daemon in the location anchor hosts provide proof that the PTP daemon in the application hosts are within the maximum DC round-trip delay from them. The PTP daemon is another workload managed by the workload identity manager.</t>
+<t>Note that this is a proposed enhancement to the existing PTP hardware and software, and there is currently no standard for attested PTP (see OPEN ISSUES 3). Further work is needed to define and standardize this enhancement to ensure interoperability and security.</t>
+</section>
+</section>
+
+<section anchor="data-plane-end-to-end-workflow"><name>Data Plane End-to-End Workflow</name>
+<t>The following sections describe the end-to-end workflow for HTTP and IPSEC networking protocols.</t>
+
+<section anchor="http-networking-protocol-request-signing-along-with-geolocation-information"><name>HTTP Networking Protocol - request signing along with geolocation information</name>
+<t>This workflow enhances the Demonstrating proof of possession (DPoP) [[RFC9449]] mechanism as follows (1) By providing a more accurate and cryptographically verifiable location of the client workload and (2) Using a workload signing key that is attested by the Workload Identity Manager for proof of residency on approved hosts. Note that this public key is not part of the OAuth bearer token.</t>
+<t>A new HTTP header field 'Workload-Geo-ID' is proposed for conveying the workload geolocation information in the Geolocation Information Cache. The HTTP request is signed--the signature is generated using the Workload private key (thick client) or the Workload Identity Agent private key. The following steps describe the end-to-end workflow for HTTP requests between client workloads (e.g. Microsoft Teams thick client app, Microsoft Teams thin client browser app) and server workloads (e.g. Microsoft Teams server), including intermediate proxies (e.g., API gateways, SASE firewalls). The server workload (e.g. Microsoft Teams server) acts as a thick client when it connects to other server workloads (e.g. Microsoft OneDrive for Business).</t>
+
+<ol spacing="compact">
+<li>Client workload gets OAuth bearer token for the server workload from the Authentication/Authorization server.</li>
+<li><t>Client workload (browser extension for thin client) contacts the Workload Identity Agent to get the latest Geolocation Information Cache relevant to it. If the location is gathered only using existing OS APIs, it may be done in the workload (thick client) or browser extension (thin client). The client workload (browser extension for thin client) constructs a Workload-Geo-ID extension header containing the following fields:</t>
+
+<ul spacing="compact">
+<li>The latest Geolocation Information Cache relevant to the client workload ID (thick clients) or user in OAuth bearer token/server website URL (thin clients) which has the following details: client workload location, client workload location type (e.g. precise, approximated, geographic region based), client workload location quality (e.g. GNSS, mobile network, Wi-Fi, IP address).</li>
+<li>Thick or Thin client flag: Indicates whether the client workload is a thick client (e.g., Microsoft Teams thick client app) or a thin client (e.g., Microsoft Teams thin client browser app).</li>
+<li>Type flag: Request signing with geolocation information (this section) or SVID with geolocation information (next section).</li>
+<li><t>Using a browser extension (thin client) is attractive especially for web applications which already use a browser extension for functions such as URL filtering, ad blocking, privacy protection, etc. The tradeoffs are:</t>
+
+<ul spacing="compact">
+<li>Pros: Leverages Workload Identity agent (SPIFFE/SPIRE agent) hardened key store (TPM etc.); Keeps keys out of browser javascript entirely; Centralized management of keys and policies; Provides a consistent interface for all web applications.</li>
+<li>Cons: Requires browser extension installation; May not be supported by all browsers.</li>
+</ul></li>
+</ul></li>
+<li>For thick clients, the Client workload signs the hash of the HTTP request using the workload private key.</li>
+<li>For thin clients, the Client workload passes the hash of the HTTP request to the Workload Identity Agent for signature. The Workload Identity Agent signs the HTTP Request using the Workload Identity Agent Private Key and returns the signature of the HTTP request to the workload.</li>
+<li><t>Details of the HTTP request signature:</t>
+
+<ul spacing="compact">
+<li>The resulting signature is included in a separate header, <tt>Signature</tt> (RFC 9421).</li>
+<li><t>The signature input is included in a separate header, <tt>Signature-Input</tt> (RFC 9421), which contains the following fields:</t>
+
+<ul spacing="compact">
+<li>keyid: Thin clients--The Workload Identity Agent ID public key hash is used as the keyid; Thick clients--The Workload public key hash is used as the keyid.</li>
+<li>created: The timestamp of the signature creation.</li>
+<li>expires: The timestamp of the signature expiration (e.g., 5 minutes after creation).</li>
+<li>alg: The algorithm used for signing (e.g., Ed25519).</li>
+<li>nonce: The unique nonce used for replay protection and troubleshooting.</li>
+<li>context: The context of the signature, which includes the HTTP method, and URL.</li>
+</ul></li>
+<li>The public key used to verify the signature can be derived using the Workload Identity Agent ID public key hash. This enables recipients (intermediate proxies or server workloads) to validate the authenticity of the signature and the binding to the specific Workload Identity Agent.</li>
+</ul></li>
+<li>Client workload appends the Signature header and the Signature-Input header to the HTTP request.</li>
+<li><t>Intermediate proxies (e.g., API gateways, SASE firewalls) inspect the Workload-Geo-ID, Signature and Signature-Input header fields and perform the following checks:</t>
+
+<ul spacing="compact">
+<li>Verify that the Workload Identity Agent ID hash in the Signature-Input header matches a configured Workload Identity Agent ID. They can retrieve the host TPM EK certificate from the Workload Identity Agent ID and compare it with the host TPM EK certificate in the Host hardware identity datastore.</li>
+<li>Verify that the HTTP request signature in the Signature header is valid by verifying it against the Workload Identity Agent Public Key in the Signature-Input header.</li>
+<li>Verify that the timestamp in the Signature-Input header is within an acceptable range (e.g., 5 minutes).</li>
+<li>Verify that the nonce in the Signature-Input header is unique and monotonically increasing to prevent replay attacks.</li>
+</ul></li>
+<li>Note that these HTTP extension header checks can be performed by the server as well, but it is more efficient to do them at the intermediate proxy level and aligns well with how Zero Trust Network Access (ZTNA) solutions operate. If the verification passes, the request is forwarded to the destination server. If the verification fails, the request is dropped, and an error response is generated.</li>
+<li><t>Intermediate proxies (e.g., API gateways, SASE firewalls) or server workloads connect to Composite Geolocation Manager, to supply GNSS geolocation/workload identity agent ID and get attested composite location. Composite Geolocation Manager can use the host TPM EK certificate in the Workload Identity Agent ID to retrieve the mobile geolocation sensor IMEI/IMSI from the Host hardware identity datastore. Using the IMEI/IMSI, they can retrieve the location of the host from the mobile network operator's location service. This is useful for mobile devices that may not have GNSS sensors or when GNSS is not available (e.g., indoors) or when GPS/GNSS location is subject to spoofing. As compared to IP address, Wi-Fi and GPS/GNSS geolocation methods, mobile network location services provide a more reliable and cryptographically verifiable location. Based on the mobile geolocation and existing geolocation in the Workload-Geo-ID header, a more accurate composite location can be constructed.</t>
+
+<ul spacing="compact">
+<li>Note that for performance considerations, the Composite Geolocation Manager can be a library function which is integrated into intermediate proxies or server workloads.</li>
+</ul></li>
+<li><t>Intermediate proxies (e.g., API gateway, Firewall) or server workloads can enforce policies based on:</t>
+
+<ul spacing="compact">
+<li>Workload Identity Agent ID (running on the same host as the client workload),</li>
+<li>user in OAuth bearer token,</li>
+<li>server website URL,</li>
+<li>client workload ID (relevant only for thick clients),</li>
+<li>client workload location,</li>
+<li>client workload location type (e.g. precise, approximated, geographic region based),</li>
+<li>client workload location quality (e.g. GNSS, mobile network, Wi-Fi, IP address).</li>
+</ul></li>
+</ol>
+<t>Besides native HTTP protocols, this solution will also address the following common browser-based protocols:</t>
+
+<ul spacing="compact">
+<li>browser-based Secure Shell (ssh) terminal (common for cloud access by customers) which tunnels ssh traffic over HTTP/TLS.</li>
+<li>browser-based Remote Desktop Protocol (RDP) terminal (common for cloud access by customers) which tunnels RDP traffic over HTTP/TLS.</li>
+</ul>
+</section>
+
+<section anchor="http-networking-protocol-geolocation-information-in-svid"><name>HTTP Networking Protocol - geolocation information in SVID</name>
+<t>The workload SVID can be used to convey the geolocation information to the workload. The SVID is signed by the Workload Identity Manager and contains the workload's public key, the Workload Identity Agent ID, and the workload geolocation information.</t>
+<t>The workload SVID can be conveyed in the 'Workload-Geo-ID' header field.</t>
+</section>
+
+<section anchor="ipsec-tunnel-networking-protocol"><name>IPSEC Tunnel Networking Protocol</name>
+<t>In the IPSEC key exchange protocol (IKE), the following changes are proposed:</t>
+
+<ul spacing="compact">
+<li><t>Proof of residency:</t>
+
+<ul spacing="compact">
+<li>In the IPSEC client, in the Elliptic Curve Diffie-Hellman Ephemeral key exchange (ECDHE) phase, the Workload Identity Agent Public Key is used as the ephemeral public key.</li>
+</ul></li>
+<li><t>Geolocation information:</t>
+
+<ul spacing="compact">
+<li>The IPSEC client includes the Geolocation Information in the Workload Identity Agent Geolocation Information Cache in the IPSEC IKEv2 notification payload.</li>
+</ul></li>
+</ul>
+<t>IPSEC server policy enforcement can be done in the following way:</t>
+
+<ul spacing="compact">
+<li><t>Proof of residency:</t>
+
+<ul spacing="compact">
+<li>In the IPSEC server, from the IPSEC IKEv2 notification payload, the Workload Identity Agent Public Key is extracted. The Workload Identity Agent Public Key is checked against the configured list of allowed Workload Identity Agent IDs (IPSEC client certificates). The signature of the IPSEC client is then verified using the Workload Identity Agent Public Key. This provides a cryptographically verifiable proof of residency of the IPSEC client on the required host.</li>
+</ul></li>
+<li><t>Geolocation policy enforcement:</t>
+
+<ul spacing="compact">
+<li>In the IPSEC server, from the IPSEC IKEv2 notification payload, the Geolocation Information is extracted.</li>
+<li>IPSEC server connects to Composite Geolocation Manager, supply Geolocation Information/workload identity agent ID, and get attested composite location which includes mobile geolocation also. In case the mobile network location service is not use, the composite Geolocation Information is the same as the original Geolocation Information.</li>
+<li>The IPSEC server can use the composite Geolocation Information to verify that the host is within the allowed geographic boundary.</li>
+</ul></li>
+</ul>
+<t>Benefit:</t>
+
+<ul spacing="compact">
+<li>Since IPSEC tunnel can encapsulate any IP traffic, it provides proof of residency and geolocation on the IPSEC client host for all the traffic that is tunneled through it (e.g., RDP, SCTP, NFS, SSH).</li>
+</ul>
+<t>Challenge:</t>
+
+<ul spacing="compact">
+<li>Location information granularity is at the IPSEC client host level and not at the individual workload level, which may be a challenge for some use cases.</li>
+</ul>
+</section>
+</section>
+
+<section anchor="confidential-computing-considerations"><name>Confidential Computing Considerations</name>
+<t>In confidential computing, the host operating system cannot be trusted. Instead, the platform owner must maintain and verify the relationships between three hardware identifiers:</t>
+
+<ul spacing="compact">
+<li><t>Hardware-rooted certification key -- Vendor-issued, CPU-bound asymmetric key pair used to either sign attestation evidence directly (AMD VCEK) or certify an attestation signing key (Intel PCK). Always anchored in the vendor's root CA.</t>
+
+<ul spacing="compact">
+<li>AMD SEV-SNP &quot;Versioned Chip Endorsement Key -- VCEK&quot; is defined in the AMD SEV-SNP ABI specification (Chapter 1, Glossary, Table 2).</li>
+<li>Intel TDX, &quot;Provisioning Certification Key -- PCK&quot; is defined in the Intel TDX DCAP Quoting Library API documentation (Page 6, Table 1-1: Terminology). Role: Certifies the Attestation Key inside the TDX Quoting Enclave, which signs the quote.</li>
+</ul></li>
+<li>TPM Endorsement Key (EK)</li>
+<li>Geolocation Sensor ID + public key</li>
+</ul>
+<t>Proof of Residency:</t>
+
+<ul spacing="compact">
+<li>The confidential workload generates a hardware attestation that includes its hardware-rooted certification key.</li>
+<li>The platform owner receives this attestation and binds the reported hardware-rooted certification key to the TPM EK.</li>
+<li>This binding produces a cryptographic proof that the workload is running on the expected physical CPU.</li>
+</ul>
+<t>Proof of Geolocation:</t>
+
+<ul spacing="compact">
+<li>The geolocation sensor creates a signed location report using its private key. This is supported in popular GNSS sensors such as u-blox.</li>
+<li>An agent on the bare-metal host periodically polls the sensor and collects these signed reports.</li>
+<li>The platform owner maps each sensor's ID and its signed geolocation to the corresponding CPU ID and TPM EK.</li>
+<li>This mapping yields a verifiable proof that the workload is executing at the claimed physical location.</li>
+</ul>
+<t>Note: The Intel SGX Attestation Service utilizing the Enhanced Privacy ID (EPID) group-signature mechanism is a legacy, privacy-preserving attestation path. Intel has announced that this service will reach end-of-life on April 2 2025, after which EPID-based attestation will no longer be supported. This discussion focuses on current attestation models (e.g., ECDSA-based DCAP for SGX and PCK-based attestation for TDX) and excludes EPID/DAA from scope. ECDSA-based DCAP for SGX and PCK-based attestation for TDX are closely related in structure and trust model -- both are part of Intel's Data Center Attestation Primitives (DCAP).</t>
+</section>
+
+<section anchor="solution-mapping-to-industry-gaps-and-problem-statements"><name>Solution Mapping to Industry Gaps and Problem Statements</name>
+
+<ul>
+<li><t><strong>Host TPMs for Signature</strong> challenges are addressed: Workload Identity Agent private key, which is used for signing. Workload identity agent public key is signed by the Host TPM APP private key providing a cryptographically verifiable proof of residency of Workload Identity Agent on the host. The Workload Identity Agent generates a public/private key pair for each workload which connects through a host local socket and signs the workload public key with its private key. The Workload Identity Manager verifies the signature using the Workload Identity Agent Public Key, providing a cryptographically verifiable proof of residency of workload on the host.</t>
+</li>
+<li><t><strong>Bearer Tokens</strong>, <strong>PoP Token</strong>, <strong>PoP via Mutual TLS</strong> challenges are addressed: HTTP request signature with the Workload Identity Agent Private Key, which provides a scalable and cryptographically verifiable proof of residency on host and workload identity. The signature is verified by the intermediate proxies (e.g., API gateways, SASE firewalls) or server workloads using the Workload Identity Agent Public Key.</t>
+</li>
+<li><t><strong>IP Address-Based Location</strong> and <strong>Wi-Fi-Based Location</strong> challenges are addressed: Combination of host-local location sensors (e.g., GNSS) with direct hardware-based attestation and mobile network location services provides a more reliable and cryptographically verifiable location than IP address, Wi-Fi-based methods or existing Host OS location services.</t>
+</li>
+<li><t><strong>Trust in Transit</strong> challenges are addressed: The HTTP request signature with the Workload Identity Agent Private Key provides a cryptographically verifiable proof of residency on host and workload identity, which is verified by the intermediate proxies (e.g., API gateways, SASE firewalls) using the Workload Identity Agent Public Key. This ensures that the request is not tampered with in transit.</t>
+</li>
+<li><t><strong>IPSEC Tunnel Networking Protocol</strong> challenges are addressed: The IPSEC client uses the Workload Identity Agent Public Key as the ephemeral public key in the ECDHE phase of the IPSEC IKEv2 key exchange protocol, providing a cryptographically verifiable proof of residency on host. The Geolocation Information is included in the IPSEC IKEv2 notification payload, which is verified by the IPSEC server.</t>
+</li>
+</ul>
+</section>
+
+<section anchor="authorization-policy-implementers"><name>Authorization Policy Implementers</name>
+<t>Policy implementers use attested geographic boundary from Workload to make decisions. Example implementers:</t>
+
+<ul spacing="compact">
+<li>Intermediate proxies (e.g., API gateway, Firewall)</li>
+<li>SaaS application.</li>
+<li>K8s node agent.</li>
+<li>OS process scheduler.</li>
+</ul>
+<t>If the policy implementer is at the SaaS application level, things are simpler. However, if it is pushed down to, say, K8s or OS process scheduler or JVM class loader/deserializer, then malware can be prevented (similar to a code-signed application).</t>
+</section>
+
+<section anchor="security-considerations"><name>Security Considerations</name>
+<t>The proposed framework introduces several security considerations that must be addressed to ensure the integrity and trustworthiness of geofencing:</t>
+
+<ul>
+<li><t><strong>TPM and Hardware Trust</strong>: The security of the solution depends on the integrity of the TPM and other hardware roots of trust. Physical attacks, firmware vulnerabilities, or supply chain compromises could undermine attestation. Regular updates, secure provisioning, and monitoring are required.</t>
+</li>
+<li><t><strong>Geolocation Spoofing</strong>: Location sensors (e.g., GPS) are susceptible to spoofing or replay attacks. Use of cryptographically authenticated signals (e.g., Galileo GNSS, mobile network) and cross-verification with multiple sources can mitigate this risk.</t>
+</li>
+<li><t><strong>SIM and e-SIM Attacks</strong>: Physical SIM removal or e-SIM swap attacks can break the binding between device and location. Continuous monitoring of device composition and periodic re-attestation are recommended.</t>
+</li>
+<li><t><strong>Software Integrity</strong>: The geolocation agent and supporting software must be protected against tampering. Use of Linux IMA, secure boot, and measured launch environments helps ensure only approved software is executed.</t>
+</li>
+<li><t><strong>Communication Security</strong>: All attestation and geolocation data must be transmitted over secure, authenticated channels (e.g., TLS) to prevent interception or manipulation.</t>
+</li>
+<li><t><strong>Policy Enforcement</strong>: The enforcement of geofence policies must be robust against attempts by malicious workloads or agents to bypass controls. Policy decisions should be based on verifiable, signed attestation evidence.</t>
+</li>
+<li><t><strong>Time Source Integrity</strong>: Trusted time sources are necessary to prevent replay attacks and ensure the freshness of attestation data.</t>
+</li>
+<li><t><strong>Datastore Security</strong>: The Host hardware identity datastore containing trusted host compositions and location sensor details must be protected against unauthorized access and tampering, using encryption and access controls.</t>
+</li>
+</ul>
+<t>By addressing these considerations, the framework aims to provide a secure and reliable foundation for verifiable geofencing in diverse deployment environments.</t>
+</section>
+
+<section anchor="iana-considerations"><name>IANA Considerations</name>
+<t>This document has no IANA actions.</t>
+</section>
+
+<section anchor="appendix-items-to-follow-up"><name>Appendix - Items to follow up</name>
+
+<section anchor="open-issues-1-restart-time-attestation-remote-verification-of-workload-identity-agent-for-integrity-and-proof-of-residency-on-host"><name>OPEN ISSUES 1: Restart time attestation/remote verification of workload identity agent for integrity and proof of residency on Host</name>
+<t>For the workload identity agent restart case, it is not clear how the storage in TPM PCR will be accomplished - ideally this should be natively handled in the IMA measurement process with an ability to retrigger on restart or refresh cycles.</t>
+</section>
+
+<section anchor="open-issues-2-location-privacy-options"><name>OPEN ISSUES 2: Location privacy options</name>
+<t>The current approach includes some location privacy options for the geolocation in the Geolocation Information Cache. This may need to be expanded further in the future.</t>
+</section>
+
+<section anchor="open-issues-3-attested-ptp"><name>OPEN ISSUES 3: Attested PTP</name>
+<t>Attested PTP is a software/hardware-based solution using Precision Time Protocol (PTP) for measuring proximity between hosts in a data center. However, this is a proposed enhancement to the existing PTP hardware and software, and there is currently no standard for attested PTP. There is a proposed authentication framework for PTP using symmetric key distribution.</t>
+</section>
+
+<section anchor="open-issues-4-geotagging-textual-data"><name>OPEN ISSUES 4: Geotagging textual data</name>
+<t>Popular standard for geotagging photos/videos is EXIF. There is no standard for geotagging textual data. If there is no geolocation tag, data can be stored/processed in non-compliant locations.</t>
+</section>
+
+<section anchor="open-issues-5-attesting-geotags"><name>OPEN ISSUES 5: Attesting Geotags</name>
+<t>There is no standard for attesting (signing) geolocation tag. If geolocation tag is not signed, it can be manipulated through techniques such as VPNs.</t>
+</section>
+</section>
+
+<section anchor="appendix-public-references-for-strict-data-residency-rules"><name>Appendix - Public References for Strict Data Residency Rules</name>
+<t>India -- Reserve Bank of India (RBI): Payment System Data Localization (2018): From RBI Circular RBI/2017-18/153 (April 6, 2018): &quot;All system providers shall ensure that the entire data relating to payment systems operated by them are stored in a system only in India. This data should include the full end-to-end transaction details / information collected / carried / processed as part of the message / payment instruction.&quot;</t>
+<t>South Korea's Data Localization Regulations -- Geospatial Information Management Act (Spatial Data Act): Article 16, Paragraph 1: Prohibits the export of state-led survey data.</t>
+</section>
+
+</middle>
+
+<back>
+
+</back>
+
+</rfc>

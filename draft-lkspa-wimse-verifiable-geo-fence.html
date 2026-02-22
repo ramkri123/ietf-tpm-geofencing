@@ -1,0 +1,2525 @@
+<!DOCTYPE html>
+<html lang="en" class="Internet-Draft">
+<head>
+<meta charset="utf-8">
+<meta content="Common,Latin" name="scripts">
+<meta content="initial-scale=1.0" name="viewport">
+<title>Zero-Trust Sovereign AI: Verifiable Geofencing and Residency Proofs for Cybersecure Workloads</title>
+<meta content="Ramki Krishnan" name="author">
+<meta content="Ned Smith" name="author">
+<meta content="Diego R. Lopez" name="author">
+<meta content="A Prasad" name="author">
+<meta content="Srinivasa Addepalli" name="author">
+<meta content="
+       Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. This document presents a framework for modernizing workload security through cryptographically verifiable geofencing, proof-of-possession, and protocol-aware residency enforcement. 
+       By binding workload identity to both geographic and host attributes, and supplementing bearer tokens with verifiable, location- and host-bound claims, the framework addresses the challenges of bearer token theft, proof-of-possession and trust-in-transit for all networking protocols. Leveraging trusted hardware, attestation protocols, and geolocation services, this approach ensures that only authorized workloads in approved locations and environments can access sensitive data or services, even in the presence of advanced threats. 
+    " name="description">
+<meta content="xml2rfc 3.31.0" name="generator">
+<meta content="geofencing" name="keyword">
+<meta content="attestation" name="keyword">
+<meta content="workload identity" name="keyword">
+<meta content="residency" name="keyword">
+<meta content="TPM" name="keyword">
+<meta content="GNSS" name="keyword">
+<meta content="draft-lkspa-wimse-verifiable-geo-fence-latest" name="ietf.draft">
+<!-- Generator version information:
+  xml2rfc 3.31.0
+    Python 3.10.12
+    ConfigArgParse 1.7.1
+    google-i18n-address 3.1.1
+    intervaltree 3.2.1
+    Jinja2 3.1.6
+    lxml 6.0.2
+    platformdirs 4.5.1
+    pycountry 26.2.16
+    PyYAML 5.4.1
+    requests 2.32.5
+    wcwidth 0.6.0
+-->
+<link href="draft-lkspa-wimse-verifiable-geo-fence.xml" rel="alternate" type="application/rfc+xml">
+<link href="#copyright" rel="license">
+<style type="text/css">/*
+
+  NOTE: Changes at the bottom of this file overrides some earlier settings.
+
+  Once the style has stabilized and has been adopted as an official RFC style,
+  this can be consolidated so that style settings occur only in one place, but
+  for now the contents of this file consists first of the initial CSS work as
+  provided to the RFC Formatter (xml2rfc) work, followed by itemized and
+  commented changes found necessary during the development of the v3
+  formatters.
+
+*/
+
+/* fonts */
+@import url('https://static.ietf.org/fonts/noto-sans/import.css'); /* Sans-serif */
+@import url('https://static.ietf.org/fonts/noto-serif/import.css'); /* Serif (print) */
+@import url('https://static.ietf.org/fonts/roboto-mono/import.css'); /* Monospace */
+
+:root {
+  --font-sans: 'Noto Sans', Arial, Helvetica, sans-serif;
+  --font-serif: 'Noto Serif', 'Times', 'Times New Roman', serif;
+  --font-mono: 'Roboto Mono', Courier, 'Courier New', monospace;
+}
+
+@viewport {
+  zoom: 1.0;
+}
+@-ms-viewport {
+  width: extend-to-zoom;
+  zoom: 1.0;
+}
+/* general and mobile first */
+html {
+}
+body {
+  max-width: 90%;
+  margin: 1.5em auto;
+  color: #222;
+  background-color: #fff;
+  font-size: 14px;
+  font-family: var(--font-sans);
+  line-height: 1.6;
+  scroll-behavior: smooth;
+  overflow-wrap: break-word;
+}
+.ears {
+  display: none;
+}
+
+/* headings */
+#title, h1, h2, h3, h4, h5, h6 {
+  margin: 1em 0 0.5em;
+  font-weight: bold;
+  line-height: 1.3;
+}
+#title {
+  clear: both;
+  border-bottom: 1px solid #ddd;
+  margin: 0 0 0.5em 0;
+  padding: 1em 0 0.5em;
+}
+.author {
+  padding-bottom: 4px;
+}
+h1 {
+  font-size: 26px;
+  margin: 1em 0;
+}
+h2 {
+  font-size: 22px;
+  margin-top: -20px;  /* provide offset for in-page anchors */
+  padding-top: 33px;
+}
+h3 {
+  font-size: 18px;
+  margin-top: -36px;  /* provide offset for in-page anchors */
+  padding-top: 42px;
+}
+h4 {
+  font-size: 16px;
+  margin-top: -36px;  /* provide offset for in-page anchors */
+  padding-top: 42px;
+}
+h5, h6 {
+  font-size: 14px;
+}
+#n-copyright-notice {
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 1em;
+  margin-bottom: 1em;
+}
+/* general structure */
+p {
+  padding: 0;
+  margin: 0 0 1em 0;
+  text-align: left;
+}
+div, span {
+  position: relative;
+}
+div {
+  margin: 0;
+}
+.alignRight.art-text {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 3px;
+  padding: 1em 1em 0;
+  margin-bottom: 1.5em;
+}
+.alignRight.art-text pre {
+  padding: 0;
+}
+.alignRight {
+  margin: 1em 0;
+}
+.alignRight > *:first-child {
+  border: none;
+  margin: 0;
+  float: right;
+  clear: both;
+}
+.alignRight > *:nth-child(2) {
+  clear: both;
+  display: block;
+  border: none;
+}
+svg {
+  display: block;
+}
+@media print {
+  svg {
+    max-height: 850px;
+    max-width: 660px;
+  }
+}
+svg[font-family~="serif" i], svg [font-family~="serif" i] {
+  font-family: var(--font-serif);
+}
+svg[font-family~="sans-serif" i], svg [font-family~="sans-serif" i] {
+  font-family: var(--font-sans);
+}
+svg[font-family~="monospace" i], svg [font-family~="monospace" i] {
+  font-family: var(--font-mono);
+}
+.alignCenter.art-text {
+  background-color: #f9f9f9;
+  border: 1px solid #eee;
+  border-radius: 3px;
+  padding: 1em 1em 0;
+  margin-bottom: 1.5em;
+}
+.alignCenter.art-text pre {
+  padding: 0;
+}
+.alignCenter {
+  margin: 1em 0;
+}
+.alignCenter > *:first-child {
+  display: table;
+  border: none;
+  margin: 0 auto;
+}
+
+/* lists */
+ol, ul {
+  padding: 0;
+  margin: 0 0 1em 2em;
+}
+ol ol, ul ul, ol ul, ul ol {
+  margin-left: 1em;
+}
+li {
+  margin: 0 0 0.25em 0;
+}
+.ulCompact li {
+  margin: 0;
+}
+ul.empty, .ulEmpty {
+  list-style-type: none;
+}
+ul.empty li, .ulEmpty li {
+  margin-top: 0.5em;
+}
+ul.ulBare, li.ulBare {
+  margin-left: 0em !important;
+}
+ul.compact, .ulCompact,
+ol.compact, .olCompact {
+  line-height: 100%;
+  margin: 0 0 0 2em;
+}
+
+/* definition lists */
+dl {
+}
+dl > dt {
+  float: left;
+  margin-right: 1em;
+}
+/* 
+dl.nohang > dt {
+  float: none;
+}
+*/
+dl > dd {
+  margin-bottom: .8em;
+  min-height: 1.3em;
+}
+dl.compact > dd, .dlCompact > dd {
+  margin-bottom: 0em;
+}
+dl > dd > dl {
+  margin-top: 0.5em;
+  margin-bottom: 0em;
+}
+
+/* links */
+a {
+  text-decoration: none;
+}
+a[href] {
+  color: #22e; /* Arlen: WCAG 2019 */
+}
+a[href]:hover {
+  background-color: #f2f2f2;
+}
+figcaption a[href],
+a[href].selfRef {
+  color: #222;
+}
+/* XXX probably not this:
+a.selfRef:hover {
+  background-color: transparent;
+  cursor: default;
+} */
+
+/* Figures */
+tt, code, pre {
+  background-color: #f9f9f9;
+  font-family: var(--font-mono);
+}
+pre {
+  border: 1px solid #eee;
+  margin: 0;
+  padding: 1em;
+}
+img {
+  max-width: 100%;
+}
+figure {
+  margin: 0;
+}
+figure blockquote {
+  margin: 0.8em 0.4em 0.4em;
+}
+figcaption {
+  font-style: italic;
+  margin: 0 0 1em 0;
+}
+@media screen {
+  pre {
+    overflow-x: auto;
+    max-width: 100%;
+    max-width: calc(100% - 22px);
+  }
+}
+
+/* aside, blockquote */
+aside, blockquote {
+  margin-left: 0;
+  padding: 1.2em 2em;
+}
+blockquote {
+  background-color: #f9f9f9;
+  color: #111; /* Arlen: WCAG 2019 */
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  margin: 1em 0;
+}
+blockquote > *:last-child {
+  margin-bottom: 0;
+}
+cite {
+  display: block;
+  text-align: right;
+  font-style: italic;
+}
+.xref {
+  overflow-wrap: normal;
+}
+
+/* tables */
+table {
+  width: 100%;
+  margin: 0 0 1em;
+  border-collapse: collapse;
+  border: 1px solid #eee;
+}
+th, td {
+  text-align: left;
+  vertical-align: top;
+  padding: 0.5em 0.75em;
+}
+th {
+  text-align: left;
+  background-color: #e9e9e9;
+}
+tr:nth-child(2n+1) > td {
+  background-color: #f5f5f5;
+}
+table caption {
+  font-style: italic;
+  margin: 0;
+  padding: 0;
+  text-align: left;
+}
+table p {
+  /* XXX to avoid bottom margin on table row signifiers. If paragraphs should
+     be allowed within tables more generally, it would be far better to select on a class. */
+  margin: 0;
+}
+
+/* pilcrow */
+a.pilcrow {
+  color: #666; /* Arlen: AHDJ 2019 */
+  text-decoration: none;
+  visibility: hidden;
+  user-select: none;
+  -ms-user-select: none;
+  -o-user-select:none;
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  -webkit-touch-callout: none;
+}
+@media screen {
+  aside:hover > a.pilcrow,
+  p:hover > a.pilcrow,
+  blockquote:hover > a.pilcrow,
+  div:hover > a.pilcrow,
+  li:hover > a.pilcrow,
+  pre:hover > a.pilcrow {
+    visibility: visible;
+  }
+  a.pilcrow:hover {
+    background-color: transparent;
+  }
+}
+
+/* misc */
+hr {
+  border: 0;
+  border-top: 1px solid #eee;
+}
+.bcp14 {
+  font-variant: small-caps;
+}
+
+.role {
+  font-variant: all-small-caps;
+}
+
+/* info block */
+#identifiers {
+  margin: 0;
+  font-size: 0.9em;
+}
+#identifiers dt {
+  width: 3em;
+  clear: left;
+}
+#identifiers dd {
+  float: left;
+  margin-bottom: 0;
+}
+/* Fix PDF info block run off issue */
+@media print {
+  #identifiers dd {
+    max-width: 100%;
+  }
+}
+#identifiers .authors .author {
+  display: inline-block;
+  margin-right: 1.5em;
+}
+#identifiers .authors .org {
+  font-style: italic;
+}
+
+/* The prepared/rendered info at the very bottom of the page */
+.docInfo {
+  color: #666; /* Arlen: WCAG 2019 */
+  font-size: 0.9em;
+  font-style: italic;
+  margin-top: 2em;
+}
+.docInfo .prepared {
+  float: left;
+}
+.docInfo .prepared {
+  float: right;
+}
+
+/* table of contents */
+#toc  {
+  padding: 0.75em 0 2em 0;
+  margin-bottom: 1em;
+}
+nav.toc ul {
+  margin: 0 0.5em 0 0;
+  padding: 0;
+  list-style: none;
+}
+nav.toc li {
+  line-height: 1.3em;
+  margin: 0.75em 0;
+  padding-left: 1.2em;
+  text-indent: -1.2em;
+}
+/* references */
+.references dt {
+  text-align: right;
+  font-weight: bold;
+  min-width: 7em;
+}
+.references dd {
+  margin-left: 8em;
+  overflow: auto;
+}
+
+.refInstance {
+  margin-bottom: 1.25em;
+}
+
+.refSubseries {
+  margin-bottom: 1.25em;
+}
+
+.references .ascii {
+  margin-bottom: 0.25em;
+}
+
+/* index */
+.index ul {
+  margin: 0 0 0 1em;
+  padding: 0;
+  list-style: none;
+}
+.index ul ul {
+  margin: 0;
+}
+.index li {
+  margin: 0;
+  text-indent: -2em;
+  padding-left: 2em;
+  padding-bottom: 5px;
+}
+.indexIndex {
+  margin: 0.5em 0 1em;
+}
+.index a {
+  font-weight: 700;
+}
+/* make the index two-column on all but the smallest screens */
+@media (min-width: 600px) {
+  .index ul {
+    -moz-column-count: 2;
+    -moz-column-gap: 20px;
+  }
+  .index ul ul {
+    -moz-column-count: 1;
+    -moz-column-gap: 0;
+  }
+}
+
+/* authors */
+address.vcard {
+  font-style: normal;
+  margin: 1em 0;
+}
+
+address.vcard .nameRole {
+  font-weight: 700;
+  margin-left: 0;
+}
+address.vcard .label {
+  font-family: var(--font-sans);
+  margin: 0.5em 0;
+}
+address.vcard .type {
+  display: none;
+}
+.alternative-contact {
+  margin: 1.5em 0 1em;
+}
+hr.addr {
+  border-top: 1px dashed;
+  margin: 0;
+  color: #ddd;
+  max-width: calc(100% - 16px);
+}
+
+/* temporary notes */
+.rfcEditorRemove::before {
+  position: absolute;
+  top: 0.2em;
+  right: 0.2em;
+  padding: 0.2em;
+  content: "The RFC Editor will remove this note";
+  color: #9e2a00; /* Arlen: WCAG 2019 */
+  background-color: #ffd; /* Arlen: WCAG 2019 */
+}
+.rfcEditorRemove {
+  position: relative;
+  padding-top: 1.8em;
+  background-color: #ffd; /* Arlen: WCAG 2019 */
+  border-radius: 3px;
+}
+.cref {
+  background-color: #ffd; /* Arlen: WCAG 2019 */
+  padding: 2px 4px;
+}
+.crefSource {
+  font-style: italic;
+}
+/* alternative layout for smaller screens */
+@media screen and (max-width: 1023px) {
+  body {
+    padding-top: 2em;
+  }
+  #title {
+    padding: 1em 0;
+  }
+  h1 {
+    font-size: 24px;
+  }
+  h2 {
+    font-size: 20px;
+    margin-top: -18px;  /* provide offset for in-page anchors */
+    padding-top: 38px;
+  }
+  #identifiers dd {
+    max-width: 60%;
+  }
+  #toc {
+    position: fixed;
+    z-index: 2;
+    top: 0;
+    right: 0;
+    padding: 0;
+    margin: 0;
+    background-color: inherit;
+    border-bottom: 1px solid #ccc;
+  }
+  #toc h2 {
+    margin: -1px 0 0 0;
+    padding: 4px 0 4px 6px;
+    padding-right: 1em;
+    min-width: 190px;
+    font-size: 1.1em;
+    text-align: right;
+    background-color: #444;
+    color: white;
+    cursor: pointer;
+  }
+  #toc h2::before { /* css hamburger */
+    float: right;
+    position: relative;
+    width: 1em;
+    height: 1px;
+    left: -164px;
+    margin: 6px 0 0 0;
+    background: white none repeat scroll 0 0;
+    box-shadow: 0 4px 0 0 white, 0 8px 0 0 white;
+    content: "";
+  }
+  #toc nav {
+    display: none;
+    padding: 0.5em 1em 1em;
+    overflow: auto;
+    height: calc(100vh - 48px);
+    border-left: 1px solid #ddd;
+  }
+}
+
+/* alternative layout for wide screens */
+@media screen and (min-width: 1024px) {
+  body {
+    max-width: 724px;
+    margin: 42px auto;
+    padding-left: 1.5em;
+    padding-right: 29em;
+  }
+  #toc {
+    position: fixed;
+    top: 42px;
+    right: 42px;
+    width: 25%;
+    margin: 0;
+    padding: 0 1em;
+    z-index: 1;
+  }
+  #toc h2 {
+    border-top: none;
+    border-bottom: 1px solid #ddd;
+    font-size: 1em;
+    font-weight: normal;
+    margin: 0;
+    padding: 0.25em 1em 1em 0;
+  }
+  #toc nav {
+    display: block;
+    height: calc(90vh - 84px);
+    bottom: 0;
+    padding: 0.5em 0 0;
+    overflow: auto;
+  }
+  img { /* future proofing */
+    max-width: 100%;
+    height: auto;
+  }
+}
+
+/* pagination */
+@media print {
+  body {
+    width: 100%;
+  }
+  p {
+    orphans: 3;
+    widows: 3;
+  }
+  #n-copyright-notice {
+    border-bottom: none;
+  }
+  #toc, #n-introduction {
+    page-break-before: always;
+  }
+  #toc {
+    border-top: none;
+    padding-top: 0;
+  }
+  figure, pre {
+    page-break-inside: avoid;
+  }
+  figure {
+    overflow: scroll;
+  }
+  .breakable pre {
+    break-inside: auto;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+  }
+  h2+*, h3+*, h4+*, h5+*, h6+* {
+    page-break-before: avoid;
+  }
+  pre {
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    font-size: 10pt;
+  }
+  table {
+    border: 1px solid #ddd;
+  }
+  td {
+    border-top: 1px solid #ddd;
+  }
+}
+
+/* This is commented out here, as the string-set: doesn't
+   pass W3C validation currently */
+/*
+.ears thead .left {
+  string-set: ears-top-left content();
+}
+
+.ears thead .center {
+  string-set: ears-top-center content();
+}
+
+.ears thead .right {
+  string-set: ears-top-right content();
+}
+
+.ears tfoot .left {
+  string-set: ears-bottom-left content();
+}
+
+.ears tfoot .center {
+  string-set: ears-bottom-center content();
+}
+
+.ears tfoot .right {
+  string-set: ears-bottom-right content();
+}
+*/
+
+@page :first {
+  padding-top: 0;
+  @top-left {
+    content: normal;
+    border: none;
+  }
+  @top-center {
+    content: normal;
+    border: none;
+  }
+  @top-right {
+    content: normal;
+    border: none;
+  }
+}
+
+@page {
+  size: A4;
+  margin-bottom: 45mm;
+  padding-top: 20px;
+  /* The following is commented out here, but set appropriately by in code, as
+     the content depends on the document */
+  /*
+  @top-left {
+    content: 'Internet-Draft';
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @top-left {
+    content: string(ears-top-left);
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @top-center {
+    content: string(ears-top-center);
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @top-right {
+    content: string(ears-top-right);
+    vertical-align: bottom;
+    border-bottom: solid 1px #ccc;
+  }
+  @bottom-left {
+    content: string(ears-bottom-left);
+    vertical-align: top;
+    border-top: solid 1px #ccc;
+  }
+  @bottom-center {
+    content: string(ears-bottom-center);
+    vertical-align: top;
+    border-top: solid 1px #ccc;
+  }
+  @bottom-right {
+      content: '[Page ' counter(page) ']';
+      vertical-align: top;
+      border-top: solid 1px #ccc;
+  }
+  */
+
+}
+
+/* Changes introduced to fix issues found during implementation */
+/* Make sure links are clickable even if overlapped by following H* */
+a {
+  z-index: 2;
+}
+/* Separate body from document info even without intervening H1 */
+section {
+  clear: both;
+}
+
+
+/* Top align author divs, to avoid names without organization dropping level with org names */
+.author {
+  vertical-align: top;
+}
+
+/* Leave room in document info to show Internet-Draft on one line */
+#identifiers dt {
+  width: 8em;
+}
+
+/* Don't waste quite as much whitespace between label and value in doc info */
+#identifiers dd {
+  margin-left: 1em;
+}
+
+/* Give floating toc a background color (needed when it's a div inside section */
+#toc {
+  background-color: white;
+}
+
+/* Make the collapsed ToC header render white on gray also when it's a link */
+@media screen and (max-width: 1023px) {
+  #toc h2 a,
+  #toc h2 a:link,
+  #toc h2 a:focus,
+  #toc h2 a:hover,
+  #toc a.toplink,
+  #toc a.toplink:hover {
+    color: white;
+    background-color: #444;
+    text-decoration: none;
+  }
+}
+
+/* Give the bottom of the ToC some whitespace */
+@media screen and (min-width: 1024px) {
+  #toc {
+    padding: 0 0 1em 1em;
+  }
+}
+
+/* Style section numbers with more space between number and title */
+.section-number {
+  padding-right: 0.5em;
+}
+
+/* prevent monospace from becoming overly large */
+tt, code, pre {
+  font-size: 95%;
+}
+
+/* Fix the height/width aspect for ascii art*/
+.sourcecode pre,
+.art-text pre {
+  line-height: 1.12;
+}
+
+
+/* Add styling for a link in the ToC that points to the top of the document */
+a.toplink {
+  float: right;
+  margin-right: 0.5em;
+}
+
+/* Fix the dl styling to match the RFC 7992 attributes */
+dl > dt,
+dl.dlParallel > dt {
+  float: left;
+  margin-right: 1em;
+}
+dl.dlNewline > dt {
+  float: none;
+}
+
+/* Provide styling for table cell text alignment */
+table td.text-left,
+table th.text-left {
+  text-align: left;
+}
+table td.text-center,
+table th.text-center {
+  text-align: center;
+}
+table td.text-right,
+table th.text-right {
+  text-align: right;
+}
+
+/* Make the alternative author contact information look less like just another
+   author, and group it closer with the primary author contact information */
+.alternative-contact {
+  margin: 0.5em 0 0.25em 0;
+}
+address .non-ascii {
+  margin: 0 0 0 2em;
+}
+
+/* With it being possible to set tables with alignment
+  left, center, and right, { width: 100%; } does not make sense */
+table {
+  width: auto;
+}
+
+/* Avoid reference text that sits in a block with very wide left margin,
+   because of a long floating dt label.*/
+.references dd {
+  overflow: visible;
+}
+
+/* Control caption placement */
+caption {
+  caption-side: bottom;
+}
+
+/* Limit the width of the author address vcard, so names in right-to-left
+   script don't end up on the other side of the page. */
+
+address.vcard {
+  max-width: 30em;
+  margin-right: auto;
+}
+
+/* For address alignment dependent on LTR or RTL scripts */
+address div.left {
+  text-align: left;
+}
+address div.right {
+  text-align: right;
+}
+
+/* Provide table alignment support.  We can't use the alignX classes above
+   since they do unwanted things with caption and other styling. */
+table.right {
+ margin-left: auto;
+ margin-right: 0;
+}
+table.center {
+ margin-left: auto;
+ margin-right: auto;
+}
+table.left {
+ margin-left: 0;
+ margin-right: auto;
+}
+
+/* Give the table caption label the same styling as the figcaption */
+caption a[href] {
+  color: #222;
+}
+
+@media print {
+  .toplink {
+    display: none;
+  }
+
+  /* avoid overwriting the top border line with the ToC header */
+  #toc {
+    padding-top: 1px;
+  }
+
+  /* Avoid page breaks inside dl and author address entries */
+  .vcard {
+    page-break-inside: avoid;
+  }
+
+}
+/* Tweak the bcp14 keyword presentation */
+.bcp14 {
+  font-variant: small-caps;
+  font-weight: bold;
+  font-size: 0.9em;
+}
+/* Tweak the invisible space above H* in order not to overlay links in text above */
+ h2 {
+  margin-top: -18px;  /* provide offset for in-page anchors */
+  padding-top: 31px;
+ }
+ h3 {
+  margin-top: -18px;  /* provide offset for in-page anchors */
+  padding-top: 24px;
+ }
+ h4 {
+  margin-top: -18px;  /* provide offset for in-page anchors */
+  padding-top: 24px;
+ }
+/* Float artwork pilcrow to the right */
+@media screen {
+  .artwork a.pilcrow {
+    display: block;
+    line-height: 0.7;
+    margin-top: 0.15em;
+  }
+}
+/* Make pilcrows on dd visible */
+@media screen {
+  dd:hover > a.pilcrow {
+    visibility: visible;
+  }
+}
+/* Make the placement of figcaption match that of a table's caption
+   by removing the figure's added bottom margin */
+.alignLeft.art-text,
+.alignCenter.art-text,
+.alignRight.art-text {
+   margin-bottom: 0;
+}
+.alignLeft,
+.alignCenter,
+.alignRight {
+  margin: 1em 0 0 0;
+}
+/* In print, the pilcrow won't show on hover, so prevent it from taking up space,
+   possibly even requiring a new line */
+@media print {
+  a.pilcrow {
+    display: none;
+  }
+}
+/* Styling for the external metadata */
+div#external-metadata {
+  background-color: #eee;
+  padding: 0.5em;
+  margin-bottom: 0.5em;
+  display: none;
+}
+div#internal-metadata {
+  padding: 0.5em;                       /* to match the external-metadata padding */
+}
+/* Styling for title RFC Number */
+h1#rfcnum {
+  clear: both;
+  margin: 0 0 -1em;
+  padding: 1em 0 0 0;
+}
+/* Make .olPercent look the same as <ol><li> */
+dl.olPercent > dd {
+  margin-bottom: 0.25em;
+  min-height: initial;
+}
+/* Give aside some styling to set it apart */
+aside {
+  border-left: 1px solid #ddd;
+  margin: 1em 0 1em 2em;
+  padding: 0.2em 2em;
+}
+aside > dl,
+aside > ol,
+aside > ul,
+aside > table,
+aside > p {
+  margin-bottom: 0.5em;
+}
+/* Additional page break settings */
+@media print {
+  figcaption, table caption {
+    page-break-before: avoid;
+  }
+}
+/* Font size adjustments for print */
+@media print {
+  body  { font-size: 10pt;      line-height: normal; max-width: 96%; }
+  h1    { font-size: 1.72em;    padding-top: 1.5em; } /* 1*1.2*1.2*1.2 */
+  h2    { font-size: 1.44em;    padding-top: 1.5em; } /* 1*1.2*1.2 */
+  h3    { font-size: 1.2em;     padding-top: 1.5em; } /* 1*1.2 */
+  h4    { font-size: 1em;       padding-top: 1.5em; }
+  h5, h6 { font-size: 1em;      margin: initial; padding: 0.5em 0 0.3em; }
+}
+/* Sourcecode margin in print, when there's no pilcrow */
+@media print {
+  .artwork,
+  .artwork > pre,
+  .sourcecode {
+    margin-bottom: 1em;
+  }
+}
+/* Avoid narrow tables forcing too narrow table captions, which may render badly */
+table {
+  min-width: 20em;
+}
+/* ol type a */
+ol.type-a { list-style-type: lower-alpha; }
+ol.type-A { list-style-type: upper-alpha; }
+ol.type-i { list-style-type: lower-roman; }
+ol.type-I { list-style-type: upper-roman; }
+/* Apply the print table and row borders in general, on request from the RPC,
+and increase the contrast between border and odd row background slightly */
+table {
+  border: 1px solid #ddd;
+}
+td {
+  border-top: 1px solid #ddd;
+}
+tr {
+  break-inside: avoid;
+}
+tr:nth-child(2n+1) > td {
+  background-color: #f8f8f8;
+}
+/* Use style rules to govern display of the TOC. */
+@media screen and (max-width: 1023px) {
+  #toc nav { display: none; }
+  #toc.active nav { display: block; }
+}
+/* Add support for keepWithNext */
+.keepWithNext {
+  break-after: avoid-page;
+  break-after: avoid-page;
+}
+/* Add support for keepWithPrevious */
+.keepWithPrevious {
+  break-before: avoid-page;
+}
+/* Change the approach to avoiding breaks inside artwork etc. */
+figure, pre, table, .artwork, .sourcecode  {
+  break-before: auto;
+  break-after: auto;
+}
+/* Avoid breaks between <dt> and <dd> */
+dl {
+  break-before: auto;
+  break-inside: auto;
+}
+dt {
+  break-before: auto;
+  break-after: avoid-page;
+}
+dd {
+  break-before: avoid-page;
+  break-after: auto;
+  orphans: 3;
+  widows: 3
+}
+span.break, dd.break {
+  margin-bottom: 0;
+  min-height: 0;
+  break-before: auto;
+  break-inside: auto;
+  break-after: auto;
+}
+/* Undo break-before ToC */
+@media print {
+  #toc {
+    break-before: auto;
+  }
+}
+/* Text in compact lists should not get extra bottom margin space,
+   since that would makes the list not compact */
+ul.compact p, .ulCompact p,
+ol.compact p, .olCompact p {
+ margin: 0;
+}
+/* But the list as a whole needs the extra space at the end */
+section ul.compact,
+section .ulCompact,
+section ol.compact,
+section .olCompact {
+  margin-bottom: 1em;                    /* same as p not within ul.compact etc. */
+}
+/* The tt and code background above interferes with for instance table cell
+   backgrounds.  Changed to something a bit more selective. */
+tt, code {
+  background-color: transparent;
+}
+p tt, p code, li tt, li code, dt tt, dt code {
+  background-color: #f8f8f8;
+}
+/* Tweak the pre margin -- 0px doesn't come out well */
+pre {
+   margin-top: 0.5px;
+}
+/* Tweak the compact list text */
+ul.compact, .ulCompact,
+ol.compact, .olCompact,
+dl.compact, .dlCompact {
+  line-height: normal;
+}
+/* Don't add top margin for nested lists */
+li > ul, li > ol, li > dl,
+dd > ul, dd > ol, dd > dl,
+dl > dd > dl {
+  margin-top: initial;
+}
+/* Elements that should not be rendered on the same line as a <dt> */
+/* This should match the element list in writer.text.TextWriter.render_dl() */
+dd > div.artwork:first-child,
+dd > aside:first-child,
+dd > blockquote:first-child,
+dd > figure:first-child,
+dd > ol:first-child,
+dd > div.sourcecode:first-child,
+dd > table:first-child,
+dd > ul:first-child {
+  clear: left;
+}
+/* fix for weird browser behaviour when <dd/> is empty */
+dt+dd:empty::before{
+  content: "\00a0";
+}
+/* Make paragraph spacing inside <li> smaller than in body text, to fit better within the list */
+li > p {
+  margin-bottom: 0.5em
+}
+/* Don't let p margin spill out from inside list items */
+li > p:last-of-type:only-child {
+  margin-bottom: 0;
+}
+</style>
+<link href="rfc-local.css" rel="stylesheet" type="text/css">
+<script type="application/javascript">async function addMetadata(){try{const e=document.styleSheets[0].cssRules;for(let t=0;t<e.length;t++)if(/#identifiers/.exec(e[t].selectorText)){const a=e[t].cssText.replace("#identifiers","#external-updates");document.styleSheets[0].insertRule(a,document.styleSheets[0].cssRules.length)}}catch(e){console.log(e)}const e=document.getElementById("external-metadata");if(e)try{var t,a="",o=function(e){const t=document.getElementsByTagName("meta");for(let a=0;a<t.length;a++)if(t[a].getAttribute("name")===e)return t[a].getAttribute("content");return""}("rfc.number");if(o){t="https://www.rfc-editor.org/rfc/rfc"+o+".json";try{const e=await fetch(t);a=await e.json()}catch(e){t=document.URL.indexOf("html")>=0?document.URL.replace(/html$/,"json"):document.URL+".json";const o=await fetch(t);a=await o.json()}}if(!a)return;e.style.display="block";const s="",d="https://datatracker.ietf.org/doc",n="https://datatracker.ietf.org/ipr/search",c="https://www.rfc-editor.org/info",l=a.doc_id.toLowerCase(),i=a.doc_id.slice(0,3).toLowerCase(),f=a.doc_id.slice(3).replace(/^0+/,""),u={status:"Status",obsoletes:"Obsoletes",obsoleted_by:"Obsoleted By",updates:"Updates",updated_by:"Updated By",see_also:"See Also",errata_url:"Errata"};let h="<dl style='overflow:hidden' id='external-updates'>";["status","obsoletes","obsoleted_by","updates","updated_by","see_also","errata_url"].forEach(e=>{if("status"==e){a[e]=a[e].toLowerCase();var t=a[e].split(" "),o=t.length,w="",p=1;for(let e=0;e<o;e++)p<o?w=w+r(t[e])+" ":w+=r(t[e]),p++;a[e]=w}else if("obsoletes"==e||"obsoleted_by"==e||"updates"==e||"updated_by"==e){var g,m="",b=1;g=a[e].length;for(let t=0;t<g;t++)a[e][t]&&(a[e][t]=String(a[e][t]).toLowerCase(),m=b<g?m+"<a href='"+s+"/rfc/".concat(a[e][t])+"'>"+a[e][t].slice(3)+"</a>, ":m+"<a href='"+s+"/rfc/".concat(a[e][t])+"'>"+a[e][t].slice(3)+"</a>",b++);a[e]=m}else if("see_also"==e){var y,L="",C=1;y=a[e].length;for(let t=0;t<y;t++)if(a[e][t]){a[e][t]=String(a[e][t]);var _=a[e][t].slice(0,3),v=a[e][t].slice(3).replace(/^0+/,"");L=C<y?"RFC"!=_?L+"<a href='"+s+"/info/"+_.toLowerCase().concat(v.toLowerCase())+"'>"+_+" "+v+"</a>, ":L+"<a href='"+s+"/info/"+_.toLowerCase().concat(v.toLowerCase())+"'>"+v+"</a>, ":"RFC"!=_?L+"<a href='"+s+"/info/"+_.toLowerCase().concat(v.toLowerCase())+"'>"+_+" "+v+"</a>":L+"<a href='"+s+"/info/"+_.toLowerCase().concat(v.toLowerCase())+"'>"+v+"</a>",C++}a[e]=L}else if("errata_url"==e){var R="";R=a[e]?R+"<a href='"+a[e]+"'>Errata exist</a> | <a href='"+d+"/"+l+"'>Datatracker</a>| <a href='"+n+"/?"+i+"="+f+"&submit="+i+"'>IPR</a> | <a href='"+c+"/"+l+"'>Info page</a>":"<a href='"+d+"/"+l+"'>Datatracker</a> | <a href='"+n+"/?"+i+"="+f+"&submit="+i+"'>IPR</a> | <a href='"+c+"/"+l+"'>Info page</a>",a[e]=R}""!=a[e]?"Errata"==u[e]?h+=`<dt>More info:</dt><dd>${a[e]}</dd>`:h+=`<dt>${u[e]}:</dt><dd>${a[e]}</dd>`:"Errata"==u[e]&&(h+=`<dt>More info:</dt><dd>${a[e]}</dd>`)}),h+="</dl>",e.innerHTML=h}catch(e){console.log(e)}else console.log("Could not locate metadata <div> element");function r(e){return e.charAt(0).toUpperCase()+e.slice(1)}}window.removeEventListener("load",addMetadata),window.addEventListener("load",addMetadata);</script>
+</head>
+<body class="xml2rfc">
+<table class="ears">
+<thead><tr>
+<td class="left">Internet-Draft</td>
+<td class="center">GeoW</td>
+<td class="right">February 2026</td>
+</tr></thead>
+<tfoot><tr>
+<td class="left">Krishnan, et al.</td>
+<td class="center">Expires 26 August 2026</td>
+<td class="right">[Page]</td>
+</tr></tfoot>
+</table>
+<div id="external-metadata" class="document-information"></div>
+<div id="internal-metadata" class="document-information">
+<dl id="identifiers">
+<dt class="label-workgroup">Workgroup:</dt>
+<dd class="workgroup">Workload Identity in Multi System Environments</dd>
+<dt class="label-internet-draft">Internet-Draft:</dt>
+<dd class="internet-draft">draft-lkspa-wimse-verifiable-geo-fence-latest</dd>
+<dt class="label-published">Published:</dt>
+<dd class="published">
+<time datetime="2026-02-22" class="published">22 February 2026</time>
+    </dd>
+<dt class="label-intended-status">Intended Status:</dt>
+<dd class="intended-status">Informational</dd>
+<dt class="label-expires">Expires:</dt>
+<dd class="expires"><time datetime="2026-08-26">26 August 2026</time></dd>
+<dt class="label-authors">Authors:</dt>
+<dd class="authors">
+<div class="author">
+      <div class="author-name">R. Krishnan</div>
+<div class="org">Intel</div>
+</div>
+<div class="author">
+      <div class="author-name">N. Smith</div>
+<div class="org">Intel</div>
+</div>
+<div class="author">
+      <div class="author-name">D. Lopez</div>
+<div class="org">Telefonica</div>
+</div>
+<div class="author">
+      <div class="author-name">A. Prasad</div>
+<div class="org">Oracle</div>
+</div>
+<div class="author">
+      <div class="author-name">S. Addepalli</div>
+<div class="org">Aryaka</div>
+</div>
+</dd>
+</dl>
+</div>
+<h1 id="title">Zero-Trust Sovereign AI: Verifiable Geofencing and Residency Proofs for Cybersecure Workloads</h1>
+<section id="section-abstract">
+      <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
+<p id="section-abstract-1">Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. This document presents a framework for modernizing workload security through cryptographically verifiable geofencing, proof-of-possession, and protocol-aware residency enforcement.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">By binding workload identity to both geographic and host attributes, and supplementing bearer tokens with verifiable, location- and host-bound claims, the framework addresses the challenges of bearer token theft, proof-of-possession and trust-in-transit for all networking protocols. Leveraging trusted hardware, attestation protocols, and geolocation services, this approach ensures that only authorized workloads in approved locations and environments can access sensitive data or services, even in the presence of advanced threats.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+</section>
+<div id="status-of-memo">
+<section id="section-boilerplate.1">
+        <h2 id="name-status-of-this-memo">
+<a href="#name-status-of-this-memo" class="section-name selfRef">Status of This Memo</a>
+        </h2>
+<p id="section-boilerplate.1-1">
+        This Internet-Draft is submitted in full conformance with the
+        provisions of BCP 78 and BCP 79.<a href="#section-boilerplate.1-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-2">
+        Internet-Drafts are working documents of the Internet Engineering Task
+        Force (IETF). Note that other groups may also distribute working
+        documents as Internet-Drafts. The list of current Internet-Drafts is
+        at <span><a href="https://datatracker.ietf.org/drafts/current/">https://datatracker.ietf.org/drafts/current/</a></span>.<a href="#section-boilerplate.1-2" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-3">
+        Internet-Drafts are draft documents valid for a maximum of six months
+        and may be updated, replaced, or obsoleted by other documents at any
+        time. It is inappropriate to use Internet-Drafts as reference
+        material or to cite them other than as "work in progress."<a href="#section-boilerplate.1-3" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.1-4">
+        This Internet-Draft will expire on 26 August 2026.<a href="#section-boilerplate.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="copyright">
+<section id="section-boilerplate.2">
+        <h2 id="name-copyright-notice">
+<a href="#name-copyright-notice" class="section-name selfRef">Copyright Notice</a>
+        </h2>
+<p id="section-boilerplate.2-1">
+            Copyright (c) 2026 IETF Trust and the persons identified as the
+            document authors. All rights reserved.<a href="#section-boilerplate.2-1" class="pilcrow">¶</a></p>
+<p id="section-boilerplate.2-2">
+            This document is subject to BCP 78 and the IETF Trust's Legal
+            Provisions Relating to IETF Documents
+            (<span><a href="https://trustee.ietf.org/license-info">https://trustee.ietf.org/license-info</a></span>) in effect on the date of
+            publication of this document. Please review these documents
+            carefully, as they describe your rights and restrictions with
+            respect to this document. Code Components extracted from this
+            document must include Revised BSD License text as described in
+            Section 4.e of the Trust Legal Provisions and are provided without
+            warranty as described in the Revised BSD License.<a href="#section-boilerplate.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="toc">
+<section id="section-toc.1">
+        <a href="#" onclick="scroll(0,0)" class="toplink">▲</a><h2 id="name-table-of-contents">
+<a href="#name-table-of-contents" class="section-name selfRef">Table of Contents</a>
+        </h2>
+<nav class="toc"><ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
+            <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
+            <p id="section-toc.1-1.2.1" class="keepWithNext"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3">
+            <p id="section-toc.1-1.3.1"><a href="#section-3" class="auto internal xref">3</a>.  <a href="#name-use-cases" class="internal xref">Use Cases</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1">
+                <p id="section-toc.1-1.3.2.1.1"><a href="#section-3.1" class="auto internal xref">3.1</a>.  <a href="#name-category-1-server-centric-l" class="internal xref">Category 1: Server-centric Location</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.1">
+                    <p id="section-toc.1-1.3.2.1.2.1.1" class="keepWithNext"><a href="#section-3.1.1" class="auto internal xref">3.1.1</a>.  <a href="#name-server-workload-to-server-w" class="internal xref">Server workload to Server workload - General</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.2">
+                    <p id="section-toc.1-1.3.2.1.2.2.1"><a href="#section-3.1.2" class="auto internal xref">3.1.2</a>.  <a href="#name-server-workload-to-server-wo" class="internal xref">Server workload to Server workload - Agentic AI</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.3">
+                    <p id="section-toc.1-1.3.2.1.2.3.1"><a href="#section-3.1.3" class="auto internal xref">3.1.3</a>.  <a href="#name-server-workload-to-server-wor" class="internal xref">Server workload to Server workload - Federated AI</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.1.2.4">
+                    <p id="section-toc.1-1.3.2.1.2.4.1"><a href="#section-3.1.4" class="auto internal xref">3.1.4</a>.  <a href="#name-user-workload-to-server-wor" class="internal xref">User workload to Server workload</a></p>
+</li>
+                </ul>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.2">
+                <p id="section-toc.1-1.3.2.2.1"><a href="#section-3.2" class="auto internal xref">3.2</a>.  <a href="#name-category-2-user-centric-loc" class="internal xref">Category 2: User-centric Location</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.3.2.3">
+                <p id="section-toc.1-1.3.2.3.1"><a href="#section-3.3" class="auto internal xref">3.3</a>.  <a href="#name-category-3-regulatory-compl" class="internal xref">Category 3: Regulatory Compliance</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4">
+            <p id="section-toc.1-1.4.1"><a href="#section-4" class="auto internal xref">4</a>.  <a href="#name-industry-gaps-and-problem-s" class="internal xref">Industry Gaps and Problem Statements</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.1">
+                <p id="section-toc.1-1.4.2.1.1"><a href="#section-4.1" class="auto internal xref">4.1</a>.  <a href="#name-data-generation-at-rest-cha" class="internal xref">Data Generation/at-Rest Challenges</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2">
+                <p id="section-toc.1-1.4.2.2.1"><a href="#section-4.2" class="auto internal xref">4.2</a>.  <a href="#name-data-in-use-challenges" class="internal xref">Data-in-Use Challenges</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.1">
+                    <p id="section-toc.1-1.4.2.2.2.1.1"><a href="#section-4.2.1" class="auto internal xref">4.2.1</a>.  <a href="#name-authentication-and-authoriz" class="internal xref">Authentication and Authorization Challenges</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.2">
+                    <p id="section-toc.1-1.4.2.2.2.2.1"><a href="#section-4.2.2" class="auto internal xref">4.2.2</a>.  <a href="#name-location-and-geofencing-cha" class="internal xref">Location and Geofencing Challenges</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.4.2.2.2.3">
+                    <p id="section-toc.1-1.4.2.2.2.3.1"><a href="#section-4.2.3" class="auto internal xref">4.2.3</a>.  <a href="#name-implicit-trust-challenges" class="internal xref">Implicit Trust Challenges</a></p>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5">
+            <p id="section-toc.1-1.5.1"><a href="#section-5" class="auto internal xref">5</a>.  <a href="#name-approach-overview" class="internal xref">Approach Overview</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1">
+                <p id="section-toc.1-1.5.2.1.1"><a href="#section-5.1" class="auto internal xref">5.1</a>.  <a href="#name-server-hosts-solution-highl" class="internal xref">Server Hosts - Solution highlights</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.2">
+                <p id="section-toc.1-1.5.2.2.1"><a href="#section-5.2" class="auto internal xref">5.2</a>.  <a href="#name-end-user-iot-hosts-solution" class="internal xref">End user/IoT hosts - Solution highlights</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6">
+            <p id="section-toc.1-1.6.1"><a href="#section-6" class="auto internal xref">6</a>.  <a href="#name-control-plane-end-to-end-wo" class="internal xref">Control Plane End-to-End Workflow</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
+                <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-spiffe-spire-architecture-m" class="internal xref">SPIFFE/SPIRE Architecture Modifications</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-attestation-of-os-integrity" class="internal xref">Attestation of OS Integrity and Proof of Residency on Host</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3">
+                <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-start-restart-time-attestat" class="internal xref">Start/Restart time attestation/remote verification of Workload Identity Agent for integrity and proof of residency on Host</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.4">
+                <p id="section-toc.1-1.6.2.4.1"><a href="#section-6.4" class="auto internal xref">6.4</a>.  <a href="#name-host-geolocation-sensor-com" class="internal xref">Host geolocation sensor composition manager and Host Composition Change Tracking</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.5">
+                <p id="section-toc.1-1.6.2.5.1"><a href="#section-6.5" class="auto internal xref">6.5</a>.  <a href="#name-workload-identity-agent-geo" class="internal xref">Workload Identity Agent Geolocation Gathering Workflow</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.6">
+                <p id="section-toc.1-1.6.2.6.1"><a href="#section-6.6" class="auto internal xref">6.6</a>.  <a href="#name-workload-public-key-attesta" class="internal xref">Workload Public Key Attestation and Remote Verification</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7">
+            <p id="section-toc.1-1.7.1"><a href="#section-7" class="auto internal xref">7</a>.  <a href="#name-scaling-the-solution" class="internal xref">Scaling the Solution</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.1">
+                <p id="section-toc.1-1.7.2.1.1"><a href="#section-7.1" class="auto internal xref">7.1</a>.  <a href="#name-end-user-location-anchor-ho" class="internal xref">End user location anchor host</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.7.2.2">
+                <p id="section-toc.1-1.7.2.2.1"><a href="#section-7.2" class="auto internal xref">7.2</a>.  <a href="#name-data-center-location-anchor" class="internal xref">Data center location anchor host</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8">
+            <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-data-plane-end-to-end-workf" class="internal xref">Data Plane End-to-End Workflow</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-http-networking-protocol-re" class="internal xref">HTTP Networking Protocol - request signing along with geolocation information</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
+                <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-http-networking-protocol-ge" class="internal xref">HTTP Networking Protocol - geolocation information in SVID</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.3">
+                <p id="section-toc.1-1.8.2.3.1"><a href="#section-8.3" class="auto internal xref">8.3</a>.  <a href="#name-ipsec-tunnel-networking-pro" class="internal xref">IPSEC Tunnel Networking Protocol</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
+            <p id="section-toc.1-1.9.1"><a href="#section-9" class="auto internal xref">9</a>.  <a href="#name-confidential-computing-cons" class="internal xref">Confidential Computing Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.10">
+            <p id="section-toc.1-1.10.1"><a href="#section-10" class="auto internal xref">10</a>. <a href="#name-solution-mapping-to-industr" class="internal xref">Solution Mapping to Industry Gaps and Problem Statements</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.11">
+            <p id="section-toc.1-1.11.1"><a href="#section-11" class="auto internal xref">11</a>. <a href="#name-authorization-policy-implem" class="internal xref">Authorization Policy Implementers</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12">
+            <p id="section-toc.1-1.12.1"><a href="#section-12" class="auto internal xref">12</a>. <a href="#name-security-considerations" class="internal xref">Security Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.13">
+            <p id="section-toc.1-1.13.1"><a href="#section-13" class="auto internal xref">13</a>. <a href="#name-iana-considerations" class="internal xref">IANA Considerations</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14">
+            <p id="section-toc.1-1.14.1"><a href="#section-14" class="auto internal xref">14</a>. <a href="#name-appendix-items-to-follow-up" class="internal xref">Appendix - Items to follow up</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.1">
+                <p id="section-toc.1-1.14.2.1.1"><a href="#section-14.1" class="auto internal xref">14.1</a>.  <a href="#name-open-issues-1-restart-time-" class="internal xref">OPEN ISSUES 1: Restart time attestation/remote verification of workload identity agent for integrity and proof of residency on Host</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.2">
+                <p id="section-toc.1-1.14.2.2.1"><a href="#section-14.2" class="auto internal xref">14.2</a>.  <a href="#name-open-issues-2-location-priv" class="internal xref">OPEN ISSUES 2: Location privacy options</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.3">
+                <p id="section-toc.1-1.14.2.3.1"><a href="#section-14.3" class="auto internal xref">14.3</a>.  <a href="#name-open-issues-3-attested-ptp" class="internal xref">OPEN ISSUES 3: Attested PTP</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.4">
+                <p id="section-toc.1-1.14.2.4.1"><a href="#section-14.4" class="auto internal xref">14.4</a>.  <a href="#name-open-issues-4-geotagging-te" class="internal xref">OPEN ISSUES 4: Geotagging textual data</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.14.2.5">
+                <p id="section-toc.1-1.14.2.5.1"><a href="#section-14.5" class="auto internal xref">14.5</a>.  <a href="#name-open-issues-5-attesting-geo" class="internal xref">OPEN ISSUES 5: Attesting Geotags</a></p>
+</li>
+            </ul>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.15">
+            <p id="section-toc.1-1.15.1"><a href="#section-15" class="auto internal xref">15</a>. <a href="#name-appendix-public-references-" class="internal xref">Appendix - Public References for Strict Data Residency Rules</a></p>
+</li>
+          <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.16">
+            <p id="section-toc.1-1.16.1"><a href="#appendix-A" class="auto internal xref"></a><a href="#name-authors-addresses" class="internal xref">Authors' Addresses</a></p>
+</li>
+        </ul>
+</nav>
+</section>
+</div>
+<div id="conventions-and-definitions">
+<section id="section-1">
+      <h2 id="name-conventions-and-definitions">
+<a href="#section-1" class="section-number selfRef">1. </a><a href="#name-conventions-and-definitions" class="section-name selfRef">Conventions and Definitions</a>
+      </h2>
+<p id="section-1-1">The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [[RFC2119]] [[RFC8174]] when, and only when, they appear in all capitals, as shown here.<a href="#section-1-1" class="pilcrow">¶</a></p>
+<p id="section-1-2"><strong>Acronyms used in this document:</strong><a href="#section-1-2" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-1-3.1">
+          <strong>TPM</strong>: Trusted Platform Module<a href="#section-1-3.1" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-1-3.2">
+          <strong>GNSS</strong>: Global Navigation Satellite System<a href="#section-1-3.2" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-1-3.3">
+          <strong>IMEI</strong>: International Mobile Equipment Identity<a href="#section-1-3.3" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-1-3.4">
+          <strong>IMSI</strong>: International Mobile Subscriber Identity<a href="#section-1-3.4" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-1-3.5">
+          <strong>PCR</strong>: Platform Configuration Register<a href="#section-1-3.5" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-1-3.6">
+          <strong>MDM</strong>: Mobile Device Management<a href="#section-1-3.6" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-1-3.7">
+          <strong>IPSEC</strong>: Internet Protocol Security<a href="#section-1-3.7" class="pilcrow">¶</a>
+</li>
+      </ul>
+<p id="section-1-4"><strong>Key Terms:</strong><a href="#section-1-4" class="pilcrow">¶</a></p>
+<span class="break"></span><dl class="dlCompact dlParallel" id="section-1-5">
+        <dt id="section-1-5.1">Data Residency:</dt>
+        <dd style="margin-left: 1.5em" id="section-1-5.2">Technical and Legal Challenges Ensuring compliance with global and local data protection regulations and mandates (e.g., EU GDPR, US HIPAA, PCI DSS, and jurisdiction-specific laws; see Appendix for public references on strict data residency rules). Strict data residency rules require that specific categories of data must be stored and processed exclusively within designated geographic boundaries. Enforcing these mandates relies on a combination of trusted computing, host-affinity, geolocation-affinity, and geofencing—each defined below.<a href="#section-1-5.2" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-1-5.3">Data Residency Host-Affinity Requirement:</dt>
+        <dd style="margin-left: 1.5em" id="section-1-5.4">Data must remain bound to explicitly trusted computing environments or hosts, governing where storage and processing occur.<a href="#section-1-5.4" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-1-5.5">Data Residency Geolocation-Affinity Requirement:</dt>
+        <dd style="margin-left: 1.5em" id="section-1-5.6">Data must not be transferred beyond defined geographic regions. All storage and computation must remain within the specified boundaries.<a href="#section-1-5.6" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-1-5.7">Data Residency Host Geolocation Affinity (aka Geofencing):</dt>
+        <dd style="margin-left: 1.5em" id="section-1-5.8">A compound enforcement mechanism requiring that data and workloads are executed only on authorized hosts located within the approved geographic regions.<a href="#section-1-5.8" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-1-5.9">Workload Identity Agent (WIA):</dt>
+        <dd style="margin-left: 1.5em" id="section-1-5.10">SPIRE agent on each host, with TPM plugin to issue X.509 SVIDs and sign requests.<a href="#section-1-5.10" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-1-5.11">Location Anchor Host (LAH):</dt>
+        <dd style="margin-left: 1.5em" id="section-1-5.12">Host with a trusted GNSS/5G modem attached to its TPM endorsement key.<a href="#section-1-5.12" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-1-5.13">Composite Geolocation:</dt>
+        <dd style="margin-left: 1.5em" id="section-1-5.14">Fused location estimate from local GNSS plus mobile-API data.<a href="#section-1-5.14" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-1-5.15">Proof-Of-Residency (POR):</dt>
+        <dd style="margin-left: 1.5em" id="section-1-5.16">Cryptographic proof that a workload is executing within approved geographic and host boundaries.<a href="#section-1-5.16" class="pilcrow">¶</a>
+</dd>
+      <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="introduction">
+<section id="section-2">
+      <h2 id="name-introduction">
+<a href="#section-2" class="section-number selfRef">2. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
+      </h2>
+<p id="section-2-1">As organizations increasingly adopt cloud and distributed computing, the need to enforce data residency, geolocation affinity, and host affinity has become critical for regulatory compliance and risk management. Traditional approaches to geographic and host enforcement rely on trust in infrastructure providers or network-based controls, which are insufficient in adversarial or multi-tenant environments.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">Modern workload security faces new challenges from stolen bearer tokens, protocol replay, and the lack of trust in transit. Attackers can exploit bearer tokens from unauthorized hosts or locations, bypassing traditional controls.<a href="#section-2-2" class="pilcrow">¶</a></p>
+<p id="section-2-3">This document introduces a framework for modernizing workload security by enabling cryptographically verifiable geofencing, proof-of-possession, and protocol-aware residency enforcement. The solution cryptographically binds workload identity to both platform and geographic attributes, supplementing bearer tokens with signed, verifiable claims about workload residency and location.<a href="#section-2-3" class="pilcrow">¶</a></p>
+<p id="section-2-4">This enables enforcement of data residency, geolocation affinity, and host affinity policies, even in adversarial or multi-tenant environments, and directly addresses the limitations of bearer tokens, proof-of-possession, IPSEC, and trust-in-transit.<a href="#section-2-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="use-cases">
+<section id="section-3">
+      <h2 id="name-use-cases">
+<a href="#section-3" class="section-number selfRef">3. </a><a href="#name-use-cases" class="section-name selfRef">Use Cases</a>
+      </h2>
+<p id="section-3-1">Data residency use cases can be divided into three categories: (1) server-centric location, (2) user-centric location, and (3) regulatory compliance.<a href="#section-3-1" class="pilcrow">¶</a></p>
+<div id="category-1-server-centric-location">
+<section id="section-3.1">
+        <h3 id="name-category-1-server-centric-l">
+<a href="#section-3.1" class="section-number selfRef">3.1. </a><a href="#name-category-1-server-centric-l" class="section-name selfRef">Category 1: Server-centric Location</a>
+        </h3>
+<p id="section-3.1-1">Enterprises (e.g., healthcare, banking) need cryptographic proof of a trustworthy geographic boundary (i.e., region, zone, country, state, etc.) for cloud-facing workloads.<a href="#section-3.1-1" class="pilcrow">¶</a></p>
+<div id="server-workload-to-server-workload-general">
+<section id="section-3.1.1">
+          <h4 id="name-server-workload-to-server-w">
+<a href="#section-3.1.1" class="section-number selfRef">3.1.1. </a><a href="#name-server-workload-to-server-w" class="section-name selfRef">Server workload to Server workload - General</a>
+          </h4>
+<p id="section-3.1.1-1">Enterprises handling sensitive data rely on dedicated cloud hosts (e.g., EU sovereign cloud providers) that ensure compliance with data residency laws, while also ensuring appropriate levels of service (e.g., high availability). To meet data residency legal requirements, enterprises need to verify that workload data is processed by hosts within a geographic boundary and that workload data is only transmitted between specified geographic boundaries.<a href="#section-3.1.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="server-workload-to-server-workload-agentic-ai">
+<section id="section-3.1.2">
+          <h4 id="name-server-workload-to-server-wo">
+<a href="#section-3.1.2" class="section-number selfRef">3.1.2. </a><a href="#name-server-workload-to-server-wo" class="section-name selfRef">Server workload to Server workload - Agentic AI</a>
+          </h4>
+<p id="section-3.1.2-1">Enterprises need to ensure that the AI agent is located within a specific geographic boundary when downloading sensitive data or performing other sensitive operations. A secure AI agent, running on a trusted host with TPM-backed attestation, interacts with geolocation and geofencing services to obtain verifiable proof of its geographic boundary. The agent periodically collects location data from trusted sensors, obtains attested composite location from a geolocation service, and enforces geofence policies via a geofencing service. The resulting attested geofence proof is used to bind workload identity to both the host and its geographic location, enabling secure, policy-driven execution of AI workloads and compliance with data residency requirements.<a href="#section-3.1.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="server-workload-to-server-workload-federated-ai">
+<section id="section-3.1.3">
+          <h4 id="name-server-workload-to-server-wor">
+<a href="#section-3.1.3" class="section-number selfRef">3.1.3. </a><a href="#name-server-workload-to-server-wor" class="section-name selfRef">Server workload to Server workload - Federated AI</a>
+          </h4>
+<p id="section-3.1.3-1">In federated learning scenarios, multiple organizations collaborate to train machine learning models without sharing raw data. Each organization needs to ensure that its training data remains within a specific geographic boundary. This requires cryptographic proof that the training process is occurring on trusted hosts within the defined boundaries.<a href="#section-3.1.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="user-workload-to-server-workload">
+<section id="section-3.1.4">
+          <h4 id="name-user-workload-to-server-wor">
+<a href="#section-3.1.4" class="section-number selfRef">3.1.4. </a><a href="#name-user-workload-to-server-wor" class="section-name selfRef">User workload to Server workload</a>
+          </h4>
+<p id="section-3.1.4-1">Enterprises ensure that they are communicating with a server (e.g., cloud services) located within a specific geographic boundary.<a href="#section-3.1.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="category-2-user-centric-location">
+<section id="section-3.2">
+        <h3 id="name-category-2-user-centric-loc">
+<a href="#section-3.2" class="section-number selfRef">3.2. </a><a href="#name-category-2-user-centric-loc" class="section-name selfRef">Category 2: User-centric Location</a>
+        </h3>
+<p id="section-3.2-1">Enterprises need cryptographic proof of trustworthy geographic boundary for user-facing workloads.<a href="#section-3.2-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-3.2-2.1">
+            <p id="section-3.2-2.1.1">A server (or proxy) authenticates to clients using different TLS certificates, each signed by a different Certificate Authority (CA), based on the geographic boundaries of user workloads.<a href="#section-3.2-2.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.2-2.2">
+            <p id="section-3.2-2.2.1">Enterprise Customer Premise Equipment (CPE) provides on-premises computing that is a basis for defining geolocation boundaries. A telco network provides a means for communication between premises.<a href="#section-3.2-2.2.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.2-2.3">
+            <p id="section-3.2-2.3.1">Construction &amp; Engineering of SaaS workloads can benefit from attested geographic boundary data from end-user devices to restrict access within specific geopolitical regions (e.g., California). Enabling per-user or group-level geofencing helps prevent fraudulent access originating outside the authorized area.<a href="#section-3.2-2.3.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.2-2.4">
+            <p id="section-3.2-2.4.1">Healthcare providers need to ensure that the host is located in a specific geographic boundary when downloading patient data or performing other sensitive operations.<a href="#section-3.2-2.4.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-3.2-2.5">
+            <p id="section-3.2-2.5.1">U.S. Presidential Executive Order compliance directs Cloud Service Provider (CSP) support personnel be located in restricted geographies (e.g., Venezuela, Iran, China, North Korea). However, those personnel should not be allowed to support U.S. customers. Geolocation enforcement can ensure policy compliance.<a href="#section-3.2-2.5.1" class="pilcrow">¶</a></p>
+</li>
+        </ul>
+</section>
+</div>
+<div id="category-3-regulatory-compliance">
+<section id="section-3.3">
+        <h3 id="name-category-3-regulatory-compl">
+<a href="#section-3.3" class="section-number selfRef">3.3. </a><a href="#name-category-3-regulatory-compl" class="section-name selfRef">Category 3: Regulatory Compliance</a>
+        </h3>
+<p id="section-3.3-1">Geographic boundary attestation helps satisfy data residency and data sovereignty requirements for regulatory compliance.<a href="#section-3.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="industry-gaps-and-problem-statements">
+<section id="section-4">
+      <h2 id="name-industry-gaps-and-problem-s">
+<a href="#section-4" class="section-number selfRef">4. </a><a href="#name-industry-gaps-and-problem-s" class="section-name selfRef">Industry Gaps and Problem Statements</a>
+      </h2>
+<p id="section-4-1">Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. Current geofencing and location verification solutions face significant challenges across different data states, location sources, and authentication mechanisms. This section outlines the key gaps and problems that this specification aims to address.<a href="#section-4-1" class="pilcrow">¶</a></p>
+<div id="data-generation-at-rest-challenges">
+<section id="section-4.1">
+        <h3 id="name-data-generation-at-rest-cha">
+<a href="#section-4.1" class="section-number selfRef">4.1. </a><a href="#name-data-generation-at-rest-cha" class="section-name selfRef">Data Generation/at-Rest Challenges</a>
+        </h3>
+<span class="break"></span><dl class="dlCompact dlParallel" id="section-4.1-1">
+          <dt id="section-4.1-1.1">Textual Geotags:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.1-1.2">No standard for textual geotags (EXIF covers media only).<a href="#section-4.1-1.2" class="pilcrow">¶</a>
+</dd>
+          <dd class="break"></dd>
+<dt id="section-4.1-1.3">Attesting Geotags:</dt>
+          <dd style="margin-left: 1.5em" id="section-4.1-1.4">Existing geotag formats are unsigned and forgeable via VPN/MITM attacks.<a href="#section-4.1-1.4" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+</dl>
+</section>
+</div>
+<div id="data-in-use-challenges">
+<section id="section-4.2">
+        <h3 id="name-data-in-use-challenges">
+<a href="#section-4.2" class="section-number selfRef">4.2. </a><a href="#name-data-in-use-challenges" class="section-name selfRef">Data-in-Use Challenges</a>
+        </h3>
+<div id="authentication-and-authorization-challenges">
+<section id="section-4.2.1">
+          <h4 id="name-authentication-and-authoriz">
+<a href="#section-4.2.1" class="section-number selfRef">4.2.1. </a><a href="#name-authentication-and-authoriz" class="section-name selfRef">Authentication and Authorization Challenges</a>
+          </h4>
+<div id="bearer-token-vulnerabilities">
+<section id="section-4.2.1.1">
+            <h5 id="name-bearer-token-vulnerabilitie">
+<a href="#section-4.2.1.1" class="section-number selfRef">4.2.1.1. </a><a href="#name-bearer-token-vulnerabilitie" class="section-name selfRef">Bearer Token Vulnerabilities</a>
+            </h5>
+<p id="section-4.2.1.1-1">Bearer tokens are typically generated via user MFA and used to establish HTTP sessions. A malicious actor can steal a bearer token (e.g., from a still-valid HAR file uploaded to a support portal, as seen in the Okta attack) and present it to a server workload. The attacker may be in a forbidden location and on an unauthorized host (e.g., their own laptop). Current solution options for addressing bearer token issue and their challenges:<a href="#section-4.2.1.1-1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-4.2.1.1-2.1">PoP Token: Not easy to establish trust between the presenter (client) and the token issuer.<a href="#section-4.2.1.1-2.1" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-4.2.1.1-2.2">PoP via Mutual TLS: Client certificates are generally not supported in browsers. MITM entities such as API gateways often terminate TLS connections.<a href="#section-4.2.1.1-2.2" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-4.2.1.1-2.3">Host TPMs for API call signature: Not scalable to sign every API call with a TPM key, as typical enterprise laptops/servers TPMs support only about 5 signatures per second.<a href="#section-4.2.1.1-2.3" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-4.2.1.1-2.4">Non-HTTP protocols: No solution for IPSEC etc.<a href="#section-4.2.1.1-2.4" class="pilcrow">¶</a>
+</li>
+            </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="location-and-geofencing-challenges">
+<section id="section-4.2.2">
+          <h4 id="name-location-and-geofencing-cha">
+<a href="#section-4.2.2" class="section-number selfRef">4.2.2. </a><a href="#name-location-and-geofencing-cha" class="section-name selfRef">Location and Geofencing Challenges</a>
+          </h4>
+<ul class="normal">
+<li class="normal" id="section-4.2.2-1.1">
+              <p id="section-4.2.2-1.1.1"><strong>IP Address-Based Location:</strong> This is the typical approach, but it has limitations: network providers can use geographic-region-based IANA-assigned IP addresses anywhere in the world, and enterprise VPNs can hide the user's real IP address.<a href="#section-4.2.2-1.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-4.2.2-1.2">
+              <p id="section-4.2.2-1.2.1"><strong>Wi-Fi-Based Location:</strong> For user laptop endpoints with agents (e.g., ZTNA), traditional geographic enforcement relies on trusting the Wi-Fi access point's location. However, Wi-Fi access points are mobile and can be moved, undermining this trust.<a href="#section-4.2.2-1.2.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-4.2.2-1.3">
+              <p id="section-4.2.2-1.3.1"><strong>GNSS:</strong> Certain GNSS, e.g., civilian GPS in smartphones and navigation systems, can be spoofed. A practical example is the Israel GPS spoofing attacks.<a href="#section-4.2.2-1.3.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+<div id="implicit-trust-challenges">
+<section id="section-4.2.3">
+          <h4 id="name-implicit-trust-challenges">
+<a href="#section-4.2.3" class="section-number selfRef">4.2.3. </a><a href="#name-implicit-trust-challenges" class="section-name selfRef">Implicit Trust Challenges</a>
+          </h4>
+<ul class="normal">
+<li class="normal" id="section-4.2.3-1.1">
+              <p id="section-4.2.3-1.1.1"><strong>Cloud Region Trust</strong>: Implicit trust in cloud region assignment with no cryptographic proof of physical locality. There is no auditable link between stored blobs and actual geography.<a href="#section-4.2.3-1.1.1" class="pilcrow">¶</a></p>
+</li>
+            <li class="normal" id="section-4.2.3-1.2">
+              <p id="section-4.2.3-1.2.1"><strong>Trust in Transit:</strong> HTTP requests can be intercepted and modified by compromised intermediate proxies (e.g., API gateways, SASE firewalls).<a href="#section-4.2.3-1.2.1" class="pilcrow">¶</a></p>
+</li>
+          </ul>
+</section>
+</div>
+</section>
+</div>
+</section>
+</div>
+<div id="approach-overview">
+<section id="section-5">
+      <h2 id="name-approach-overview">
+<a href="#section-5" class="section-number selfRef">5. </a><a href="#name-approach-overview" class="section-name selfRef">Approach Overview</a>
+      </h2>
+<p id="section-5-1">This approach enables cryptographically verifiable geofencing by binding workload identity to both platform and geographic attributes using trusted hardware (e.g., TPM), attestation protocols, and geolocation services. The framework supports secure, policy-driven enforcement of data residency and location requirements for workloads in multi-system environments.<a href="#section-5-1" class="pilcrow">¶</a></p>
+<p id="section-5-2">Key elements of the approach include:<a href="#section-5-2" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-5-3.1">
+          <strong>Trusted Hardware Roots:</strong> Workload identity is anchored in hardware roots of trust such as TPMs, GNSS sensors, and mobile network modules, ensuring device integrity and authentic location data.<a href="#section-5-3.1" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-5-3.2">
+          <strong>Remote Attestation:</strong> Workload Identity Agents collect measurements from the platform and location sensors, and use TPM-backed attestation to prove the integrity and residency of the workload to a remote Workload Identity Manager.<a href="#section-5-3.2" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-5-3.3">
+          <strong>Composite Location Claims:</strong> The system combines multiple sources of location (e.g., GNSS, mobile network, Wi-Fi) and device composition (e.g., SIM, TPM EK) to create a composite, quality-scored location claim, which is cryptographically signed and verifiable.<a href="#section-5-3.3" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-5-3.4">
+          <strong>Policy Enforcement:</strong> Workload Identity Managers and downstream policy implementers (e.g. Firewall) use these verifiable claims to enforce geofencing and data residency policies, ensuring that workloads only run or access data within approved geographic or jurisdictional boundaries.<a href="#section-5-3.4" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-5-3.5">
+          <strong>Continuous Monitoring:</strong> The framework supports periodic re-attestation and monitoring of device composition and location, detecting changes such as SIM swaps or sensor removal that could affect trust.<a href="#section-5-3.5" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-5-3.6">
+          <strong>Interoperability:</strong> The approach is designed to integrate with existing workload identity frameworks (e.g., SPIFFE/SPIRE), enabling adoption in cloud, edge, and enterprise environments.<a href="#section-5-3.6" class="pilcrow">¶</a>
+</li>
+      </ul>
+<p id="section-5-4">For example, in this document:<a href="#section-5-4" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-5-5.1">The <strong>Workload Identity Manager</strong> is represented by the SPIFFE/SPIRE server.<a href="#section-5-5.1" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-5-5.2">The <strong>Workload Identity Agent</strong> is represented by the SPIFFE/SPIRE agent.<a href="#section-5-5.2" class="pilcrow">¶</a>
+</li>
+      </ul>
+<div id="server-hosts-solution-highlights">
+<section id="section-5.1">
+        <h3 id="name-server-hosts-solution-highl">
+<a href="#section-5.1" class="section-number selfRef">5.1. </a><a href="#name-server-hosts-solution-highl" class="section-name selfRef">Server Hosts - Solution highlights</a>
+        </h3>
+<p id="section-5.1-1">Assumptions: The maximum round-trip delay within a data center typically ranges from 500-1000 microseconds.<a href="#section-5.1-1" class="pilcrow">¶</a></p>
+<p id="section-5.1-2">Scalable hierarchical approach -- enhancements to Workload Identity (SPIFFE/SPIRE) solution:<a href="#section-5.1-2" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-5.1-3.1">
+            <p id="section-5.1-3.1.1">Each of the hosts runs a workload identity agent (SPIFFE/SPIRE agent) with TPM plugin which connects to a workload identity manager (SPIFFE/SPIRE server).<a href="#section-5.1-3.1.1" class="pilcrow">¶</a></p>
+</li>
+          <li class="normal" id="section-5.1-3.2">
+            <p id="section-5.1-3.2.1">Location anchor hosts are directly attached to trusted location source - Mobile modem, GNSS Galileo receiver etc.<a href="#section-5.1-3.2.1" class="pilcrow">¶</a></p>
+<ul class="compact normal">
+<li class="compact normal" id="section-5.1-3.2.2.1">Use of multiple location anchor hosts can enhance security and trust.<a href="#section-5.1-3.2.2.1" class="pilcrow">¶</a>
+</li>
+              <li class="compact normal" id="section-5.1-3.2.2.2">For mobile sensors, the location can be tracked outside of host using a GSMA standards based mobile service provider API.<a href="#section-5.1-3.2.2.2" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+          <li class="normal" id="section-5.1-3.3">
+            <p id="section-5.1-3.3.1">Host geolocation sensor composition manager periodically verifies location anchor hosts device composition (primarily location sensors).<a href="#section-5.1-3.3.1" class="pilcrow">¶</a></p>
+<ul class="compact normal">
+<li class="compact normal" id="section-5.1-3.3.2.1">Use SPIFFE/SPIRE agent host geolocation plugin (new).<a href="#section-5.1-3.3.2.1" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+          <li class="normal" id="section-5.1-3.4">
+            <p id="section-5.1-3.4.1">Host proximity manager periodically verifies that location anchor hosts provide proof that application hosts are within the maximum data center round-trip delay from them.<a href="#section-5.1-3.4.1" class="pilcrow">¶</a></p>
+<ul class="compact normal">
+<li class="compact normal" id="section-5.1-3.4.2.1">SW-based Attested PTP - Modified Linux PTP daemon (SPIFFE/SPIRE workload) will sign PTP messages.<a href="#section-5.1-3.4.2.1" class="pilcrow">¶</a>
+</li>
+              <li class="compact normal" id="section-5.1-3.4.2.2">HW-based Attested PTP - Relevant for sub microsecond precision timing solutions.<a href="#section-5.1-3.4.2.2" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+          <li class="normal" id="section-5.1-3.5">
+            <p id="section-5.1-3.5.1">Workload identity agent provides proof that workloads run only on workload/location anchor hosts.<a href="#section-5.1-3.5.1" class="pilcrow">¶</a></p>
+<ul class="compact normal">
+<li class="compact normal" id="section-5.1-3.5.2.1">This is done using enhancements to existing SPIFFE/SPIRE agent and TPM plugin and addresses bearer token issue.<a href="#section-5.1-3.5.2.1" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+        </ul>
+</section>
+</div>
+<div id="end-user-iot-hosts-solution-highlights">
+<section id="section-5.2">
+        <h3 id="name-end-user-iot-hosts-solution">
+<a href="#section-5.2" class="section-number selfRef">5.2. </a><a href="#name-end-user-iot-hosts-solution" class="section-name selfRef">End user/IoT hosts - Solution highlights</a>
+        </h3>
+<p id="section-5.2-1">Browser solution -- new browser extension for proof residency and geofencing:<a href="#section-5.2-1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-5.2-2.1">Application proxy which intercepts every HTTP request; connects to workload identity agent to add geolocation; signs request using workload identity agent key which is attested by TPM attestation key.<a href="#section-5.2-2.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-5.2-3">Similar to the server hosts solution:<a href="#section-5.2-3" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-5.2-4.1">Each of the hosts runs a workload identity agent (SPIFFE/SPIRE agent) which connects to a workload identity manager (SPIFFE/SPIRE server).<a href="#section-5.2-4.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="control-plane-end-to-end-workflow">
+<section id="section-6">
+      <h2 id="name-control-plane-end-to-end-wo">
+<a href="#section-6" class="section-number selfRef">6. </a><a href="#name-control-plane-end-to-end-wo" class="section-name selfRef">Control Plane End-to-End Workflow</a>
+      </h2>
+<p id="section-6-1">The end-to-end workflow for the proposed framework consists of several key steps, including attestation for system bootstrap and Workload Identity Agent initialization, Workload Identity Agent geolocation and geofencing processing, workload attestation, and remote verification.<a href="#section-6-1" class="pilcrow">¶</a></p>
+<div id="spiffe-spire-architecture-modifications">
+<section id="section-6.1">
+        <h3 id="name-spiffe-spire-architecture-m">
+<a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-spiffe-spire-architecture-m" class="section-name selfRef">SPIFFE/SPIRE Architecture Modifications</a>
+        </h3>
+<p id="section-6.1-1">In the context of the SPIFFE/SPIRE architecture, the SPIFFE/SPIRE Agent includes a new geolocation plugin. The Agent is a daemon running on bare-metal Linux OS host (H) as a process with direct access to TPM (root permissions for TPM 2.0 access may be needed for certain Linux distributions for certain host hardware configurations). The Agent, using the geolocation plugin, can gather the location from host-local location sensors (e.g., GNSS). The Agent has a TPM plugin which interacts with the TPM. The Workload Identity Manager (SPIFFE/SPIRE server) is running in a cluster which is isolated from the cluster in which the Agent is running.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="attestation-of-os-integrity-and-proof-of-residency-on-host">
+<section id="section-6.2">
+        <h3 id="name-attestation-of-os-integrity">
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-attestation-of-os-integrity" class="section-name selfRef">Attestation of OS Integrity and Proof of Residency on Host</a>
+        </h3>
+<p id="section-6.2-1">As part of system boot/reboot process, boot loader-based measured system boot with remote Workload Identity Manager verification is used to ensure only approved OS is running on an approved hardware platform.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.2-2"><strong>Measurement Collection</strong>: During the boot process, the boot loader collects measurements (hashes) of the boot components and configurations. The boot components are Firmware/BIOS/UEFI, bootloader, OS, drivers, location devices, and initial programs. All the location devices (e.g., GNSS sensor, mobile sensor) version/firmware in a platform are measured during each boot -- this is a boot loader enhancement. Any new location device which is hot-swapped in will be evaluated for inclusion only during next reboot.<a href="#section-6.2-2" class="pilcrow">¶</a></p>
+<p id="section-6.2-3"><strong>Log Creation</strong>: These measurements are recorded in a log, often referred to as the TCGLog, and stored in the TPM's Platform Configuration Registers (PCRs).<a href="#section-6.2-3" class="pilcrow">¶</a></p>
+<p id="section-6.2-4"><strong>Attestation Report</strong>: The TPM generates an attestation report, which includes the signed measurements and the boot configuration log. The signature of the attestation report (aka quote) is by a TPM Attestation Key (AK). This attestation includes data about the TPM's state and can be used to verify that the AK is indeed cryptographically backed by the TPM Endorsement Key (EK) certificate.<a href="#section-6.2-4" class="pilcrow">¶</a></p>
+<p id="section-6.2-5"><strong>Transmission</strong>: The attestation report is then sent to an external verifier (Workload Identity Manager), through a secure TLS connection.<a href="#section-6.2-5" class="pilcrow">¶</a></p>
+<p id="section-6.2-6"><strong>Remote Verification</strong>: The remote Workload Identity Manager checks the integrity of the attestation report and validates the measurements against known good values from the set of trusted hosts in the Host hardware identity datastore. The Workload Identity Manager also validates that the TPM EK certificate has not been revoked and is part of the approved list of TPM EK identifiers associated with the hardware platform. At this point, we can be sure that the hardware platform is approved for running workloads and is running an approved OS.<a href="#section-6.2-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="start-restart-time-attestation-remote-verification-of-workload-identity-agent-for-integrity-and-proof-of-residency-on-host">
+<section id="section-6.3">
+        <h3 id="name-start-restart-time-attestat">
+<a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-start-restart-time-attestat" class="section-name selfRef">Start/Restart time attestation/remote verification of Workload Identity Agent for integrity and proof of residency on Host</a>
+        </h3>
+<p id="section-6.3-1">The Workload Identity Agent TPM plugin is a process with elevated privileges with access to TPM and location sensor hardware. Linux IMA and Workload Identity Agent public/private key attestation are the changes compared to the original SPIFFE/SPIRE architecture with the TPM plugin.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
+<p id="section-6.3-2"><strong>Measurement Collection</strong>: For the Workload Identity Agent start case, the Agent executable is measured by Linux IMA, for example through cloud init and stored in TPM PCR through tools e.g., Linux ima-evm-utils before it is loaded. For the Workload Identity Agent restart case, it is not clear how the storage in TPM PCR will be accomplished - ideally this should be natively handled in the IMA measurement process with an ability to retrigger on restart or refresh cycles (OPEN ISSUES 1).<a href="#section-6.3-2" class="pilcrow">¶</a></p>
+<p id="section-6.3-3"><strong>Local Verification</strong>: Enforce local validation of a measurement against an approved value stored in an extended attribute of the file.<a href="#section-6.3-3" class="pilcrow">¶</a></p>
+<p id="section-6.3-4"><strong>TPM attestation and remote Workload Identity Manager verification</strong>:<a href="#section-6.3-4" class="pilcrow">¶</a></p>
+<p id="section-6.3-5">Step 1 (Workload Identity Agent TPM APP ID issuance):<a href="#section-6.3-5" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-6.3-6">
+<li id="section-6.3-6.1">The Workload Identity Agent TPM plugin generates a TPM APP private key for proof of residency on the host for each start/restart.<a href="#section-6.3-6.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-6.2">The Workload Identity Agent TPM plugin sends the TPM APP public key, TPM AK public key and TPM EK certificate attestation parameters to the Workload Identity Manager.<a href="#section-6.3-6.2" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-6.3">The Workload Identity Manager verifies the attestation parameters. It then validates that the TPM EK certificate is in the trusted TPM EK certificate list with the Host Identity Manager (e.g. Keylime Verifier).<a href="#section-6.3-6.3" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-6.4">If validation passes, the Workload Identity Manager generates a credential activation challenge. The challenge's secret is encrypted using the Workload Identity Agent TPM APP public key.<a href="#section-6.3-6.4" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-6.5">The Workload Identity Manager sends the challenge to the Workload Identity Agent.<a href="#section-6.3-6.5" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-6.6">The Workload Identity Agent decrypts the challenge's secret using its TPM APP private key.<a href="#section-6.3-6.6" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-6.7">The Workload Identity Agent sends back the decrypted secret.<a href="#section-6.3-6.7" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-6.8">The Workload Identity Manager verifies that the decrypted secret matches the original secret used to build the challenge.<a href="#section-6.3-6.8" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-6.9">The Workload Identity Manager issues a Workload Identity Agent TPM APP ID using the TPM APP public key, TPM AK public key and TPM EK certificate.<a href="#section-6.3-6.9" class="pilcrow">¶</a>
+</li>
+        </ol>
+<p id="section-6.3-7">Step 2 (Workload Identity Agent ID issuance):<a href="#section-6.3-7" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-6.3-8">
+<li id="section-6.3-8.1">The Workload Identity Agent generates a private/public key pair.<a href="#section-6.3-8.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-8.2">The Workload Identity Agent uses the TPM APP private key, stored in the TPM, to sign the public key.<a href="#section-6.3-8.2" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-8.3">The Workload Identity Agent sends the public key, signed by the TPM APP private key, to the Workload Identity Manager.<a href="#section-6.3-8.3" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-8.4">The Workload Identity Manager ensures the public key is associated with a Workload Identity Agent TPM APP ID.<a href="#section-6.3-8.4" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-8.5">If validation passes, the Workload Identity Manager generates a credential activation challenge. The challenge's secret is encrypted using the Workload Identity Agent public key.<a href="#section-6.3-8.5" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-8.6">The Workload Identity Manager sends the challenge to the Workload Identity Agent.<a href="#section-6.3-8.6" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-8.7">The Workload Identity Agent decrypts the challenge's secret using its private key.<a href="#section-6.3-8.7" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-8.8">The Workload Identity Agent sends back the decrypted secret.<a href="#section-6.3-8.8" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-8.9">The Workload Identity Manager verifies that the decrypted secret matches the original secret used to build the challenge.<a href="#section-6.3-8.9" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.3-8.10">The Workload Identity Manager issues the Workload Identity Agent ID using the Workload Identity Agent public key, the TPM APP signature of the Workload Identity Agent public key, and the Workload Identity Agent TPM APP ID.<a href="#section-6.3-8.10" class="pilcrow">¶</a>
+</li>
+        </ol>
+<p id="section-6.3-9">Design Options for TPM-Based Workload Identity with Privacy:<a href="#section-6.3-9" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-6.3-10.1">From a privacy standpoint, sharing TPM details—especially the EK certificate—across organizational boundaries can be problematic. Below are two approaches that let you attest workload identities without exposing raw EK data.<a href="#section-6.3-10.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-6.3-10.2">
+            <p id="section-6.3-10.2.1">Option 1 -- Pseudonymity:<a href="#section-6.3-10.2.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-6.3-10.2.2.1">Only the Workload Identity Agent's TPM APP public key and Host identity agent's (e.g. Keylime agent) TPM AK public key are shared outside the host-owner organization.<a href="#section-6.3-10.2.2.1" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-6.3-10.2.2.2">The consuming organization's Workload Identity Manager verifies that AK against its own list of trusted AK public keys.<a href="#section-6.3-10.2.2.2" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-6.3-10.2.2.3">A unique TPM AK is generated and attested per tenant, so no single AK maps across tenants.<a href="#section-6.3-10.2.2.3" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-6.3-10.2.2.4">Supported by all TPM 2.0+ devices, this gives you per-tenant pseudonymity without ever revealing the EK.<a href="#section-6.3-10.2.2.4" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+          <li class="compact" id="section-6.3-10.3">
+            <p id="section-6.3-10.3.1">Option 2 -- Full Anonymity:<a href="#section-6.3-10.3.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-6.3-10.3.2.1">Leverage TPM 2.0+ Direct Anonymous Attestation (DAA) or EPID. Note that this requires TPM 2.0+ devices with DAA support.<a href="#section-6.3-10.3.2.1" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-6.3-10.3.2.2">Each host's TPM runs the DAA Join protocol with a Privacy CA to obtain a group credential.<a href="#section-6.3-10.3.2.2" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-6.3-10.3.2.3">The Workload Identity Agent signs its public key with that DAA credential (using a session-specific basename).<a href="#section-6.3-10.3.2.3" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-6.3-10.3.2.4">The Workload Identity Manager verifies the signature against the DAA group public key—proving membership without exposing or linking any device identity.<a href="#section-6.3-10.3.2.4" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+          <li class="compact" id="section-6.3-10.4">Both options remove direct TPM EK exposure. Pseudonymity uses the standard TPM AK model, while TPM DAA offers unlinkable, anonymous proofs of TPM possession.<a href="#section-6.3-10.4" class="pilcrow">¶</a>
+</li>
+        </ul>
+</section>
+</div>
+<div id="host-geolocation-sensor-composition-manager-and-host-composition-change-tracking">
+<section id="section-6.4">
+        <h3 id="name-host-geolocation-sensor-com">
+<a href="#section-6.4" class="section-number selfRef">6.4. </a><a href="#name-host-geolocation-sensor-com" class="section-name selfRef">Host geolocation sensor composition manager and Host Composition Change Tracking</a>
+        </h3>
+<p id="section-6.4-1">The Host geolocation sensor composition manager runs outside of the host. In addition to obtaining location from device location sources (e.g., GNSS), it connects to mobile location service providers (e.g., Telefonica) using the GSMA Location API. The process described below is run periodically (e.g., every 5 minutes) to check if the host hardware composition has changed. Host hardware composition comprises TPM EK, GNSS sensor hardware ID, mobile sensor hardware ID (IMEI), and mobile-SIM IMSI. Note that this workflow is feasible only in enterprise environments where the host hardware is owned and managed by the enterprise.<a href="#section-6.4-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-6.4-2">
+<li id="section-6.4-2.1">The Workload Identity Agent periodically gathers host composition details (e.g., mobile sensor hardware ID (IMEI), mobile-SIM IMSI) and sends them to the Host geolocation sensor composition manager.<a href="#section-6.4-2.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.4-2.2">The Host geolocation sensor composition manager cross-verifies that the components of the host are still intact or detects if anything has been removed. (Plugging out components can decrease the quality of location. Host hardware composition comprises TPM EK, GNSS sensor hardware ID, mobile sensor hardware ID (IMEI), and mobile-SIM IMSI. Note that e-SIM does not have the plugging out problem like standard SIM but could be subject to e-SIM swap attack.)<a href="#section-6.4-2.2" class="pilcrow">¶</a>
+</li>
+        </ol>
+</section>
+</div>
+<div id="workload-identity-agent-geolocation-gathering-workflow">
+<section id="section-6.5">
+        <h3 id="name-workload-identity-agent-geo">
+<a href="#section-6.5" class="section-number selfRef">6.5. </a><a href="#name-workload-identity-agent-geo" class="section-name selfRef">Workload Identity Agent Geolocation Gathering Workflow</a>
+        </h3>
+<p id="section-6.5-1">The process described below is run periodically (e.g., every 30 seconds for frequently mobile hosts such as smartphones; every 5 minutes for less frequently mobile hosts such as laptops; every 50 minutes for stationary hosts) to check if the host's location has changed and to obtain an attested location.<a href="#section-6.5-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-6.5-2">
+<li id="section-6.5-2.1">The Workload Identity Agent gathers the location using the geolocation plugin (a) directly from host-local location sensors (e.g., GNSS), which provide a hardware-attested location, and/or (b) using existing Operating System (OS) APIs, which gather a composite location from location providers (e.g., Google, Apple). Location has a quality associated with it. For example, IP address-based or Wi-Fi-based location is of lower quality compared to other sources.<a href="#section-6.5-2.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.5-2.2">For each of the registered workload IDs (or website URL), based on the configured location policy (precise, approximated within a fixed radius, geographic region-based indicating city/state/country - see OPEN ISSUES 2), the location is converted appropriately to a workload ID-specific location. For thin clients (browser clients), the workload ID is the website URL. This ensures that the privacy of the workload is preserved while still allowing for geolocation enforcement.<a href="#section-6.5-2.2" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.5-2.3">
+            <p id="section-6.5-2.3.1">All the above details are captured in the Geolocation Information Cache which contains the following fields:<a href="#section-6.5-2.3.1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-6.5-2.3.2">
+<li id="section-6.5-2.3.2.1">Time of collection (timestamp)<a href="#section-6.5-2.3.2.1" class="pilcrow">¶</a>
+</li>
+              <li id="section-6.5-2.3.2.2">
+                <p id="section-6.5-2.3.2.2.1">Workload ID specific location details for each client workload where each entry contains:<a href="#section-6.5-2.3.2.2.1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-6.5-2.3.2.2.2">
+<li id="section-6.5-2.3.2.2.2.1">client workload ID - relevant for thick clients (e.g. Microsoft Teams client)<a href="#section-6.5-2.3.2.2.2.1" class="pilcrow">¶</a>
+</li>
+                  <li id="section-6.5-2.3.2.2.2.2">server workload ID (or website URL) - relevant for thin clients (e.g. Microsoft Teams browser version)<a href="#section-6.5-2.3.2.2.2.2" class="pilcrow">¶</a>
+</li>
+                  <li id="section-6.5-2.3.2.2.2.3">client location type (e.g. precise, approximated, geographic region based)<a href="#section-6.5-2.3.2.2.2.3" class="pilcrow">¶</a>
+</li>
+                  <li id="section-6.5-2.3.2.2.2.4">client location (e.g. latitude/longitude, city/state/country)<a href="#section-6.5-2.3.2.2.2.4" class="pilcrow">¶</a>
+</li>
+                  <li id="section-6.5-2.3.2.2.2.5">client location quality (e.g. GNSS, mobile network, Wi-Fi, IP address)<a href="#section-6.5-2.3.2.2.2.5" class="pilcrow">¶</a>
+</li>
+                </ol>
+</li>
+            </ol>
+</li>
+        </ol>
+<p id="section-6.5-3">It is important to note that the Geolocation Information Cache is kept in the Workload Identity Agent memory and is not stored on disk. The information is refreshed periodically to ensure that the location is up-to-date. This information is used only by workloads in the host and never leaves the host.<a href="#section-6.5-3" class="pilcrow">¶</a></p>
+<p id="section-6.5-4">If the location is gathered only using existing OS APIs, it may be done in the workload (thick client) or browser extension (thin client). The Geolocation Information Cache is stored in thick client memory (relevant only to specific client) or browser extension memory (relevant to all thin clients and indexed using user in OAuth bearer token/server website URL).<a href="#section-6.5-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="workload-public-key-attestation-and-remote-verification">
+<section id="section-6.6">
+        <h3 id="name-workload-public-key-attesta">
+<a href="#section-6.6" class="section-number selfRef">6.6. </a><a href="#name-workload-public-key-attesta" class="section-name selfRef">Workload Public Key Attestation and Remote Verification</a>
+        </h3>
+<p id="section-6.6-1">Workload Identity Agent public/private key attestation, rather than TPM Attestation Key (AK) attestation, is the key change compared to the original SPIFFE/SPIRE architecture with the TPM plugin. Optionally, the workload geolocation can be attested to the Workload Identity Manager by supplying the geolocation information in the Geolocation Information Cache.<a href="#section-6.6-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-6.6-2">
+<li id="section-6.6-2.1">The Workload Identity Agent ensures that the workload connects to it on a host-local socket (e.g., Unix-domain socket).<a href="#section-6.6-2.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.6-2.2">The Workload Identity Agent generates a private/public key pair for the workload.<a href="#section-6.6-2.2" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.6-2.3">The Workload Identity Agent signs the workload public key with its own private key.<a href="#section-6.6-2.3" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.6-2.4">The Workload Identity Agent sends the signed workload public key, along with its cryptographically attested Workload Identity Agent ID, to the Workload Identity Manager. (Note: The Workload Identity Agent ID has already been verified by the Workload Identity Manager during the agent attestation process, establishing proof of residency of the Workload Identity Agent on the host.)<a href="#section-6.6-2.4" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.6-2.5">The Workload Identity Manager verifies that the TPM Endorsement Key (EK) associated with the Workload Identity Agent ID is present in the trusted host hardware database.<a href="#section-6.6-2.5" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.6-2.6">The Workload Identity Manager verifies the workload public key signature using the Workload Identity Agent's public key (which was previously attested).<a href="#section-6.6-2.6" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.6-2.7">The Workload Identity Manager sends an encrypted challenge to the Workload Identity Agent. The challenge's secret is encrypted using the workload's public key. (This step proves that the workload controls the corresponding private key.)<a href="#section-6.6-2.7" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.6-2.8">The Workload Identity Agent decrypts the challenge using the workload's private key and sends the response back to the Workload Identity Manager.<a href="#section-6.6-2.8" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.6-2.9">The Workload Identity Manager verifies that the decrypted secret matches the original secret used to build the challenge.<a href="#section-6.6-2.9" class="pilcrow">¶</a>
+</li>
+          <li id="section-6.6-2.10">
+            <p id="section-6.6-2.10.1">The Workload Identity Manager issues a workload ID (e.g., SPIFFE ID) for the workload's public key. The workload ID is signed by the Workload Identity Manager and contains the workload's public key and the Workload Identity Agent ID.<a href="#section-6.6-2.10.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-6.6-2.10.2.1">Optionally, the workload geolocation can be attested to the Workload Identity Manager by supplying the geolocation information in the Geolocation Information Cache. The SVID of the workload is signed by the Workload Identity Manager and contains the workload's public key, the Workload Identity Agent ID, and the workload geolocation information.<a href="#section-6.6-2.10.2.1" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+          <li id="section-6.6-2.11">
+            <p id="section-6.6-2.11.1">Design Options:<a href="#section-6.6-2.11.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-6.6-2.11.2.1">
+                <strong>Option 1:</strong> The workload can use the Workload Identity Agent to manage its keys and perform cryptographic operations on its behalf. In this case, the workload receives its workload ID from the Workload Identity Agent.<a href="#section-6.6-2.11.2.1" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-6.6-2.11.2.2">
+                <strong>Option 2:</strong> The workload can manage its own keys and perform cryptographic operations independently. In this case, the workload receives its private key and workload ID from the Workload Identity Agent.<a href="#section-6.6-2.11.2.2" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-6.6-2.11.2.3">
+                <strong>Comparison:</strong> Option 1 (software HSM delegated model) is more secure, as the workload's private key is never exposed outside the Workload Identity Agent. Option 2 provides more flexibility for workloads that require independent key management and may offer slightly better performance, since the workload can optimize cryptographic operations without going through the Workload Identity Agent.<a href="#section-6.6-2.11.2.3" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+        </ol>
+</section>
+</div>
+</section>
+</div>
+<div id="scaling-the-solution">
+<section id="section-7">
+      <h2 id="name-scaling-the-solution">
+<a href="#section-7" class="section-number selfRef">7. </a><a href="#name-scaling-the-solution" class="section-name selfRef">Scaling the Solution</a>
+      </h2>
+<p id="section-7-1">Having a geolocation sensor on every host is not scalable from a deployment and management perspective and can be cost prohibitive. In the case of end user hosts, the geolocation sensor can be on a mobile host (e.g., smartphone with Mobile network capabilities and optionally GNSS capabilities) which can be leveraged by a laptop/desktop host which is proximal to the mobile host. The mobile host serves as the location anchor host. In the case of data center hosts, the geolocation sensor can be on a host with Mobile network and/or GNSS capabilities which can be leveraged by other data center hosts. This host serves as the location anchor host.<a href="#section-7-1" class="pilcrow">¶</a></p>
+<div id="end-user-location-anchor-host">
+<section id="section-7.1">
+        <h3 id="name-end-user-location-anchor-ho">
+<a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-end-user-location-anchor-ho" class="section-name selfRef">End user location anchor host</a>
+        </h3>
+<p id="section-7.1-1">Goal is to provide an easy to use wireless solution that can be used by end users without requiring them to install a geolocation sensor on their laptop/desktop host.<a href="#section-7.1-1" class="pilcrow">¶</a></p>
+<p id="section-7.1-2">The smartphone can be used as a location anchor host for the laptop/desktop host. The smartphone connects to the laptop/desktop host using Bluetooth Low Energy (BLE) or Ultra-Wideband (UWB) technology and continuously measures the following:<a href="#section-7.1-2" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-7.1-3.1">signal strength of the laptop/desktop host<a href="#section-7.1-3.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-7.1-3.2">round-trip time (RTT) between the smartphone and laptop/desktop host<a href="#section-7.1-3.2" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-7.1-4">Host proximity manager periodically verifies that the smartphone provides proof that the laptop/desktop host is in proximity using the measured signal strength and RTT.<a href="#section-7.1-4" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="data-center-location-anchor-host">
+<section id="section-7.2">
+        <h3 id="name-data-center-location-anchor">
+<a href="#section-7.2" class="section-number selfRef">7.2. </a><a href="#name-data-center-location-anchor" class="section-name selfRef">Data center location anchor host</a>
+        </h3>
+<p id="section-7.2-1">Goal is to provide an easy to use solution that can be used by data center operators without requiring them to install a geolocation sensor on every data center host.<a href="#section-7.2-1" class="pilcrow">¶</a></p>
+<p id="section-7.2-2">PTP is a network protocol that enables precise synchronization of clocks across a computer network and can be used to measure the round-trip time (RTT) between the location anchor host and other data center hosts with sub-microsecond accuracy. To provide cryptographically verifiable proof of residency on the host -- referred to as "attested PTP" -- the PTP software/hardware can be enhanced so that all PTP messages are signed with a private key.<a href="#section-7.2-2" class="pilcrow">¶</a></p>
+<p id="section-7.2-3">This signing can be done in two ways:<a href="#section-7.2-3" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-7.2-4.1">Software-based: PTP software (e.g. Linux PTP daemon), after adding timestamp to PTP message, signs the PTP message with its private key -- Linux PTP daemon is a workload managed by workload identity manager. This approach may not provide sub-microsecond accuracy due to inherent software jitter, but it can still provide a reasonable approximation of the proximity of the other data center hosts to the location anchor host.<a href="#section-7.2-4.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-7.2-4.2">Hardware-based: PTP hardware (e.g., SmartNIC), after adding timestamp to PTP message, signs the PTP message with its private key (e.g., SmartNIC DPU). The corresponding public key, used to verify the signatures, can be attested by the Host TPM Attestation Key (AK). This approach provides sub-microsecond accuracy and the perfect proximity measure of the other data center hosts to the location anchor host, and is suitable for data center environments where precise timing is critical.<a href="#section-7.2-4.2" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-7.2-5">Host proximity manager periodically verifies that the PTP daemon in the location anchor hosts provide proof that the PTP daemon in the application hosts are within the maximum DC round-trip delay from them. The PTP daemon is another workload managed by the workload identity manager.<a href="#section-7.2-5" class="pilcrow">¶</a></p>
+<p id="section-7.2-6">Note that this is a proposed enhancement to the existing PTP hardware and software, and there is currently no standard for attested PTP (see OPEN ISSUES 3). Further work is needed to define and standardize this enhancement to ensure interoperability and security.<a href="#section-7.2-6" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="data-plane-end-to-end-workflow">
+<section id="section-8">
+      <h2 id="name-data-plane-end-to-end-workf">
+<a href="#section-8" class="section-number selfRef">8. </a><a href="#name-data-plane-end-to-end-workf" class="section-name selfRef">Data Plane End-to-End Workflow</a>
+      </h2>
+<p id="section-8-1">The following sections describe the end-to-end workflow for HTTP and IPSEC networking protocols.<a href="#section-8-1" class="pilcrow">¶</a></p>
+<div id="http-networking-protocol-request-signing-along-with-geolocation-information">
+<section id="section-8.1">
+        <h3 id="name-http-networking-protocol-re">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-http-networking-protocol-re" class="section-name selfRef">HTTP Networking Protocol - request signing along with geolocation information</a>
+        </h3>
+<p id="section-8.1-1">This workflow enhances the Demonstrating proof of possession (DPoP) [[RFC9449]] mechanism as follows (1) By providing a more accurate and cryptographically verifiable location of the client workload and (2) Using a workload signing key that is attested by the Workload Identity Manager for proof of residency on approved hosts. Note that this public key is not part of the OAuth bearer token.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.1-2">A new HTTP header field 'Workload-Geo-ID' is proposed for conveying the workload geolocation information in the Geolocation Information Cache. The HTTP request is signed--the signature is generated using the Workload private key (thick client) or the Workload Identity Agent private key. The following steps describe the end-to-end workflow for HTTP requests between client workloads (e.g. Microsoft Teams thick client app, Microsoft Teams thin client browser app) and server workloads (e.g. Microsoft Teams server), including intermediate proxies (e.g., API gateways, SASE firewalls). The server workload (e.g. Microsoft Teams server) acts as a thick client when it connects to other server workloads (e.g. Microsoft OneDrive for Business).<a href="#section-8.1-2" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-8.1-3">
+<li id="section-8.1-3.1">Client workload gets OAuth bearer token for the server workload from the Authentication/Authorization server.<a href="#section-8.1-3.1" class="pilcrow">¶</a>
+</li>
+          <li id="section-8.1-3.2">
+            <p id="section-8.1-3.2.1">Client workload (browser extension for thin client) contacts the Workload Identity Agent to get the latest Geolocation Information Cache relevant to it. If the location is gathered only using existing OS APIs, it may be done in the workload (thick client) or browser extension (thin client). The client workload (browser extension for thin client) constructs a Workload-Geo-ID extension header containing the following fields:<a href="#section-8.1-3.2.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.1-3.2.2.1">The latest Geolocation Information Cache relevant to the client workload ID (thick clients) or user in OAuth bearer token/server website URL (thin clients) which has the following details: client workload location, client workload location type (e.g. precise, approximated, geographic region based), client workload location quality (e.g. GNSS, mobile network, Wi-Fi, IP address).<a href="#section-8.1-3.2.2.1" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-8.1-3.2.2.2">Thick or Thin client flag: Indicates whether the client workload is a thick client (e.g., Microsoft Teams thick client app) or a thin client (e.g., Microsoft Teams thin client browser app).<a href="#section-8.1-3.2.2.2" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-8.1-3.2.2.3">Type flag: Request signing with geolocation information (this section) or SVID with geolocation information (next section).<a href="#section-8.1-3.2.2.3" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-8.1-3.2.2.4">
+                <p id="section-8.1-3.2.2.4.1">Using a browser extension (thin client) is attractive especially for web applications which already use a browser extension for functions such as URL filtering, ad blocking, privacy protection, etc. The tradeoffs are:<a href="#section-8.1-3.2.2.4.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.1-3.2.2.4.2.1">Pros: Leverages Workload Identity agent (SPIFFE/SPIRE agent) hardened key store (TPM etc.); Keeps keys out of browser javascript entirely; Centralized management of keys and policies; Provides a consistent interface for all web applications.<a href="#section-8.1-3.2.2.4.2.1" class="pilcrow">¶</a>
+</li>
+                  <li class="compact" id="section-8.1-3.2.2.4.2.2">Cons: Requires browser extension installation; May not be supported by all browsers.<a href="#section-8.1-3.2.2.4.2.2" class="pilcrow">¶</a>
+</li>
+                </ul>
+</li>
+            </ul>
+</li>
+          <li id="section-8.1-3.3">For thick clients, the Client workload signs the hash of the HTTP request using the workload private key.<a href="#section-8.1-3.3" class="pilcrow">¶</a>
+</li>
+          <li id="section-8.1-3.4">For thin clients, the Client workload passes the hash of the HTTP request to the Workload Identity Agent for signature. The Workload Identity Agent signs the HTTP Request using the Workload Identity Agent Private Key and returns the signature of the HTTP request to the workload.<a href="#section-8.1-3.4" class="pilcrow">¶</a>
+</li>
+          <li id="section-8.1-3.5">
+            <p id="section-8.1-3.5.1">Details of the HTTP request signature:<a href="#section-8.1-3.5.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.1-3.5.2.1">The resulting signature is included in a separate header, <code>Signature</code> (RFC 9421).<a href="#section-8.1-3.5.2.1" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-8.1-3.5.2.2">
+                <p id="section-8.1-3.5.2.2.1">The signature input is included in a separate header, <code>Signature-Input</code> (RFC 9421), which contains the following fields:<a href="#section-8.1-3.5.2.2.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.1-3.5.2.2.2.1">keyid: Thin clients--The Workload Identity Agent ID public key hash is used as the keyid; Thick clients--The Workload public key hash is used as the keyid.<a href="#section-8.1-3.5.2.2.2.1" class="pilcrow">¶</a>
+</li>
+                  <li class="compact" id="section-8.1-3.5.2.2.2.2">created: The timestamp of the signature creation.<a href="#section-8.1-3.5.2.2.2.2" class="pilcrow">¶</a>
+</li>
+                  <li class="compact" id="section-8.1-3.5.2.2.2.3">expires: The timestamp of the signature expiration (e.g., 5 minutes after creation).<a href="#section-8.1-3.5.2.2.2.3" class="pilcrow">¶</a>
+</li>
+                  <li class="compact" id="section-8.1-3.5.2.2.2.4">alg: The algorithm used for signing (e.g., Ed25519).<a href="#section-8.1-3.5.2.2.2.4" class="pilcrow">¶</a>
+</li>
+                  <li class="compact" id="section-8.1-3.5.2.2.2.5">nonce: The unique nonce used for replay protection and troubleshooting.<a href="#section-8.1-3.5.2.2.2.5" class="pilcrow">¶</a>
+</li>
+                  <li class="compact" id="section-8.1-3.5.2.2.2.6">context: The context of the signature, which includes the HTTP method, and URL.<a href="#section-8.1-3.5.2.2.2.6" class="pilcrow">¶</a>
+</li>
+                </ul>
+</li>
+              <li class="compact" id="section-8.1-3.5.2.3">The public key used to verify the signature can be derived using the Workload Identity Agent ID public key hash. This enables recipients (intermediate proxies or server workloads) to validate the authenticity of the signature and the binding to the specific Workload Identity Agent.<a href="#section-8.1-3.5.2.3" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+          <li id="section-8.1-3.6">Client workload appends the Signature header and the Signature-Input header to the HTTP request.<a href="#section-8.1-3.6" class="pilcrow">¶</a>
+</li>
+          <li id="section-8.1-3.7">
+            <p id="section-8.1-3.7.1">Intermediate proxies (e.g., API gateways, SASE firewalls) inspect the Workload-Geo-ID, Signature and Signature-Input header fields and perform the following checks:<a href="#section-8.1-3.7.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.1-3.7.2.1">Verify that the Workload Identity Agent ID hash in the Signature-Input header matches a configured Workload Identity Agent ID. They can retrieve the host TPM EK certificate from the Workload Identity Agent ID and compare it with the host TPM EK certificate in the Host hardware identity datastore.<a href="#section-8.1-3.7.2.1" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-8.1-3.7.2.2">Verify that the HTTP request signature in the Signature header is valid by verifying it against the Workload Identity Agent Public Key in the Signature-Input header.<a href="#section-8.1-3.7.2.2" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-8.1-3.7.2.3">Verify that the timestamp in the Signature-Input header is within an acceptable range (e.g., 5 minutes).<a href="#section-8.1-3.7.2.3" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-8.1-3.7.2.4">Verify that the nonce in the Signature-Input header is unique and monotonically increasing to prevent replay attacks.<a href="#section-8.1-3.7.2.4" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+          <li id="section-8.1-3.8">Note that these HTTP extension header checks can be performed by the server as well, but it is more efficient to do them at the intermediate proxy level and aligns well with how Zero Trust Network Access (ZTNA) solutions operate. If the verification passes, the request is forwarded to the destination server. If the verification fails, the request is dropped, and an error response is generated.<a href="#section-8.1-3.8" class="pilcrow">¶</a>
+</li>
+          <li id="section-8.1-3.9">
+            <p id="section-8.1-3.9.1">Intermediate proxies (e.g., API gateways, SASE firewalls) or server workloads connect to Composite Geolocation Manager, to supply GNSS geolocation/workload identity agent ID and get attested composite location. Composite Geolocation Manager can use the host TPM EK certificate in the Workload Identity Agent ID to retrieve the mobile geolocation sensor IMEI/IMSI from the Host hardware identity datastore. Using the IMEI/IMSI, they can retrieve the location of the host from the mobile network operator's location service. This is useful for mobile devices that may not have GNSS sensors or when GNSS is not available (e.g., indoors) or when GPS/GNSS location is subject to spoofing. As compared to IP address, Wi-Fi and GPS/GNSS geolocation methods, mobile network location services provide a more reliable and cryptographically verifiable location. Based on the mobile geolocation and existing geolocation in the Workload-Geo-ID header, a more accurate composite location can be constructed.<a href="#section-8.1-3.9.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.1-3.9.2.1">Note that for performance considerations, the Composite Geolocation Manager can be a library function which is integrated into intermediate proxies or server workloads.<a href="#section-8.1-3.9.2.1" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+          <li id="section-8.1-3.10">
+            <p id="section-8.1-3.10.1">Intermediate proxies (e.g., API gateway, Firewall) or server workloads can enforce policies based on:<a href="#section-8.1-3.10.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.1-3.10.2.1">Workload Identity Agent ID (running on the same host as the client workload),<a href="#section-8.1-3.10.2.1" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-8.1-3.10.2.2">user in OAuth bearer token,<a href="#section-8.1-3.10.2.2" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-8.1-3.10.2.3">server website URL,<a href="#section-8.1-3.10.2.3" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-8.1-3.10.2.4">client workload ID (relevant only for thick clients),<a href="#section-8.1-3.10.2.4" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-8.1-3.10.2.5">client workload location,<a href="#section-8.1-3.10.2.5" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-8.1-3.10.2.6">client workload location type (e.g. precise, approximated, geographic region based),<a href="#section-8.1-3.10.2.6" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-8.1-3.10.2.7">client workload location quality (e.g. GNSS, mobile network, Wi-Fi, IP address).<a href="#section-8.1-3.10.2.7" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+        </ol>
+<p id="section-8.1-4">Besides native HTTP protocols, this solution will also address the following common browser-based protocols:<a href="#section-8.1-4" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.1-5.1">browser-based Secure Shell (ssh) terminal (common for cloud access by customers) which tunnels ssh traffic over HTTP/TLS.<a href="#section-8.1-5.1" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-8.1-5.2">browser-based Remote Desktop Protocol (RDP) terminal (common for cloud access by customers) which tunnels RDP traffic over HTTP/TLS.<a href="#section-8.1-5.2" class="pilcrow">¶</a>
+</li>
+        </ul>
+</section>
+</div>
+<div id="http-networking-protocol-geolocation-information-in-svid">
+<section id="section-8.2">
+        <h3 id="name-http-networking-protocol-ge">
+<a href="#section-8.2" class="section-number selfRef">8.2. </a><a href="#name-http-networking-protocol-ge" class="section-name selfRef">HTTP Networking Protocol - geolocation information in SVID</a>
+        </h3>
+<p id="section-8.2-1">The workload SVID can be used to convey the geolocation information to the workload. The SVID is signed by the Workload Identity Manager and contains the workload's public key, the Workload Identity Agent ID, and the workload geolocation information.<a href="#section-8.2-1" class="pilcrow">¶</a></p>
+<p id="section-8.2-2">The workload SVID can be conveyed in the 'Workload-Geo-ID' header field.<a href="#section-8.2-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="ipsec-tunnel-networking-protocol">
+<section id="section-8.3">
+        <h3 id="name-ipsec-tunnel-networking-pro">
+<a href="#section-8.3" class="section-number selfRef">8.3. </a><a href="#name-ipsec-tunnel-networking-pro" class="section-name selfRef">IPSEC Tunnel Networking Protocol</a>
+        </h3>
+<p id="section-8.3-1">In the IPSEC key exchange protocol (IKE), the following changes are proposed:<a href="#section-8.3-1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.3-2.1">
+            <p id="section-8.3-2.1.1">Proof of residency:<a href="#section-8.3-2.1.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.3-2.1.2.1">In the IPSEC client, in the Elliptic Curve Diffie-Hellman Ephemeral key exchange (ECDHE) phase, the Workload Identity Agent Public Key is used as the ephemeral public key.<a href="#section-8.3-2.1.2.1" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+          <li class="compact" id="section-8.3-2.2">
+            <p id="section-8.3-2.2.1">Geolocation information:<a href="#section-8.3-2.2.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.3-2.2.2.1">The IPSEC client includes the Geolocation Information in the Workload Identity Agent Geolocation Information Cache in the IPSEC IKEv2 notification payload.<a href="#section-8.3-2.2.2.1" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+        </ul>
+<p id="section-8.3-3">IPSEC server policy enforcement can be done in the following way:<a href="#section-8.3-3" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.3-4.1">
+            <p id="section-8.3-4.1.1">Proof of residency:<a href="#section-8.3-4.1.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.3-4.1.2.1">In the IPSEC server, from the IPSEC IKEv2 notification payload, the Workload Identity Agent Public Key is extracted. The Workload Identity Agent Public Key is checked against the configured list of allowed Workload Identity Agent IDs (IPSEC client certificates). The signature of the IPSEC client is then verified using the Workload Identity Agent Public Key. This provides a cryptographically verifiable proof of residency of the IPSEC client on the required host.<a href="#section-8.3-4.1.2.1" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+          <li class="compact" id="section-8.3-4.2">
+            <p id="section-8.3-4.2.1">Geolocation policy enforcement:<a href="#section-8.3-4.2.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.3-4.2.2.1">In the IPSEC server, from the IPSEC IKEv2 notification payload, the Geolocation Information is extracted.<a href="#section-8.3-4.2.2.1" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-8.3-4.2.2.2">IPSEC server connects to Composite Geolocation Manager, supply Geolocation Information/workload identity agent ID, and get attested composite location which includes mobile geolocation also. In case the mobile network location service is not use, the composite Geolocation Information is the same as the original Geolocation Information.<a href="#section-8.3-4.2.2.2" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-8.3-4.2.2.3">The IPSEC server can use the composite Geolocation Information to verify that the host is within the allowed geographic boundary.<a href="#section-8.3-4.2.2.3" class="pilcrow">¶</a>
+</li>
+            </ul>
+</li>
+        </ul>
+<p id="section-8.3-5">Benefit:<a href="#section-8.3-5" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.3-6.1">Since IPSEC tunnel can encapsulate any IP traffic, it provides proof of residency and geolocation on the IPSEC client host for all the traffic that is tunneled through it (e.g., RDP, SCTP, NFS, SSH).<a href="#section-8.3-6.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+<p id="section-8.3-7">Challenge:<a href="#section-8.3-7" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.3-8.1">Location information granularity is at the IPSEC client host level and not at the individual workload level, which may be a challenge for some use cases.<a href="#section-8.3-8.1" class="pilcrow">¶</a>
+</li>
+        </ul>
+</section>
+</div>
+</section>
+</div>
+<div id="confidential-computing-considerations">
+<section id="section-9">
+      <h2 id="name-confidential-computing-cons">
+<a href="#section-9" class="section-number selfRef">9. </a><a href="#name-confidential-computing-cons" class="section-name selfRef">Confidential Computing Considerations</a>
+      </h2>
+<p id="section-9-1">In confidential computing, the host operating system cannot be trusted. Instead, the platform owner must maintain and verify the relationships between three hardware identifiers:<a href="#section-9-1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-9-2.1">
+          <p id="section-9-2.1.1">Hardware-rooted certification key -- Vendor-issued, CPU-bound asymmetric key pair used to either sign attestation evidence directly (AMD VCEK) or certify an attestation signing key (Intel PCK). Always anchored in the vendor's root CA.<a href="#section-9-2.1.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-9-2.1.2.1">AMD SEV-SNP "Versioned Chip Endorsement Key -- VCEK" is defined in the AMD SEV-SNP ABI specification (Chapter 1, Glossary, Table 2).<a href="#section-9-2.1.2.1" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-9-2.1.2.2">Intel TDX, "Provisioning Certification Key -- PCK" is defined in the Intel TDX DCAP Quoting Library API documentation (Page 6, Table 1-1: Terminology). Role: Certifies the Attestation Key inside the TDX Quoting Enclave, which signs the quote.<a href="#section-9-2.1.2.2" class="pilcrow">¶</a>
+</li>
+          </ul>
+</li>
+        <li class="compact" id="section-9-2.2">TPM Endorsement Key (EK)<a href="#section-9-2.2" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-9-2.3">Geolocation Sensor ID + public key<a href="#section-9-2.3" class="pilcrow">¶</a>
+</li>
+      </ul>
+<p id="section-9-3">Proof of Residency:<a href="#section-9-3" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-9-4.1">The confidential workload generates a hardware attestation that includes its hardware-rooted certification key.<a href="#section-9-4.1" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-9-4.2">The platform owner receives this attestation and binds the reported hardware-rooted certification key to the TPM EK.<a href="#section-9-4.2" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-9-4.3">This binding produces a cryptographic proof that the workload is running on the expected physical CPU.<a href="#section-9-4.3" class="pilcrow">¶</a>
+</li>
+      </ul>
+<p id="section-9-5">Proof of Geolocation:<a href="#section-9-5" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-9-6.1">The geolocation sensor creates a signed location report using its private key. This is supported in popular GNSS sensors such as u-blox.<a href="#section-9-6.1" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-9-6.2">An agent on the bare-metal host periodically polls the sensor and collects these signed reports.<a href="#section-9-6.2" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-9-6.3">The platform owner maps each sensor's ID and its signed geolocation to the corresponding CPU ID and TPM EK.<a href="#section-9-6.3" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-9-6.4">This mapping yields a verifiable proof that the workload is executing at the claimed physical location.<a href="#section-9-6.4" class="pilcrow">¶</a>
+</li>
+      </ul>
+<p id="section-9-7">Note: The Intel SGX Attestation Service utilizing the Enhanced Privacy ID (EPID) group-signature mechanism is a legacy, privacy-preserving attestation path. Intel has announced that this service will reach end-of-life on April 2 2025, after which EPID-based attestation will no longer be supported. This discussion focuses on current attestation models (e.g., ECDSA-based DCAP for SGX and PCK-based attestation for TDX) and excludes EPID/DAA from scope. ECDSA-based DCAP for SGX and PCK-based attestation for TDX are closely related in structure and trust model -- both are part of Intel's Data Center Attestation Primitives (DCAP).<a href="#section-9-7" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="solution-mapping-to-industry-gaps-and-problem-statements">
+<section id="section-10">
+      <h2 id="name-solution-mapping-to-industr">
+<a href="#section-10" class="section-number selfRef">10. </a><a href="#name-solution-mapping-to-industr" class="section-name selfRef">Solution Mapping to Industry Gaps and Problem Statements</a>
+      </h2>
+<ul class="normal">
+<li class="normal" id="section-10-1.1">
+          <p id="section-10-1.1.1"><strong>Host TPMs for Signature</strong> challenges are addressed: Workload Identity Agent private key, which is used for signing. Workload identity agent public key is signed by the Host TPM APP private key providing a cryptographically verifiable proof of residency of Workload Identity Agent on the host. The Workload Identity Agent generates a public/private key pair for each workload which connects through a host local socket and signs the workload public key with its private key. The Workload Identity Manager verifies the signature using the Workload Identity Agent Public Key, providing a cryptographically verifiable proof of residency of workload on the host.<a href="#section-10-1.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-1.2">
+          <p id="section-10-1.2.1"><strong>Bearer Tokens</strong>, <strong>PoP Token</strong>, <strong>PoP via Mutual TLS</strong> challenges are addressed: HTTP request signature with the Workload Identity Agent Private Key, which provides a scalable and cryptographically verifiable proof of residency on host and workload identity. The signature is verified by the intermediate proxies (e.g., API gateways, SASE firewalls) or server workloads using the Workload Identity Agent Public Key.<a href="#section-10-1.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-1.3">
+          <p id="section-10-1.3.1"><strong>IP Address-Based Location</strong> and <strong>Wi-Fi-Based Location</strong> challenges are addressed: Combination of host-local location sensors (e.g., GNSS) with direct hardware-based attestation and mobile network location services provides a more reliable and cryptographically verifiable location than IP address, Wi-Fi-based methods or existing Host OS location services.<a href="#section-10-1.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-1.4">
+          <p id="section-10-1.4.1"><strong>Trust in Transit</strong> challenges are addressed: The HTTP request signature with the Workload Identity Agent Private Key provides a cryptographically verifiable proof of residency on host and workload identity, which is verified by the intermediate proxies (e.g., API gateways, SASE firewalls) using the Workload Identity Agent Public Key. This ensures that the request is not tampered with in transit.<a href="#section-10-1.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-10-1.5">
+          <p id="section-10-1.5.1"><strong>IPSEC Tunnel Networking Protocol</strong> challenges are addressed: The IPSEC client uses the Workload Identity Agent Public Key as the ephemeral public key in the ECDHE phase of the IPSEC IKEv2 key exchange protocol, providing a cryptographically verifiable proof of residency on host. The Geolocation Information is included in the IPSEC IKEv2 notification payload, which is verified by the IPSEC server.<a href="#section-10-1.5.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+</section>
+</div>
+<div id="authorization-policy-implementers">
+<section id="section-11">
+      <h2 id="name-authorization-policy-implem">
+<a href="#section-11" class="section-number selfRef">11. </a><a href="#name-authorization-policy-implem" class="section-name selfRef">Authorization Policy Implementers</a>
+      </h2>
+<p id="section-11-1">Policy implementers use attested geographic boundary from Workload to make decisions. Example implementers:<a href="#section-11-1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-11-2.1">Intermediate proxies (e.g., API gateway, Firewall)<a href="#section-11-2.1" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-11-2.2">SaaS application.<a href="#section-11-2.2" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-11-2.3">K8s node agent.<a href="#section-11-2.3" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-11-2.4">OS process scheduler.<a href="#section-11-2.4" class="pilcrow">¶</a>
+</li>
+      </ul>
+<p id="section-11-3">If the policy implementer is at the SaaS application level, things are simpler. However, if it is pushed down to, say, K8s or OS process scheduler or JVM class loader/deserializer, then malware can be prevented (similar to a code-signed application).<a href="#section-11-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="security-considerations">
+<section id="section-12">
+      <h2 id="name-security-considerations">
+<a href="#section-12" class="section-number selfRef">12. </a><a href="#name-security-considerations" class="section-name selfRef">Security Considerations</a>
+      </h2>
+<p id="section-12-1">The proposed framework introduces several security considerations that must be addressed to ensure the integrity and trustworthiness of geofencing:<a href="#section-12-1" class="pilcrow">¶</a></p>
+<ul class="normal">
+<li class="normal" id="section-12-2.1">
+          <p id="section-12-2.1.1"><strong>TPM and Hardware Trust</strong>: The security of the solution depends on the integrity of the TPM and other hardware roots of trust. Physical attacks, firmware vulnerabilities, or supply chain compromises could undermine attestation. Regular updates, secure provisioning, and monitoring are required.<a href="#section-12-2.1.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-12-2.2">
+          <p id="section-12-2.2.1"><strong>Geolocation Spoofing</strong>: Location sensors (e.g., GPS) are susceptible to spoofing or replay attacks. Use of cryptographically authenticated signals (e.g., Galileo GNSS, mobile network) and cross-verification with multiple sources can mitigate this risk.<a href="#section-12-2.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-12-2.3">
+          <p id="section-12-2.3.1"><strong>SIM and e-SIM Attacks</strong>: Physical SIM removal or e-SIM swap attacks can break the binding between device and location. Continuous monitoring of device composition and periodic re-attestation are recommended.<a href="#section-12-2.3.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-12-2.4">
+          <p id="section-12-2.4.1"><strong>Software Integrity</strong>: The geolocation agent and supporting software must be protected against tampering. Use of Linux IMA, secure boot, and measured launch environments helps ensure only approved software is executed.<a href="#section-12-2.4.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-12-2.5">
+          <p id="section-12-2.5.1"><strong>Communication Security</strong>: All attestation and geolocation data must be transmitted over secure, authenticated channels (e.g., TLS) to prevent interception or manipulation.<a href="#section-12-2.5.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-12-2.6">
+          <p id="section-12-2.6.1"><strong>Policy Enforcement</strong>: The enforcement of geofence policies must be robust against attempts by malicious workloads or agents to bypass controls. Policy decisions should be based on verifiable, signed attestation evidence.<a href="#section-12-2.6.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-12-2.7">
+          <p id="section-12-2.7.1"><strong>Time Source Integrity</strong>: Trusted time sources are necessary to prevent replay attacks and ensure the freshness of attestation data.<a href="#section-12-2.7.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-12-2.8">
+          <p id="section-12-2.8.1"><strong>Datastore Security</strong>: The Host hardware identity datastore containing trusted host compositions and location sensor details must be protected against unauthorized access and tampering, using encryption and access controls.<a href="#section-12-2.8.1" class="pilcrow">¶</a></p>
+</li>
+      </ul>
+<p id="section-12-3">By addressing these considerations, the framework aims to provide a secure and reliable foundation for verifiable geofencing in diverse deployment environments.<a href="#section-12-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="iana-considerations">
+<section id="section-13">
+      <h2 id="name-iana-considerations">
+<a href="#section-13" class="section-number selfRef">13. </a><a href="#name-iana-considerations" class="section-name selfRef">IANA Considerations</a>
+      </h2>
+<p id="section-13-1">This document has no IANA actions.<a href="#section-13-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="appendix-items-to-follow-up">
+<section id="section-14">
+      <h2 id="name-appendix-items-to-follow-up">
+<a href="#section-14" class="section-number selfRef">14. </a><a href="#name-appendix-items-to-follow-up" class="section-name selfRef">Appendix - Items to follow up</a>
+      </h2>
+<div id="open-issues-1-restart-time-attestation-remote-verification-of-workload-identity-agent-for-integrity-and-proof-of-residency-on-host">
+<section id="section-14.1">
+        <h3 id="name-open-issues-1-restart-time-">
+<a href="#section-14.1" class="section-number selfRef">14.1. </a><a href="#name-open-issues-1-restart-time-" class="section-name selfRef">OPEN ISSUES 1: Restart time attestation/remote verification of workload identity agent for integrity and proof of residency on Host</a>
+        </h3>
+<p id="section-14.1-1">For the workload identity agent restart case, it is not clear how the storage in TPM PCR will be accomplished - ideally this should be natively handled in the IMA measurement process with an ability to retrigger on restart or refresh cycles.<a href="#section-14.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="open-issues-2-location-privacy-options">
+<section id="section-14.2">
+        <h3 id="name-open-issues-2-location-priv">
+<a href="#section-14.2" class="section-number selfRef">14.2. </a><a href="#name-open-issues-2-location-priv" class="section-name selfRef">OPEN ISSUES 2: Location privacy options</a>
+        </h3>
+<p id="section-14.2-1">The current approach includes some location privacy options for the geolocation in the Geolocation Information Cache. This may need to be expanded further in the future.<a href="#section-14.2-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="open-issues-3-attested-ptp">
+<section id="section-14.3">
+        <h3 id="name-open-issues-3-attested-ptp">
+<a href="#section-14.3" class="section-number selfRef">14.3. </a><a href="#name-open-issues-3-attested-ptp" class="section-name selfRef">OPEN ISSUES 3: Attested PTP</a>
+        </h3>
+<p id="section-14.3-1">Attested PTP is a software/hardware-based solution using Precision Time Protocol (PTP) for measuring proximity between hosts in a data center. However, this is a proposed enhancement to the existing PTP hardware and software, and there is currently no standard for attested PTP. There is a proposed authentication framework for PTP using symmetric key distribution.<a href="#section-14.3-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="open-issues-4-geotagging-textual-data">
+<section id="section-14.4">
+        <h3 id="name-open-issues-4-geotagging-te">
+<a href="#section-14.4" class="section-number selfRef">14.4. </a><a href="#name-open-issues-4-geotagging-te" class="section-name selfRef">OPEN ISSUES 4: Geotagging textual data</a>
+        </h3>
+<p id="section-14.4-1">Popular standard for geotagging photos/videos is EXIF. There is no standard for geotagging textual data. If there is no geolocation tag, data can be stored/processed in non-compliant locations.<a href="#section-14.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="open-issues-5-attesting-geotags">
+<section id="section-14.5">
+        <h3 id="name-open-issues-5-attesting-geo">
+<a href="#section-14.5" class="section-number selfRef">14.5. </a><a href="#name-open-issues-5-attesting-geo" class="section-name selfRef">OPEN ISSUES 5: Attesting Geotags</a>
+        </h3>
+<p id="section-14.5-1">There is no standard for attesting (signing) geolocation tag. If geolocation tag is not signed, it can be manipulated through techniques such as VPNs.<a href="#section-14.5-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+</section>
+</div>
+<div id="appendix-public-references-for-strict-data-residency-rules">
+<section id="section-15">
+      <h2 id="name-appendix-public-references-">
+<a href="#section-15" class="section-number selfRef">15. </a><a href="#name-appendix-public-references-" class="section-name selfRef">Appendix - Public References for Strict Data Residency Rules</a>
+      </h2>
+<p id="section-15-1">India -- Reserve Bank of India (RBI): Payment System Data Localization (2018): From RBI Circular RBI/2017-18/153 (April 6, 2018): "All system providers shall ensure that the entire data relating to payment systems operated by them are stored in a system only in India. This data should include the full end-to-end transaction details / information collected / carried / processed as part of the message / payment instruction."<a href="#section-15-1" class="pilcrow">¶</a></p>
+<p id="section-15-2">South Korea's Data Localization Regulations -- Geospatial Information Management Act (Spatial Data Act): Article 16, Paragraph 1: Prohibits the export of state-led survey data.<a href="#section-15-2" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="authors-addresses">
+<section id="appendix-A">
+      <h2 id="name-authors-addresses">
+<a href="#name-authors-addresses" class="section-name selfRef">Authors' Addresses</a>
+      </h2>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Ramki Krishnan</span></div>
+<div dir="auto" class="left"><span class="org">Intel</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:ramki.krishnan@intel.com" class="email">ramki.krishnan@intel.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Ned Smith</span></div>
+<div dir="auto" class="left"><span class="org">Intel</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:ned.smith@intel.com" class="email">ned.smith@intel.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Diego R. Lopez</span></div>
+<div dir="auto" class="left"><span class="org">Telefonica</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:diego.r.lopez@telefonica.com" class="email">diego.r.lopez@telefonica.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">A Prasad</span></div>
+<div dir="auto" class="left"><span class="org">Oracle</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:a.prasad@oracle.com" class="email">a.prasad@oracle.com</a>
+</div>
+</address>
+<address class="vcard">
+        <div dir="auto" class="left"><span class="fn nameRole">Srinivasa Addepalli</span></div>
+<div dir="auto" class="left"><span class="org">Aryaka</span></div>
+<div class="email">
+<span>Email:</span>
+<a href="mailto:srinivasa.addepalli@aryaka.com" class="email">srinivasa.addepalli@aryaka.com</a>
+</div>
+</address>
+</section>
+</div>
+<script>const toc = document.getElementById("toc");
+toc.querySelector("h2").addEventListener("click", e => {
+  toc.classList.toggle("active");
+});
+toc.querySelector("nav").addEventListener("click", e => {
+  toc.classList.remove("active");
+});
+</script>
+</body>
+</html>
