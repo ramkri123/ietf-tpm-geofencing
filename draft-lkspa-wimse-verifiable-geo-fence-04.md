@@ -90,9 +90,9 @@ organization = "Independent"
 
 .# Abstract
 
-Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. This document presents a framework for hardware-dependent Workload Identity Agent (WIA) attestation, covering both TPM-based platform attestation and geolocation hardware-based attestation.
+Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. This document presents a layered attestation framework for a hardware-dependent Workload Identity Agent (WIA). The framework covers TPM-based platform attestation (Layer 2) and high-assurance geolocation attestation (Layer 3), integrating out-of-band (OOB) hardware monitoring, cloud-native virtual TPM (vTPM) support, and privacy-preserving Zero-Knowledge Proof (ZKP) verification.
 
-By binding workload identity to both geographic and host attributes, and supplementing bearer tokens with verifiable, location- and host-bound claims, the framework addresses the challenges of bearer token theft, proof-of-possession and trust-in-transit for all networking protocols. Leveraging trusted hardware, attestation protocols, and geolocation services, this approach ensures that only authorized workloads in approved locations and environments can access sensitive data or services, even in the presence of advanced threats.
+By binding workload identity to geographic and host-integrity attributes, the framework establishes a "Silicon-to-Audit" chain of trust. This addresses challenges in bearer token theft and data residency while providing a post-quantum cryptographic foundation through mathematical transparency. The solution is designed to scale across on-premises, edge, and cloud environments, ensuring that only authorized workloads in approved locations can access sensitive services.
 
 {mainmatter}
 
@@ -123,38 +123,43 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 **Key Terms:**
 
 Data Residency:
-: Technical and Legal Challenges Ensuring compliance with global and local data protection regulations and mandates (e.g., EU GDPR, US HIPAA, PCI DSS, and jurisdiction-specific laws; see Appendix for public references on strict data residency rules). Strict data residency rules require that specific categories of data must be stored and processed exclusively within designated geographic boundaries. Enforcing these mandates relies on a combination of trusted computing, host-affinity, geolocation-affinity, and geofencing--each defined below.
+: Technical and Legal Challenges Ensuring compliance with global and local data protection regulations and mandates (e.g., EU GDPR, US HIPAA, PCI DSS). Strict residency rules require that data must be stored and processed exclusively within designated geographic boundaries, enforced via trusted computing and geofencing.
 
 Data Residency Host-Affinity Requirement:
-: Data must remain bound to explicitly trusted computing environments or hosts, governing where storage and processing occur.
+: Data must remain bound to explicitly trusted computing environments or hosts.
 
 Data Residency Geolocation-Affinity Requirement:
-: Data must not be transferred beyond defined geographic regions. All storage and computation must remain within the specified boundaries.
+: Data must not be transferred beyond defined geographic regions.
 
 Data Residency Host Geolocation Affinity (aka Geofencing):
-: A compound enforcement mechanism requiring that data and workloads are executed only on authorized hosts located within the approved geographic regions.
+: A compound enforcement mechanism requiring that data and workloads are executed only on authorized hosts located within approved geographic regions.
 
 Workload Identity Agent (WIA):
-: SPIRE agent on each host, with TPM plugin to issue X.509 SVIDs and sign requests.
+: A trusted entity (e.g., SPIRE agent) on each host that manages workload identities. The WIA is verified through platform attestation and issues cryptographically bound identities (e.g., SVIDs) to workloads.
 
 Location Anchor Host (LAH):
-: Host with a trusted GNSS/5G modem attached to its TPM endorsement key.
+: A host with a trusted location source (GNSS/5G) cryptographically bound to its hardware root of trust.
 
 Composite Geolocation:
-: Fused location estimate from local GNSS plus mobile-API data.
+: A location estimate fused from multiple sources (e.g., local GNSS and mobile network APIs) to produce a quality-scored, verifiable location claim.
 
-Proof-Of-Residency (POR):
-: Cryptographic proof that a workload is executing within approved geographic and host boundaries.
+Proof-Of-Residency (PoR):
+: A cryptographic proof that a workload is executing within approved geographic and host-integrity boundaries.
+
+Silicon Root of Trust:
+: A hardware-based trust anchor (e.g., HPE Silicon Root of Trust or AWS Nitro Security Chip) that verifies low-level firmware and protects the system from the first moment of power-on.
+
+Transparent Zero-Knowledge Proof (ZKP):
+: A ZKP that does not require a "Trusted Setup" or a Trusted Third Party. Mathematical transparency is achieved through non-interactive, hash-based protocols (e.g., STARKs/FRI).
+
+Mathematical Transparency:
+: The property where the validity of a proof is self-contained and auditable via open-source logic, requiring no external secret parameters.
 
 # Introduction
 
-As organizations increasingly adopt cloud and distributed computing, the need to enforce data residency, geolocation affinity, and host affinity has become critical for regulatory compliance and risk management. Traditional approaches to geographic and host enforcement rely on trust in infrastructure providers or network-based controls, which are insufficient in adversarial or multi-tenant environments.
+As organizations increasingly adopt cloud and distributed computing, the need to enforce data residency, geolocation affinity, and host affinity has become critical for regulatory compliance and risk management. Traditional approaches rely on trust in infrastructure providers, which are often insufficient in adversarial or multi-tenant environments.
 
-Modern workload security faces new challenges from stolen bearer tokens, protocol replay, and the lack of trust in transit. Attackers can exploit bearer tokens from unauthorized hosts or locations, bypassing traditional controls.
-
-This document introduces a framework for hardware-dependent Workload Identity Agent (WIA) attestation, covering two distinct layers: TPM-based platform attestation and geolocation hardware-based attestation. The solution cryptographically binds workload identity to both platform and geographic attributes, supplementing bearer tokens with signed, verifiable claims about workload residency and location.
-
-This enables enforcement of data residency, geolocation affinity, and host affinity policies, even in adversarial or multi-tenant environments, and directly addresses the limitations of bearer tokens, proof-of-possession, IPSEC, and trust-in-transit.
+Modern workload security faces challenges from stolen bearer tokens, protocol replay, and trust gaps in transit. This document defines a layered attestation framework that cryptographically binds workload identity to a hardware-verified platform and physical location. By establishing this "Silicon-to-Audit" chain of trust, the framework ensures that sensitive data is only processed by authorized workloads in approved, integral environments.
 
 # Relationship to Transitive Attestation
 
@@ -263,19 +268,19 @@ Bearer tokens are typically generated via user MFA and used to establish HTTP se
 
 # Approach Overview
 
-This framework provides hardware-dependent attestation of Workload Identity Agents, organized into two layers:
+- **Layer 2 -- WIA Platform Attestation via TPM (Hardware-Dependent):** Covered by this document. Proves the WIA is running on an approved host via TPM-based measured boot, hardware inventory verification, and credential activation.
 
-- **Layer 2 -- TPM Platform Attestation:** Establishes that the WIA is running on an approved host with verified firmware, OS, and software integrity using TPM-based measured boot and remote attestation.
+- **Layer 3 -- WIA Geolocation Attestation (Hardware-Dependent):** Covered by this document. Proves the host (verified in Layer 2) is within a defined geographic boundary using cryptographically bound sensors.
 
-- **Layer 3 -- Geolocation HW-Based Attestation:** Layered on top of TPM attestation, establishes that the attested host is within an approved geographic boundary using hardware sensors (GNSS, mobile modems) whose identities are cryptographically bound to the host TPM.
+- **Privacy-Preserving Verification (ZKP Extension):** An optional layer that uses transparent, post-quantum Zero-Knowledge Proofs to verify geofence compliance without disclosing exact coordinates.
 
-Both layers support two deployment options:
+These layers support three primary deployment options:
 
-- **Option A -- Host OS-Based (e.g., Keylime):** The attestation agent runs on the host operating system with direct TPM access. An external verifier (e.g., Keylime Verifier) queries the agent on-demand for TPM quotes and geolocation evidence.
+- **Option A -- Host OS-Based (e.g., Keylime):** Interaction via the host OS with direct TPM access.
+- **Option B -- Out-of-Band Management (e.g., HPE iLO):** Validation via an isolated management processor, providing protection even against compromised host kernels.
+- **Option C -- Cloud-Based Virtual TPM (e.g., AWS Nitro):** Hardware-backed virtual TPM attestation for cloud and containerized (EKS) environments.
 
-- **Option B -- External Management Processor (e.g., HPE iLO family):** The management processor (BMC/iLO) has independent TPM access and sensor interfaces. An external management plane validates attestation evidence out-of-band, providing assurance even when the host OS is compromised.
-
-For the workload-level attestation that builds on top of the WIA attestation described here (proving a workload is co-located with an attested WIA), see [[I-D.mw-wimse-transitive-attestation]].
+For the workload-level attestation that builds on top of the WIA (Layer 1), see [[I-D.mw-wimse-transitive-attestation]].
 
 ## Server Hosts - Solution highlights
 

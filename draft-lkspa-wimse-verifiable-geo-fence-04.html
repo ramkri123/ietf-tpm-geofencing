@@ -10,10 +10,10 @@
 <meta content="Diego R. Lopez" name="author">
 <meta content="A Prasad" name="author">
 <meta content="Srinivasa Addepalli" name="author">
-<meta content="
-       Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. This document presents a framework for hardware-dependent Workload Identity Agent (WIA) attestation, covering both TPM-based platform attestation and geolocation hardware-based attestation. 
-       By binding workload identity to both geographic and host attributes, and supplementing bearer tokens with verifiable, location- and host-bound claims, the framework addresses the challenges of bearer token theft, proof-of-possession and trust-in-transit for all networking protocols. Leveraging trusted hardware, attestation protocols, and geolocation services, this approach ensures that only authorized workloads in approved locations and environments can access sensitive data or services, even in the presence of advanced threats. 
-    " name="description">
+<meta content='
+       Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. This document presents a layered attestation framework for a hardware-dependent Workload Identity Agent (WIA). The framework covers TPM-based platform attestation (Layer 2) and high-assurance geolocation attestation (Layer 3), integrating out-of-band (OOB) hardware monitoring, cloud-native virtual TPM (vTPM) support, and privacy-preserving Zero-Knowledge Proof (ZKP) verification. 
+       By binding workload identity to geographic and host-integrity attributes, the framework establishes a "Silicon-to-Audit" chain of trust. This addresses challenges in bearer token theft and data residency while providing a post-quantum cryptographic foundation through mathematical transparency. The solution is designed to scale across on-premises, edge, and cloud environments, ensuring that only authorized workloads in approved locations can access sensitive services. 
+    ' name="description">
 <meta content="xml2rfc 3.31.0" name="generator">
 <meta content="geofencing" name="keyword">
 <meta content="attestation" name="keyword">
@@ -1276,8 +1276,8 @@ li > p:last-of-type:only-child {
 <h1 id="title">Zero-Trust Sovereign AI: Verifiable Geofencing and Residency Proofs for Cybersecure Workloads</h1>
 <section id="section-abstract">
       <h2 id="abstract"><a href="#abstract" class="selfRef">Abstract</a></h2>
-<p id="section-abstract-1">Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. This document presents a framework for hardware-dependent Workload Identity Agent (WIA) attestation, covering both TPM-based platform attestation and geolocation hardware-based attestation.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
-<p id="section-abstract-2">By binding workload identity to both geographic and host attributes, and supplementing bearer tokens with verifiable, location- and host-bound claims, the framework addresses the challenges of bearer token theft, proof-of-possession and trust-in-transit for all networking protocols. Leveraging trusted hardware, attestation protocols, and geolocation services, this approach ensures that only authorized workloads in approved locations and environments can access sensitive data or services, even in the presence of advanced threats.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
+<p id="section-abstract-1">Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. This document presents a layered attestation framework for a hardware-dependent Workload Identity Agent (WIA). The framework covers TPM-based platform attestation (Layer 2) and high-assurance geolocation attestation (Layer 3), integrating out-of-band (OOB) hardware monitoring, cloud-native virtual TPM (vTPM) support, and privacy-preserving Zero-Knowledge Proof (ZKP) verification.<a href="#section-abstract-1" class="pilcrow">¶</a></p>
+<p id="section-abstract-2">By binding workload identity to geographic and host-integrity attributes, the framework establishes a "Silicon-to-Audit" chain of trust. This addresses challenges in bearer token theft and data residency while providing a post-quantum cryptographic foundation through mathematical transparency. The solution is designed to scale across on-premises, edge, and cloud environments, ensuring that only authorized workloads in approved locations can access sensitive services.<a href="#section-abstract-2" class="pilcrow">¶</a></p>
 </section>
 <div id="status-of-memo">
 <section id="section-boilerplate.1">
@@ -1675,35 +1675,47 @@ li > p:last-of-type:only-child {
 <p id="section-1-4"><strong>Key Terms:</strong><a href="#section-1-4" class="pilcrow">¶</a></p>
 <span class="break"></span><dl class="dlCompact dlParallel" id="section-1-5">
         <dt id="section-1-5.1">Data Residency:</dt>
-        <dd style="margin-left: 1.5em" id="section-1-5.2">Technical and Legal Challenges Ensuring compliance with global and local data protection regulations and mandates (e.g., EU GDPR, US HIPAA, PCI DSS, and jurisdiction-specific laws; see Appendix for public references on strict data residency rules). Strict data residency rules require that specific categories of data must be stored and processed exclusively within designated geographic boundaries. Enforcing these mandates relies on a combination of trusted computing, host-affinity, geolocation-affinity, and geofencing--each defined below.<a href="#section-1-5.2" class="pilcrow">¶</a>
+        <dd style="margin-left: 1.5em" id="section-1-5.2">Technical and Legal Challenges Ensuring compliance with global and local data protection regulations and mandates (e.g., EU GDPR, US HIPAA, PCI DSS). Strict residency rules require that data must be stored and processed exclusively within designated geographic boundaries, enforced via trusted computing and geofencing.<a href="#section-1-5.2" class="pilcrow">¶</a>
 </dd>
         <dd class="break"></dd>
 <dt id="section-1-5.3">Data Residency Host-Affinity Requirement:</dt>
-        <dd style="margin-left: 1.5em" id="section-1-5.4">Data must remain bound to explicitly trusted computing environments or hosts, governing where storage and processing occur.<a href="#section-1-5.4" class="pilcrow">¶</a>
+        <dd style="margin-left: 1.5em" id="section-1-5.4">Data must remain bound to explicitly trusted computing environments or hosts.<a href="#section-1-5.4" class="pilcrow">¶</a>
 </dd>
         <dd class="break"></dd>
 <dt id="section-1-5.5">Data Residency Geolocation-Affinity Requirement:</dt>
-        <dd style="margin-left: 1.5em" id="section-1-5.6">Data must not be transferred beyond defined geographic regions. All storage and computation must remain within the specified boundaries.<a href="#section-1-5.6" class="pilcrow">¶</a>
+        <dd style="margin-left: 1.5em" id="section-1-5.6">Data must not be transferred beyond defined geographic regions.<a href="#section-1-5.6" class="pilcrow">¶</a>
 </dd>
         <dd class="break"></dd>
 <dt id="section-1-5.7">Data Residency Host Geolocation Affinity (aka Geofencing):</dt>
-        <dd style="margin-left: 1.5em" id="section-1-5.8">A compound enforcement mechanism requiring that data and workloads are executed only on authorized hosts located within the approved geographic regions.<a href="#section-1-5.8" class="pilcrow">¶</a>
+        <dd style="margin-left: 1.5em" id="section-1-5.8">A compound enforcement mechanism requiring that data and workloads are executed only on authorized hosts located within approved geographic regions.<a href="#section-1-5.8" class="pilcrow">¶</a>
 </dd>
         <dd class="break"></dd>
 <dt id="section-1-5.9">Workload Identity Agent (WIA):</dt>
-        <dd style="margin-left: 1.5em" id="section-1-5.10">SPIRE agent on each host, with TPM plugin to issue X.509 SVIDs and sign requests.<a href="#section-1-5.10" class="pilcrow">¶</a>
+        <dd style="margin-left: 1.5em" id="section-1-5.10">A trusted entity (e.g., SPIRE agent) on each host that manages workload identities. The WIA is verified through platform attestation and issues cryptographically bound identities (e.g., SVIDs) to workloads.<a href="#section-1-5.10" class="pilcrow">¶</a>
 </dd>
         <dd class="break"></dd>
 <dt id="section-1-5.11">Location Anchor Host (LAH):</dt>
-        <dd style="margin-left: 1.5em" id="section-1-5.12">Host with a trusted GNSS/5G modem attached to its TPM endorsement key.<a href="#section-1-5.12" class="pilcrow">¶</a>
+        <dd style="margin-left: 1.5em" id="section-1-5.12">A host with a trusted location source (GNSS/5G) cryptographically bound to its hardware root of trust.<a href="#section-1-5.12" class="pilcrow">¶</a>
 </dd>
         <dd class="break"></dd>
 <dt id="section-1-5.13">Composite Geolocation:</dt>
-        <dd style="margin-left: 1.5em" id="section-1-5.14">Fused location estimate from local GNSS plus mobile-API data.<a href="#section-1-5.14" class="pilcrow">¶</a>
+        <dd style="margin-left: 1.5em" id="section-1-5.14">A location estimate fused from multiple sources (e.g., local GNSS and mobile network APIs) to produce a quality-scored, verifiable location claim.<a href="#section-1-5.14" class="pilcrow">¶</a>
 </dd>
         <dd class="break"></dd>
-<dt id="section-1-5.15">Proof-Of-Residency (POR):</dt>
-        <dd style="margin-left: 1.5em" id="section-1-5.16">Cryptographic proof that a workload is executing within approved geographic and host boundaries.<a href="#section-1-5.16" class="pilcrow">¶</a>
+<dt id="section-1-5.15">Proof-Of-Residency (PoR):</dt>
+        <dd style="margin-left: 1.5em" id="section-1-5.16">A cryptographic proof that a workload is executing within approved geographic and host-integrity boundaries.<a href="#section-1-5.16" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-1-5.17">Silicon Root of Trust:</dt>
+        <dd style="margin-left: 1.5em" id="section-1-5.18">A hardware-based trust anchor (e.g., HPE Silicon Root of Trust or AWS Nitro Security Chip) that verifies low-level firmware and protects the system from the first moment of power-on.<a href="#section-1-5.18" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-1-5.19">Transparent Zero-Knowledge Proof (ZKP):</dt>
+        <dd style="margin-left: 1.5em" id="section-1-5.20">A ZKP that does not require a "Trusted Setup" or a Trusted Third Party. Mathematical transparency is achieved through non-interactive, hash-based protocols (e.g., STARKs/FRI).<a href="#section-1-5.20" class="pilcrow">¶</a>
+</dd>
+        <dd class="break"></dd>
+<dt id="section-1-5.21">Mathematical Transparency:</dt>
+        <dd style="margin-left: 1.5em" id="section-1-5.22">The property where the validity of a proof is self-contained and auditable via open-source logic, requiring no external secret parameters.<a href="#section-1-5.22" class="pilcrow">¶</a>
 </dd>
       <dd class="break"></dd>
 </dl>
@@ -1714,10 +1726,8 @@ li > p:last-of-type:only-child {
       <h2 id="name-introduction">
 <a href="#section-2" class="section-number selfRef">2. </a><a href="#name-introduction" class="section-name selfRef">Introduction</a>
       </h2>
-<p id="section-2-1">As organizations increasingly adopt cloud and distributed computing, the need to enforce data residency, geolocation affinity, and host affinity has become critical for regulatory compliance and risk management. Traditional approaches to geographic and host enforcement rely on trust in infrastructure providers or network-based controls, which are insufficient in adversarial or multi-tenant environments.<a href="#section-2-1" class="pilcrow">¶</a></p>
-<p id="section-2-2">Modern workload security faces new challenges from stolen bearer tokens, protocol replay, and the lack of trust in transit. Attackers can exploit bearer tokens from unauthorized hosts or locations, bypassing traditional controls.<a href="#section-2-2" class="pilcrow">¶</a></p>
-<p id="section-2-3">This document introduces a framework for hardware-dependent Workload Identity Agent (WIA) attestation, covering two distinct layers: TPM-based platform attestation and geolocation hardware-based attestation. The solution cryptographically binds workload identity to both platform and geographic attributes, supplementing bearer tokens with signed, verifiable claims about workload residency and location.<a href="#section-2-3" class="pilcrow">¶</a></p>
-<p id="section-2-4">This enables enforcement of data residency, geolocation affinity, and host affinity policies, even in adversarial or multi-tenant environments, and directly addresses the limitations of bearer tokens, proof-of-possession, IPSEC, and trust-in-transit.<a href="#section-2-4" class="pilcrow">¶</a></p>
+<p id="section-2-1">As organizations increasingly adopt cloud and distributed computing, the need to enforce data residency, geolocation affinity, and host affinity has become critical for regulatory compliance and risk management. Traditional approaches rely on trust in infrastructure providers, which are often insufficient in adversarial or multi-tenant environments.<a href="#section-2-1" class="pilcrow">¶</a></p>
+<p id="section-2-2">Modern workload security faces challenges from stolen bearer tokens, protocol replay, and trust gaps in transit. This document defines a layered attestation framework that cryptographically binds workload identity to a hardware-verified platform and physical location. By establishing this "Silicon-to-Audit" chain of trust, the framework ensures that sensitive data is only processed by authorized workloads in approved, integral environments.<a href="#section-2-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="relationship-to-transitive-attestation">
@@ -1931,25 +1941,30 @@ li > p:last-of-type:only-child {
       <h2 id="name-approach-overview">
 <a href="#section-6" class="section-number selfRef">6. </a><a href="#name-approach-overview" class="section-name selfRef">Approach Overview</a>
       </h2>
-<p id="section-6-1">This framework provides hardware-dependent attestation of Workload Identity Agents, organized into two layers:<a href="#section-6-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-6-2.1">
-          <p id="section-6-2.1.1"><strong>Layer 2 -- TPM Platform Attestation:</strong> Establishes that the WIA is running on an approved host with verified firmware, OS, and software integrity using TPM-based measured boot and remote attestation.<a href="#section-6-2.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-6-1.1">
+          <p id="section-6-1.1.1"><strong>Layer 2 -- WIA Platform Attestation via TPM (Hardware-Dependent):</strong> Covered by this document. Proves the WIA is running on an approved host via TPM-based measured boot, hardware inventory verification, and credential activation.<a href="#section-6-1.1.1" class="pilcrow">¶</a></p>
 </li>
-        <li class="normal" id="section-6-2.2">
-          <p id="section-6-2.2.1"><strong>Layer 3 -- Geolocation HW-Based Attestation:</strong> Layered on top of TPM attestation, establishes that the attested host is within an approved geographic boundary using hardware sensors (GNSS, mobile modems) whose identities are cryptographically bound to the host TPM.<a href="#section-6-2.2.1" class="pilcrow">¶</a></p>
+        <li class="normal" id="section-6-1.2">
+          <p id="section-6-1.2.1"><strong>Layer 3 -- WIA Geolocation Attestation (Hardware-Dependent):</strong> Covered by this document. Proves the host (verified in Layer 2) is within a defined geographic boundary using cryptographically bound sensors.<a href="#section-6-1.2.1" class="pilcrow">¶</a></p>
+</li>
+        <li class="normal" id="section-6-1.3">
+          <p id="section-6-1.3.1"><strong>Privacy-Preserving Verification (ZKP Extension):</strong> An optional layer that uses transparent, post-quantum Zero-Knowledge Proofs to verify geofence compliance without disclosing exact coordinates.<a href="#section-6-1.3.1" class="pilcrow">¶</a></p>
 </li>
       </ul>
-<p id="section-6-3">Both layers support two deployment options:<a href="#section-6-3" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-6-4.1">
-          <p id="section-6-4.1.1"><strong>Option A -- Host OS-Based (e.g., Keylime):</strong> The attestation agent runs on the host operating system with direct TPM access. An external verifier (e.g., Keylime Verifier) queries the agent on-demand for TPM quotes and geolocation evidence.<a href="#section-6-4.1.1" class="pilcrow">¶</a></p>
+<p id="section-6-2">These layers support three primary deployment options:<a href="#section-6-2" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-6-3.1">
+          <strong>Option A -- Host OS-Based (e.g., Keylime):</strong> Interaction via the host OS with direct TPM access.<a href="#section-6-3.1" class="pilcrow">¶</a>
 </li>
-        <li class="normal" id="section-6-4.2">
-          <p id="section-6-4.2.1"><strong>Option B -- External Management Processor (e.g., HPE iLO family):</strong> The management processor (BMC/iLO) has independent TPM access and sensor interfaces. An external management plane validates attestation evidence out-of-band, providing assurance even when the host OS is compromised.<a href="#section-6-4.2.1" class="pilcrow">¶</a></p>
+        <li class="compact" id="section-6-3.2">
+          <strong>Option B -- Out-of-Band Management (e.g., HPE iLO):</strong> Validation via an isolated management processor, providing protection even against compromised host kernels.<a href="#section-6-3.2" class="pilcrow">¶</a>
+</li>
+        <li class="compact" id="section-6-3.3">
+          <strong>Option C -- Cloud-Based Virtual TPM (e.g., AWS Nitro):</strong> Hardware-backed virtual TPM attestation for cloud and containerized (EKS) environments.<a href="#section-6-3.3" class="pilcrow">¶</a>
 </li>
       </ul>
-<p id="section-6-5">For the workload-level attestation that builds on top of the WIA attestation described here (proving a workload is co-located with an attested WIA), see [[I-D.mw-wimse-transitive-attestation]].<a href="#section-6-5" class="pilcrow">¶</a></p>
+<p id="section-6-4">For the workload-level attestation that builds on top of the WIA (Layer 1), see [[I-D.mw-wimse-transitive-attestation]].<a href="#section-6-4" class="pilcrow">¶</a></p>
 <div id="server-hosts-solution-highlights">
 <section id="section-6.1">
         <h3 id="name-server-hosts-solution-highl">

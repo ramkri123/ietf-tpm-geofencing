@@ -23,18 +23,21 @@ Abstract
 
    Modern cloud and distributed environments face significant risks from
    stolen bearer tokens, protocol replay, and trust gaps in transit.
-   This document presents a framework for hardware-dependent Workload
-   Identity Agent (WIA) attestation, covering both TPM-based platform
-   attestation and geolocation hardware-based attestation.
+   This document presents a layered attestation framework for a
+   hardware-dependent Workload Identity Agent (WIA).  The framework
+   covers TPM-based platform attestation (Layer 2) and high-assurance
+   geolocation attestation (Layer 3), integrating out-of-band (OOB)
+   hardware monitoring, cloud-native virtual TPM (vTPM) support, and
+   privacy-preserving Zero-Knowledge Proof (ZKP) verification.
 
-   By binding workload identity to both geographic and host attributes,
-   and supplementing bearer tokens with verifiable, location- and host-
-   bound claims, the framework addresses the challenges of bearer token
-   theft, proof-of-possession and trust-in-transit for all networking
-   protocols.  Leveraging trusted hardware, attestation protocols, and
-   geolocation services, this approach ensures that only authorized
-   workloads in approved locations and environments can access sensitive
-   data or services, even in the presence of advanced threats.
+   By binding workload identity to geographic and host-integrity
+   attributes, the framework establishes a "Silicon-to-Audit" chain of
+   trust.  This addresses challenges in bearer token theft and data
+   residency while providing a post-quantum cryptographic foundation
+   through mathematical transparency.  The solution is designed to scale
+   across on-premises, edge, and cloud environments, ensuring that only
+   authorized workloads in approved locations can access sensitive
+   services.
 
 Status of This Memo
 
@@ -46,10 +49,7 @@ Status of This Memo
    working documents as Internet-Drafts.  The list of current Internet-
    Drafts is at https://datatracker.ietf.org/drafts/current/.
 
-   Internet-Drafts are draft documents valid for a maximum of six months
-   and may be updated, replaced, or obsoleted by other documents at any
-   time.  It is inappropriate to use Internet-Drafts as reference
-   material or to cite them other than as "work in progress."
+
 
 
 
@@ -57,6 +57,11 @@ Krishnan, et al.         Expires 27 August 2026                 [Page 1]
 
 Internet-Draft                    GeoW                     February 2026
 
+
+   Internet-Drafts are draft documents valid for a maximum of six months
+   and may be updated, replaced, or obsoleted by other documents at any
+   time.  It is inappropriate to use Internet-Drafts as reference
+   material or to cite them other than as "work in progress."
 
    This Internet-Draft will expire on 27 August 2026.
 
@@ -86,12 +91,12 @@ Table of Contents
        4.1.3.  Server workload to Server workload - Federated AI . .   8
        4.1.4.  User workload to Server workload  . . . . . . . . . .   8
      4.2.  Category 2: User-centric Location . . . . . . . . . . . .   8
-     4.3.  Category 3: Regulatory Compliance . . . . . . . . . . . .   8
+     4.3.  Category 3: Regulatory Compliance . . . . . . . . . . . .   9
    5.  Industry Gaps and Problem Statements  . . . . . . . . . . . .   9
      5.1.  Data Generation/at-Rest Challenges  . . . . . . . . . . .   9
      5.2.  Data-in-Use Challenges  . . . . . . . . . . . . . . . . .   9
        5.2.1.  Authentication and Authorization Challenges . . . . .   9
-       5.2.2.  Location and Geofencing Challenges  . . . . . . . . .   9
+       5.2.2.  Location and Geofencing Challenges  . . . . . . . . .  10
        5.2.3.  Implicit Trust Challenges . . . . . . . . . . . . . .  10
    6.  Approach Overview . . . . . . . . . . . . . . . . . . . . . .  10
      6.1.  Server Hosts - Solution highlights  . . . . . . . . . . .  11
@@ -101,11 +106,6 @@ Table of Contents
        7.1.1.  Comparison of Deployment Options  . . . . . . . . . .  12
      7.2.  Measured Boot and OS Integrity Attestation  . . . . . . .  13
      7.3.  WIA Attestation and Identity Issuance . . . . . . . . . .  14
-     7.4.  Deployment Option A: Host OS-Based (Keylime)  . . . . . .  16
-       7.4.1.  Architecture  . . . . . . . . . . . . . . . . . . . .  16
-       7.4.2.  Integration with SPIRE  . . . . . . . . . . . . . . .  16
-       7.4.3.  Advantages  . . . . . . . . . . . . . . . . . . . . .  16
-       7.4.4.  Limitations . . . . . . . . . . . . . . . . . . . . .  16
 
 
 
@@ -114,6 +114,11 @@ Krishnan, et al.         Expires 27 August 2026                 [Page 2]
 Internet-Draft                    GeoW                     February 2026
 
 
+     7.4.  Deployment Option A: Host OS-Based (Keylime)  . . . . . .  16
+       7.4.1.  Architecture  . . . . . . . . . . . . . . . . . . . .  16
+       7.4.2.  Integration with SPIRE  . . . . . . . . . . . . . . .  16
+       7.4.3.  Advantages  . . . . . . . . . . . . . . . . . . . . .  16
+       7.4.4.  Limitations . . . . . . . . . . . . . . . . . . . . .  16
      7.5.  Deployment Option B: External Management Processor (e.g.,
            HPE iLO)  . . . . . . . . . . . . . . . . . . . . . . . .  17
        7.5.1.  Dual TPM Access Paths . . . . . . . . . . . . . . . .  17
@@ -157,11 +162,6 @@ Internet-Draft                    GeoW                     February 2026
                Foundation  . . . . . . . . . . . . . . . . . . . . .  36
    9.  Scaling the Solution  . . . . . . . . . . . . . . . . . . . .  36
      9.1.  End user location anchor host . . . . . . . . . . . . . .  37
-     9.2.  Data center location anchor host  . . . . . . . . . . . .  37
-   10. Confidential Computing Considerations . . . . . . . . . . . .  38
-   11. Solution Mapping to Industry Gaps . . . . . . . . . . . . . .  39
-   12. Authorization Policy Implementers . . . . . . . . . . . . . .  40
-   13. Security Considerations . . . . . . . . . . . . . . . . . . .  40
 
 
 
@@ -170,6 +170,11 @@ Krishnan, et al.         Expires 27 August 2026                 [Page 3]
 Internet-Draft                    GeoW                     February 2026
 
 
+     9.2.  Data center location anchor host  . . . . . . . . . . . .  37
+   10. Confidential Computing Considerations . . . . . . . . . . . .  38
+   11. Solution Mapping to Industry Gaps . . . . . . . . . . . . . .  39
+   12. Authorization Policy Implementers . . . . . . . . . . . . . .  40
+   13. Security Considerations . . . . . . . . . . . . . . . . . . .  40
    14. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  41
    15. Appendix - Items to follow up . . . . . . . . . . . . . . . .  41
      15.1.  OPEN ISSUES 1: Restart time attestation/remote
@@ -213,11 +218,6 @@ Internet-Draft                    GeoW                     February 2026
 
    *Key Terms:*
 
-   Data Residency:  Technical and Legal Challenges Ensuring compliance
-      with global and local data protection regulations and mandates
-      (e.g., EU GDPR, US HIPAA, PCI DSS, and jurisdiction-specific laws;
-      see Appendix for public references on strict data residency
-      rules).  Strict data residency rules require that specific
 
 
 
@@ -226,52 +226,52 @@ Krishnan, et al.         Expires 27 August 2026                 [Page 4]
 Internet-Draft                    GeoW                     February 2026
 
 
-      categories of data must be stored and processed exclusively within
-      designated geographic boundaries.  Enforcing these mandates relies
-      on a combination of trusted computing, host-affinity, geolocation-
-      affinity, and geofencing--each defined below.
+   Data Residency:  Technical and Legal Challenges Ensuring compliance
+      with global and local data protection regulations and mandates
+      (e.g., EU GDPR, US HIPAA, PCI DSS).  Strict residency rules
+      require that data must be stored and processed exclusively within
+      designated geographic boundaries, enforced via trusted computing
+      and geofencing.
    Data Residency Host-Affinity Requirement:  Data must remain bound to
-      explicitly trusted computing environments or hosts, governing
-      where storage and processing occur.
+      explicitly trusted computing environments or hosts.
    Data Residency Geolocation-Affinity Requirement:  Data must not be
-      transferred beyond defined geographic regions.  All storage and
-      computation must remain within the specified boundaries.
+      transferred beyond defined geographic regions.
    Data Residency Host Geolocation Affinity (aka Geofencing):  A
       compound enforcement mechanism requiring that data and workloads
-      are executed only on authorized hosts located within the approved
+      are executed only on authorized hosts located within approved
       geographic regions.
-   Workload Identity Agent (WIA):  SPIRE agent on each host, with TPM
-      plugin to issue X.509 SVIDs and sign requests.
-   Location Anchor Host (LAH):  Host with a trusted GNSS/5G modem
-      attached to its TPM endorsement key.
-   Composite Geolocation:  Fused location estimate from local GNSS plus
-      mobile-API data.
-   Proof-Of-Residency (POR):  Cryptographic proof that a workload is
-      executing within approved geographic and host boundaries.
+   Workload Identity Agent (WIA):  A trusted entity (e.g., SPIRE agent)
+      on each host that manages workload identities.  The WIA is
+      verified through platform attestation and issues cryptographically
+      bound identities (e.g., SVIDs) to workloads.
+   Location Anchor Host (LAH):  A host with a trusted location source
+      (GNSS/5G) cryptographically bound to its hardware root of trust.
+   Composite Geolocation:  A location estimate fused from multiple
+      sources (e.g., local GNSS and mobile network APIs) to produce a
+      quality-scored, verifiable location claim.
+   Proof-Of-Residency (PoR):  A cryptographic proof that a workload is
+      executing within approved geographic and host-integrity
+      boundaries.
+   Silicon Root of Trust:  A hardware-based trust anchor (e.g., HPE
+      Silicon Root of Trust or AWS Nitro Security Chip) that verifies
+      low-level firmware and protects the system from the first moment
+      of power-on.
+   Transparent Zero-Knowledge Proof (ZKP):  A ZKP that does not require
+      a "Trusted Setup" or a Trusted Third Party.  Mathematical
+      transparency is achieved through non-interactive, hash-based
+      protocols (e.g., STARKs/FRI).
+   Mathematical Transparency:  The property where the validity of a
+      proof is self-contained and auditable via open-source logic,
+      requiring no external secret parameters.
 
 2.  Introduction
 
    As organizations increasingly adopt cloud and distributed computing,
    the need to enforce data residency, geolocation affinity, and host
    affinity has become critical for regulatory compliance and risk
-   management.  Traditional approaches to geographic and host
-   enforcement rely on trust in infrastructure providers or network-
-   based controls, which are insufficient in adversarial or multi-tenant
-   environments.
-
-   Modern workload security faces new challenges from stolen bearer
-   tokens, protocol replay, and the lack of trust in transit.  Attackers
-   can exploit bearer tokens from unauthorized hosts or locations,
-   bypassing traditional controls.
-
-   This document introduces a framework for hardware-dependent Workload
-   Identity Agent (WIA) attestation, covering two distinct layers: TPM-
-   based platform attestation and geolocation hardware-based
-   attestation.  The solution cryptographically binds workload identity
-   to both platform and geographic attributes, supplementing bearer
-   tokens with signed, verifiable claims about workload residency and
-   location.
-
+   management.  Traditional approaches rely on trust in infrastructure
+   providers, which are often insufficient in adversarial or multi-
+   tenant environments.
 
 
 
@@ -282,10 +282,13 @@ Krishnan, et al.         Expires 27 August 2026                 [Page 5]
 Internet-Draft                    GeoW                     February 2026
 
 
-   This enables enforcement of data residency, geolocation affinity, and
-   host affinity policies, even in adversarial or multi-tenant
-   environments, and directly addresses the limitations of bearer
-   tokens, proof-of-possession, IPSEC, and trust-in-transit.
+   Modern workload security faces challenges from stolen bearer tokens,
+   protocol replay, and trust gaps in transit.  This document defines a
+   layered attestation framework that cryptographically binds workload
+   identity to a hardware-verified platform and physical location.  By
+   establishing this "Silicon-to-Audit" chain of trust, the framework
+   ensures that sensitive data is only processed by authorized workloads
+   in approved, integral environments.
 
 3.  Relationship to Transitive Attestation
 
@@ -323,13 +326,10 @@ Internet-Draft                    GeoW                     February 2026
    *  TPM/Geolocation Hardware -> WIA (this draft, Layers 2+3) ->
       Workload (transitive attestation draft, Layer 1)
 
-   This document focuses exclusively on Layers 2 and 3: the hardware-
-   dependent attestation of the WIA itself.  For how workloads prove
-   they are co-located with an attested WIA, and for the data-plane
-   protocol flows (mTLS PoR, DPoR), see [[I-D.mw-wimse-transitive-
-   attestation]].
 
-   In the context of SPIFFE/SPIRE:
+
+
+
 
 
 
@@ -337,6 +337,14 @@ Krishnan, et al.         Expires 27 August 2026                 [Page 6]
 
 Internet-Draft                    GeoW                     February 2026
 
+
+   This document focuses exclusively on Layers 2 and 3: the hardware-
+   dependent attestation of the WIA itself.  For how workloads prove
+   they are co-located with an attested WIA, and for the data-plane
+   protocol flows (mTLS PoR, DPoR), see [[I-D.mw-wimse-transitive-
+   attestation]].
+
+   In the context of SPIFFE/SPIRE:
 
    *  The *Workload Identity Manager* is represented by the SPIFFE/SPIRE
       server.
@@ -378,14 +386,6 @@ Internet-Draft                    GeoW                     February 2026
    service.  The resulting attested geofence proof is used to bind
    workload identity to both the host and its geographic location,
    enabling secure, policy-driven execution of AI workloads and
-   compliance with data residency requirements.
-
-
-
-
-
-
-
 
 
 
@@ -393,6 +393,8 @@ Krishnan, et al.         Expires 27 August 2026                 [Page 7]
 
 Internet-Draft                    GeoW                     February 2026
 
+
+   compliance with data residency requirements.
 
 4.1.3.  Server workload to Server workload - Federated AI
 
@@ -437,10 +439,8 @@ Internet-Draft                    GeoW                     February 2026
       those personnel should not be allowed to support U.S. customers.
       Geolocation enforcement can ensure policy compliance.
 
-4.3.  Category 3: Regulatory Compliance
 
-   Geographic boundary attestation helps satisfy data residency and data
-   sovereignty requirements for regulatory compliance.
+
 
 
 
@@ -449,6 +449,11 @@ Krishnan, et al.         Expires 27 August 2026                 [Page 8]
 
 Internet-Draft                    GeoW                     February 2026
 
+
+4.3.  Category 3: Regulatory Compliance
+
+   Geographic boundary attestation helps satisfy data residency and data
+   sovereignty requirements for regulatory compliance.
 
 5.  Industry Gaps and Problem Statements
 
@@ -490,12 +495,7 @@ Internet-Draft                    GeoW                     February 2026
       support only about 5 signatures per second.
    *  Non-HTTP protocols: No solution for IPSEC etc.
 
-5.2.2.  Location and Geofencing Challenges
 
-   *  *IP Address-Based Location:* This is the typical approach, but it
-      has limitations: network providers can use geographic-region-based
-      IANA-assigned IP addresses anywhere in the world, and enterprise
-      VPNs can hide the user's real IP address.
 
 
 
@@ -505,6 +505,13 @@ Krishnan, et al.         Expires 27 August 2026                 [Page 9]
 
 Internet-Draft                    GeoW                     February 2026
 
+
+5.2.2.  Location and Geofencing Challenges
+
+   *  *IP Address-Based Location:* This is the typical approach, but it
+      has limitations: network providers can use geographic-region-based
+      IANA-assigned IP addresses anywhere in the world, and enterprise
+      VPNs can hide the user's real IP address.
 
    *  *Wi-Fi-Based Location:* For user laptop endpoints with agents
       (e.g., ZTNA), traditional geographic enforcement relies on
@@ -527,32 +534,25 @@ Internet-Draft                    GeoW                     February 2026
 
 6.  Approach Overview
 
-   This framework provides hardware-dependent attestation of Workload
-   Identity Agents, organized into two layers:
+   *  *Layer 2 -- WIA Platform Attestation via TPM (Hardware-
+      Dependent):* Covered by this document.  Proves the WIA is running
+      on an approved host via TPM-based measured boot, hardware
+      inventory verification, and credential activation.
 
-   *  *Layer 2 -- TPM Platform Attestation:* Establishes that the WIA is
-      running on an approved host with verified firmware, OS, and
-      software integrity using TPM-based measured boot and remote
-      attestation.
+   *  *Layer 3 -- WIA Geolocation Attestation (Hardware-Dependent):*
+      Covered by this document.  Proves the host (verified in Layer 2)
+      is within a defined geographic boundary using cryptographically
+      bound sensors.
 
-   *  *Layer 3 -- Geolocation HW-Based Attestation:* Layered on top of
-      TPM attestation, establishes that the attested host is within an
-      approved geographic boundary using hardware sensors (GNSS, mobile
-      modems) whose identities are cryptographically bound to the host
-      TPM.
+   *  *Privacy-Preserving Verification (ZKP Extension):* An optional
+      layer that uses transparent, post-quantum Zero-Knowledge Proofs to
+      verify geofence compliance without disclosing exact coordinates.
 
-   Both layers support two deployment options:
+   These layers support three primary deployment options:
 
-   *  *Option A -- Host OS-Based (e.g., Keylime):* The attestation agent
-      runs on the host operating system with direct TPM access.  An
-      external verifier (e.g., Keylime Verifier) queries the agent on-
-      demand for TPM quotes and geolocation evidence.
+   *  *Option A -- Host OS-Based (e.g., Keylime):* Interaction via the
+      host OS with direct TPM access.
 
-   *  *Option B -- External Management Processor (e.g., HPE iLO
-      family):* The management processor (BMC/iLO) has independent TPM
-      access and sensor interfaces.  An external management plane
-      validates attestation evidence out-of-band, providing assurance
-      even when the host OS is compromised.
 
 
 
@@ -562,9 +562,15 @@ Krishnan, et al.         Expires 27 August 2026                [Page 10]
 Internet-Draft                    GeoW                     February 2026
 
 
+   *  *Option B -- Out-of-Band Management (e.g., HPE iLO):* Validation
+      via an isolated management processor, providing protection even
+      against compromised host kernels.
+   *  *Option C -- Cloud-Based Virtual TPM (e.g., AWS Nitro):* Hardware-
+      backed virtual TPM attestation for cloud and containerized (EKS)
+      environments.
+
    For the workload-level attestation that builds on top of the WIA
-   attestation described here (proving a workload is co-located with an
-   attested WIA), see [[I-D.mw-wimse-transitive-attestation]].
+   (Layer 1), see [[I-D.mw-wimse-transitive-attestation]].
 
 6.1.  Server Hosts - Solution highlights
 
@@ -604,12 +610,6 @@ Internet-Draft                    GeoW                     February 2026
    *  Workload identity agent provides proof that workloads run only on
       workload/location anchor hosts.
 
-      -  This is done using enhancements to existing SPIFFE/SPIRE agent
-         and TPM plugin and addresses bearer token issue.
-
-
-
-
 
 
 
@@ -617,6 +617,9 @@ Krishnan, et al.         Expires 27 August 2026                [Page 11]
 
 Internet-Draft                    GeoW                     February 2026
 
+
+      -  This is done using enhancements to existing SPIFFE/SPIRE agent
+         and TPM plugin and addresses bearer token issue.
 
 6.2.  End user/IoT hosts - Solution highlights
 
@@ -659,9 +662,6 @@ Internet-Draft                    GeoW                     February 2026
    The following table summarizes the architectural and security
    differences between the three deployment options for TPM platform
    attestation.
-
-
-
 
 
 
