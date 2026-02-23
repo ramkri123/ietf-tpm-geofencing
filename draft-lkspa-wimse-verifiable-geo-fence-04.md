@@ -5,7 +5,7 @@ category = "info"
 docName = "draft-lkspa-wimse-verifiable-geo-fence-04"
 ipr = "trust200902"
 area = "Security"
-workgroup = "Workload Identity in Multi System Environments"
+workgroup = "RATS"
 keyword = ["geofencing", "attestation", "workload identity", "residency", "TPM", "GNSS"]
 
 [seriesInfo]
