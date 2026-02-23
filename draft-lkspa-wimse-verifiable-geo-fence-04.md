@@ -90,7 +90,7 @@ organization = "Independent"
 
 .# Abstract
 
-Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. This document presents a layered attestation framework for a hardware-dependent Workload Identity Agent (WIA), such as a SPIFFE/SPIRE agent. The framework is designed to align with the objectives of the IETF WIMSE working group, covering TPM-based platform attestation (Layer 2) and high-assurance geolocation attestation (Layer 3). It integrates out-of-band (OOB) hardware monitoring, cloud-native virtual TPM (vTPM) support, and privacy-preserving Zero-Knowledge Proof (ZKP) verification.
+Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. This document presents a layered attestation framework for a hardware-dependent Workload Identity Agent (WIA), such as a SPIFFE/SPIRE agent. While the WIMSE architecture assumes a trustworthy agent, it does not specify the normative technical mechanics for its verification. This document fills that gap by covering TPM-based platform attestation (Layer 2) and high-assurance geolocation attestation (Layer 3), integrating out-of-band (OOB) hardware monitoring, cloud-native virtual TPM (vTPM) support, and privacy-preserving Zero-Knowledge Proof (ZKP) verification.
 
 By binding workload identity to geographic and host-integrity attributes, the framework establishes a "Silicon-to-Audit" chain of trust. This addresses challenges in bearer token theft and data residency while providing a post-quantum cryptographic foundation through mathematical transparency. The solution builds upon the IETF RATS architecture to ensure that only authorized workloads in approved locations can access sensitive services in multi-system environments.
 
@@ -187,6 +187,12 @@ Together, the complete chain is:
 
   * TPM Hardware -> WIA (this draft, Layer 2) -> Workload (transitive attestation draft, Layer 1)
   * TPM/Geolocation Hardware -> WIA (this draft, Layers 2+3) -> Workload (transitive attestation draft, Layer 1)
+
+# Addressing WIMSE Architecture Gaps
+
+The high-level **WIMSE Architecture** [[I-D.ietf-wimse-architecture]] establishes the requirement for a trustworthy Workload Identity Agent (WIA) but delegates the technical mechanics of agent verification to specific profiles. This document fills that technical gap by providing a normative specification for hardware-rooted agent verification.
+
+Without the hardware-rooted "Silicon-to-Audit" proof established in this specification, the WIMSE identity model would rely on implicit trust in the host operating system or infrastructure provider. This draft hardens the WIMSE model against advanced threats by ensuring the WIA itself—and consequently the identities it issues—are anchored to verifiable hardware configuration and physical location.
 
 This document focuses exclusively on Layers 2 and 3: the hardware-dependent attestation of the WIA itself. For how workloads prove they are co-located with an attested WIA, and for the data-plane protocol flows (mTLS PoR, DPoR), see [[I-D.mw-wimse-transitive-attestation]].
 
@@ -886,6 +892,17 @@ If the policy implementer is at the SaaS application level, things are simpler. 
 # Security Considerations
 
 The proposed framework introduces several security considerations that must be addressed to ensure the integrity and trustworthiness of geofencing:
+
+## Mapping to WIMSE Threat Model
+
+This specification provides technical mitigations for several threats identified in the **WIMSE Architecture** [[I-D.ietf-wimse-architecture]]:
+
+* **Workload Identity Misappropriation**: By binding the WIA identity to Layer 2 TPM platform attestation, this framework ensures that a WIA identity (and the SVIDs it issues) cannot be misappropriated or exported to an unverified or untrusted host.
+* **Compromised Agent/Host**: Deployment Option B (Out-of-Band Management) and Layer 2 attestation (measured boot, IMA) provide detection and mitigation against compromised host operating systems, ensuring that a compromised kernel cannot forge attestation results.
+* **Bearer Token Theft and Replay**: The "Proof of Residency" established in this draft (and conveyed via the Transitive Attestation draft) prevents stolen bearer tokens from being used outside the verified host environment or geographic boundary.
+* **Implicit Trust in Infrastructure**: Layer 2 and Layer 3 provide cryptographic "Silicon-to-Audit" proof of physical locality and hardware composition, replacing implicit trust in infrastructure providers with auditable hardware-rooted evidence.
+
+## Technical Security Considerations
 
 - **TPM and Hardware Trust**: The security of the solution depends on the integrity of the TPM and other hardware roots of trust. Physical attacks, firmware vulnerabilities, or supply chain compromises could undermine attestation. Regular updates, secure provisioning, and monitoring are required.
 
