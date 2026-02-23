@@ -823,6 +823,90 @@ These monitoring functions are performed over dedicated, low-level hardware inte
 </ol>
 <t>Policy enforcement can then use the composite location to verify that the host is within the approved geographic boundary defined by the geofence policy.</t>
 </section>
+
+<section anchor="privacy-preserving-geolocation-verification-zkp"><name>Privacy-Preserving Geolocation Verification (ZKP)</name>
+<t>As an alternative to sharing precise geolocation coordinates, a Zero-Knowledge Proof (ZKP) can be used to prove that a host is within an approved geographic boundary <strong>without revealing its exact location</strong>. This &quot;Audit without Disclosure&quot; pattern, as described in [[AegisSovereignAI]], is particularly important for sovereignty-sensitive deployments where even the Verifier should not learn the Prover's precise coordinates.</t>
+
+<section anchor="architecture-5"><name>Architecture</name>
+<t>The ZKP geolocation verification separates the problem into three components:</t>
+
+<ol spacing="compact">
+<li><strong>The Circuit (Shared Code):</strong> A fixed, publicly auditable piece of cryptographic logic that implements the distance formula (e.g., Haversine). Both the Prover and Verifier compile this circuit, producing a Proving Key and a Verifying Key respectively. The circuit encodes the rule: <em>&quot;Given a center point, a radius, and a private location, output True only if the private location is within the radius of the center point.&quot;</em></li>
+<li><strong>The Public Input (Geofence Policy):</strong> The geofence definition—center latitude/longitude and radius—is passed as a <strong>Public Input</strong> to both the Prover and the Verifier. Because the policy is public, it can be dynamically updated (e.g., &quot;workload must now be within the Frankfurt region instead of Dublin&quot;) without re-compiling the circuit.</li>
+<li><strong>The Private Witness (Actual Location):</strong> The Prover's actual GPS coordinates (latitude, longitude) are the <strong>Private Witness</strong>. These never leave the Prover. The Prover uses the private witness and the public policy to generate a succinct proof string.</li>
+</ol>
+</section>
+
+<section anchor="verification-flow"><name>Verification Flow</name>
+
+<ol spacing="compact">
+<li>The Prover (e.g., edge node or cloud workload) collects its attested geolocation from Layer 3 (via Option A or Option B).</li>
+<li>The Prover runs the ZKP Proving algorithm with: (a) the geofence policy as public input, (b) its actual coordinates as the private witness, and (c) the shared circuit logic.</li>
+<li>The Prover produces a succinct <strong>proof string</strong> (typically a few hundred bytes) and sends it to the Verifier along with the public inputs.</li>
+<li>The Verifier runs the ZKP Verification algorithm using only the proof string, the public inputs (the geofence policy), and the Verifying Key. The Verifier learns only &quot;True&quot; (the Prover is within the geofence) or &quot;False&quot; (the Prover is not), and mathematically cannot extract the Prover's actual coordinates from the proof.</li>
+</ol>
+</section>
+
+<section anchor="integration-with-the-attestation-layers"><name>Integration with the Attestation Layers</name>
+<t>The ZKP geolocation proof can be included as an additional claim in the SPIRE SVID during workload identity fusion (see Workload Identity Fusion section). In this model:</t>
+
+<ul spacing="compact">
+<li>The <strong>TPM Quote</strong> (Layer 2) proves the host's software and hardware integrity.</li>
+<li>The <strong>ZKP Proof</strong> (Layer 3) proves the host's geographic compliance.</li>
+<li>Neither the exact location nor the raw IMA measurements need to cross organizational boundaries—only the cryptographic proofs.</li>
+</ul>
+<t>This is especially valuable for cross-organizational and cross-sovereign attestation, where a Verifier in one jurisdiction must confirm that a workload in another jurisdiction is compliant without gaining access to sensitive operational telemetry.</t>
+</section>
+
+<section anchor="comparison-precise-location-vs-zkp"><name>Comparison: Precise Location vs. ZKP</name>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Precise Location Sharing</th>
+<th>ZKP Geolocation Proof</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td><strong>Verifier Learns</strong></td>
+<td>Exact lat/long coordinates</td>
+<td>Only &quot;inside&quot; or &quot;outside&quot; the geofence</td>
+</tr>
+
+<tr>
+<td><strong>Privacy</strong></td>
+<td>Low (full location disclosed)</td>
+<td>High (location remains private)</td>
+</tr>
+
+<tr>
+<td><strong>Policy Updates</strong></td>
+<td>Re-query with new policy</td>
+<td>Change public input; circuit unchanged</td>
+</tr>
+
+<tr>
+<td><strong>Proof Size</strong></td>
+<td>Variable (full coordinates + signature)</td>
+<td>Fixed, succinct (few hundred bytes)</td>
+</tr>
+
+<tr>
+<td><strong>GDPR/Sovereignty</strong></td>
+<td>May conflict with data minimization</td>
+<td>Compliant by design</td>
+</tr>
+
+<tr>
+<td><strong>Cross-Org Sharing</strong></td>
+<td>Requires trust in recipient</td>
+<td>&quot;Audit without Disclosure&quot;</td>
+</tr>
+</tbody>
+</table></section>
+</section>
 </section>
 
 <section anchor="scaling-the-solution"><name>Scaling the Solution</name>

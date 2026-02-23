@@ -1534,6 +1534,23 @@ li > p:last-of-type:only-child {
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.6">
                 <p id="section-toc.1-1.8.2.6.1"><a href="#section-8.6" class="auto internal xref">8.6</a>.  <a href="#name-composite-geolocation-and-p" class="internal xref">Composite Geolocation and Policy Enforcement</a></p>
 </li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.7">
+                <p id="section-toc.1-1.8.2.7.1"><a href="#section-8.7" class="auto internal xref">8.7</a>.  <a href="#name-privacy-preserving-geolocat" class="internal xref">Privacy-Preserving Geolocation Verification (ZKP)</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.7.2.1">
+                    <p id="section-toc.1-1.8.2.7.2.1.1"><a href="#section-8.7.1" class="auto internal xref">8.7.1</a>.  <a href="#name-architecture-6" class="internal xref">Architecture</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.7.2.2">
+                    <p id="section-toc.1-1.8.2.7.2.2.1"><a href="#section-8.7.2" class="auto internal xref">8.7.2</a>.  <a href="#name-verification-flow" class="internal xref">Verification Flow</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.7.2.3">
+                    <p id="section-toc.1-1.8.2.7.2.3.1"><a href="#section-8.7.3" class="auto internal xref">8.7.3</a>.  <a href="#name-integration-with-the-attest" class="internal xref">Integration with the Attestation Layers</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.7.2.4">
+                    <p id="section-toc.1-1.8.2.7.2.4.1"><a href="#section-8.7.4" class="auto internal xref">8.7.4</a>.  <a href="#name-comparison-precise-location" class="internal xref">Comparison: Precise Location vs. ZKP</a></p>
+</li>
+                </ul>
+</li>
             </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9">
@@ -2919,6 +2936,128 @@ These monitoring functions are performed over dedicated, low-level hardware inte
 </li>
         </ol>
 <p id="section-8.6-3">Policy enforcement can then use the composite location to verify that the host is within the approved geographic boundary defined by the geofence policy.<a href="#section-8.6-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="privacy-preserving-geolocation-verification-zkp">
+<section id="section-8.7">
+        <h3 id="name-privacy-preserving-geolocat">
+<a href="#section-8.7" class="section-number selfRef">8.7. </a><a href="#name-privacy-preserving-geolocat" class="section-name selfRef">Privacy-Preserving Geolocation Verification (ZKP)</a>
+        </h3>
+<p id="section-8.7-1">As an alternative to sharing precise geolocation coordinates, a Zero-Knowledge Proof (ZKP) can be used to prove that a host is within an approved geographic boundary <strong>without revealing its exact location</strong>. This "Audit without Disclosure" pattern, as described in [[AegisSovereignAI]], is particularly important for sovereignty-sensitive deployments where even the Verifier should not learn the Prover's precise coordinates.<a href="#section-8.7-1" class="pilcrow">¶</a></p>
+<div id="architecture-5">
+<section id="section-8.7.1">
+          <h4 id="name-architecture-6">
+<a href="#section-8.7.1" class="section-number selfRef">8.7.1. </a><a href="#name-architecture-6" class="section-name selfRef">Architecture</a>
+          </h4>
+<p id="section-8.7.1-1">The ZKP geolocation verification separates the problem into three components:<a href="#section-8.7.1-1" class="pilcrow">¶</a></p>
+<ol start="1" type="1" class="compact type-1" id="section-8.7.1-2">
+<li id="section-8.7.1-2.1">
+              <strong>The Circuit (Shared Code):</strong> A fixed, publicly auditable piece of cryptographic logic that implements the distance formula (e.g., Haversine). Both the Prover and Verifier compile this circuit, producing a Proving Key and a Verifying Key respectively. The circuit encodes the rule: <em>"Given a center point, a radius, and a private location, output True only if the private location is within the radius of the center point."</em><a href="#section-8.7.1-2.1" class="pilcrow">¶</a>
+</li>
+            <li id="section-8.7.1-2.2">
+              <strong>The Public Input (Geofence Policy):</strong> The geofence definition—center latitude/longitude and radius—is passed as a <strong>Public Input</strong> to both the Prover and the Verifier. Because the policy is public, it can be dynamically updated (e.g., "workload must now be within the Frankfurt region instead of Dublin") without re-compiling the circuit.<a href="#section-8.7.1-2.2" class="pilcrow">¶</a>
+</li>
+            <li id="section-8.7.1-2.3">
+              <strong>The Private Witness (Actual Location):</strong> The Prover's actual GPS coordinates (latitude, longitude) are the <strong>Private Witness</strong>. These never leave the Prover. The Prover uses the private witness and the public policy to generate a succinct proof string.<a href="#section-8.7.1-2.3" class="pilcrow">¶</a>
+</li>
+          </ol>
+</section>
+</div>
+<div id="verification-flow">
+<section id="section-8.7.2">
+          <h4 id="name-verification-flow">
+<a href="#section-8.7.2" class="section-number selfRef">8.7.2. </a><a href="#name-verification-flow" class="section-name selfRef">Verification Flow</a>
+          </h4>
+<ol start="1" type="1" class="compact type-1" id="section-8.7.2-1">
+<li id="section-8.7.2-1.1">The Prover (e.g., edge node or cloud workload) collects its attested geolocation from Layer 3 (via Option A or Option B).<a href="#section-8.7.2-1.1" class="pilcrow">¶</a>
+</li>
+            <li id="section-8.7.2-1.2">The Prover runs the ZKP Proving algorithm with: (a) the geofence policy as public input, (b) its actual coordinates as the private witness, and (c) the shared circuit logic.<a href="#section-8.7.2-1.2" class="pilcrow">¶</a>
+</li>
+            <li id="section-8.7.2-1.3">The Prover produces a succinct <strong>proof string</strong> (typically a few hundred bytes) and sends it to the Verifier along with the public inputs.<a href="#section-8.7.2-1.3" class="pilcrow">¶</a>
+</li>
+            <li id="section-8.7.2-1.4">The Verifier runs the ZKP Verification algorithm using only the proof string, the public inputs (the geofence policy), and the Verifying Key. The Verifier learns only "True" (the Prover is within the geofence) or "False" (the Prover is not), and mathematically cannot extract the Prover's actual coordinates from the proof.<a href="#section-8.7.2-1.4" class="pilcrow">¶</a>
+</li>
+          </ol>
+</section>
+</div>
+<div id="integration-with-the-attestation-layers">
+<section id="section-8.7.3">
+          <h4 id="name-integration-with-the-attest">
+<a href="#section-8.7.3" class="section-number selfRef">8.7.3. </a><a href="#name-integration-with-the-attest" class="section-name selfRef">Integration with the Attestation Layers</a>
+          </h4>
+<p id="section-8.7.3-1">The ZKP geolocation proof can be included as an additional claim in the SPIRE SVID during workload identity fusion (see Workload Identity Fusion section). In this model:<a href="#section-8.7.3-1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-8.7.3-2.1">The <strong>TPM Quote</strong> (Layer 2) proves the host's software and hardware integrity.<a href="#section-8.7.3-2.1" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-8.7.3-2.2">The <strong>ZKP Proof</strong> (Layer 3) proves the host's geographic compliance.<a href="#section-8.7.3-2.2" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-8.7.3-2.3">Neither the exact location nor the raw IMA measurements need to cross organizational boundaries—only the cryptographic proofs.<a href="#section-8.7.3-2.3" class="pilcrow">¶</a>
+</li>
+          </ul>
+<p id="section-8.7.3-3">This is especially valuable for cross-organizational and cross-sovereign attestation, where a Verifier in one jurisdiction must confirm that a workload in another jurisdiction is compliant without gaining access to sensitive operational telemetry.<a href="#section-8.7.3-3" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="comparison-precise-location-vs-zkp">
+<section id="section-8.7.4">
+          <h4 id="name-comparison-precise-location">
+<a href="#section-8.7.4" class="section-number selfRef">8.7.4. </a><a href="#name-comparison-precise-location" class="section-name selfRef">Comparison: Precise Location vs. ZKP</a>
+          </h4>
+<table class="center" id="table-2">
+            <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Property</th>
+                <th class="text-left" rowspan="1" colspan="1">Precise Location Sharing</th>
+                <th class="text-left" rowspan="1" colspan="1">ZKP Geolocation Proof</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <strong>Verifier Learns</strong>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Exact lat/long coordinates</td>
+                <td class="text-left" rowspan="1" colspan="1">Only "inside" or "outside" the geofence</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <strong>Privacy</strong>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Low (full location disclosed)</td>
+                <td class="text-left" rowspan="1" colspan="1">High (location remains private)</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <strong>Policy Updates</strong>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Re-query with new policy</td>
+                <td class="text-left" rowspan="1" colspan="1">Change public input; circuit unchanged</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <strong>Proof Size</strong>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Variable (full coordinates + signature)</td>
+                <td class="text-left" rowspan="1" colspan="1">Fixed, succinct (few hundred bytes)</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <strong>GDPR/Sovereignty</strong>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">May conflict with data minimization</td>
+                <td class="text-left" rowspan="1" colspan="1">Compliant by design</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <strong>Cross-Org Sharing</strong>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Requires trust in recipient</td>
+                <td class="text-left" rowspan="1" colspan="1">"Audit without Disclosure"</td>
+              </tr>
+            </tbody>
+          </table>
+</section>
+</div>
 </section>
 </div>
 </section>

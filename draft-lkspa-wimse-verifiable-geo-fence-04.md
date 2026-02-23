@@ -734,6 +734,47 @@ Regardless of the deployment option, the composite geolocation process combines 
 
 Policy enforcement can then use the composite location to verify that the host is within the approved geographic boundary defined by the geofence policy.
 
+## Privacy-Preserving Geolocation Verification (ZKP)
+
+As an alternative to sharing precise geolocation coordinates, a Zero-Knowledge Proof (ZKP) can be used to prove that a host is within an approved geographic boundary **without revealing its exact location**. This "Audit without Disclosure" pattern, as described in [[AegisSovereignAI]], is particularly important for sovereignty-sensitive deployments where even the Verifier should not learn the Prover's precise coordinates.
+
+### Architecture
+
+The ZKP geolocation verification separates the problem into three components:
+
+1. **The Circuit (Shared Code):** A fixed, publicly auditable piece of cryptographic logic that implements the distance formula (e.g., Haversine). Both the Prover and Verifier compile this circuit, producing a Proving Key and a Verifying Key respectively. The circuit encodes the rule: *"Given a center point, a radius, and a private location, output True only if the private location is within the radius of the center point."*
+2. **The Public Input (Geofence Policy):** The geofence definition—center latitude/longitude and radius—is passed as a **Public Input** to both the Prover and the Verifier. Because the policy is public, it can be dynamically updated (e.g., "workload must now be within the Frankfurt region instead of Dublin") without re-compiling the circuit.
+3. **The Private Witness (Actual Location):** The Prover's actual GPS coordinates (latitude, longitude) are the **Private Witness**. These never leave the Prover. The Prover uses the private witness and the public policy to generate a succinct proof string.
+
+### Verification Flow
+
+1. The Prover (e.g., edge node or cloud workload) collects its attested geolocation from Layer 3 (via Option A or Option B).
+2. The Prover runs the ZKP Proving algorithm with: (a) the geofence policy as public input, (b) its actual coordinates as the private witness, and (c) the shared circuit logic.
+3. The Prover produces a succinct **proof string** (typically a few hundred bytes) and sends it to the Verifier along with the public inputs.
+4. The Verifier runs the ZKP Verification algorithm using only the proof string, the public inputs (the geofence policy), and the Verifying Key. The Verifier learns only "True" (the Prover is within the geofence) or "False" (the Prover is not), and mathematically cannot extract the Prover's actual coordinates from the proof.
+
+### Integration with the Attestation Layers
+
+The ZKP geolocation proof can be included as an additional claim in the SPIRE SVID during workload identity fusion (see Workload Identity Fusion section). In this model:
+
+* The **TPM Quote** (Layer 2) proves the host's software and hardware integrity.
+* The **ZKP Proof** (Layer 3) proves the host's geographic compliance.
+* Neither the exact location nor the raw IMA measurements need to cross organizational boundaries—only the cryptographic proofs.
+
+This is especially valuable for cross-organizational and cross-sovereign attestation, where a Verifier in one jurisdiction must confirm that a workload in another jurisdiction is compliant without gaining access to sensitive operational telemetry.
+
+### Comparison: Precise Location vs. ZKP
+
+| Property | Precise Location Sharing | ZKP Geolocation Proof |
+|---|---|---|
+| **Verifier Learns** | Exact lat/long coordinates | Only "inside" or "outside" the geofence |
+| **Privacy** | Low (full location disclosed) | High (location remains private) |
+| **Policy Updates** | Re-query with new policy | Change public input; circuit unchanged |
+| **Proof Size** | Variable (full coordinates + signature) | Fixed, succinct (few hundred bytes) |
+| **GDPR/Sovereignty** | May conflict with data minimization | Compliant by design |
+| **Cross-Org Sharing** | Requires trust in recipient | "Audit without Disclosure" |
+
+
 # Scaling the Solution
 
 Having a geolocation sensor on every host is not scalable from a deployment and management perspective and can be cost prohibitive. In the case of end user hosts, the geolocation sensor can be on a mobile host (e.g., smartphone with Mobile network capabilities and optionally GNSS capabilities) which can be leveraged by a laptop/desktop host which is proximal to the mobile host. The mobile host serves as the location anchor host. In the case of data center hosts, the geolocation sensor can be on a host with Mobile network and/or GNSS capabilities which can be leveraged by other data center hosts. This host serves as the location anchor host.

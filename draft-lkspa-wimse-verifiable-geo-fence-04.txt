@@ -148,20 +148,20 @@ Internet-Draft                    GeoW                     February 2026
        8.5.3.  Advantages  . . . . . . . . . . . . . . . . . . . . .  32
        8.5.4.  Limitations . . . . . . . . . . . . . . . . . . . . .  33
      8.6.  Composite Geolocation and Policy Enforcement  . . . . . .  33
-   9.  Scaling the Solution  . . . . . . . . . . . . . . . . . . . .  34
-     9.1.  End user location anchor host . . . . . . . . . . . . . .  34
-     9.2.  Data center location anchor host  . . . . . . . . . . . .  34
-   10. Data Plane Geolocation Extensions . . . . . . . . . . . . . .  35
-     10.1.  HTTP: Workload-Geo-ID Header . . . . . . . . . . . . . .  36
-     10.2.  HTTP: Geolocation in SVID  . . . . . . . . . . . . . . .  37
-     10.3.  IPSEC: Geolocation in IKEv2  . . . . . . . . . . . . . .  37
-   11. Confidential Computing Considerations . . . . . . . . . . . .  37
-   12. Solution Mapping to Industry Gaps . . . . . . . . . . . . . .  38
-   13. Authorization Policy Implementers . . . . . . . . . . . . . .  39
-   14. Security Considerations . . . . . . . . . . . . . . . . . . .  40
-   15. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  41
-   16. Appendix - Items to follow up . . . . . . . . . . . . . . . .  41
-
+     8.7.  Privacy-Preserving Geolocation Verification (ZKP) . . . .  34
+       8.7.1.  Architecture  . . . . . . . . . . . . . . . . . . . .  34
+       8.7.2.  Verification Flow . . . . . . . . . . . . . . . . . .  34
+       8.7.3.  Integration with the Attestation Layers . . . . . . .  35
+       8.7.4.  Comparison: Precise Location vs. ZKP  . . . . . . . .  35
+   9.  Scaling the Solution  . . . . . . . . . . . . . . . . . . . .  36
+     9.1.  End user location anchor host . . . . . . . . . . . . . .  36
+     9.2.  Data center location anchor host  . . . . . . . . . . . .  36
+   10. Data Plane Geolocation Extensions . . . . . . . . . . . . . .  37
+     10.1.  HTTP: Workload-Geo-ID Header . . . . . . . . . . . . . .  37
+     10.2.  HTTP: Geolocation in SVID  . . . . . . . . . . . . . . .  38
+     10.3.  IPSEC: Geolocation in IKEv2  . . . . . . . . . . . . . .  39
+   11. Confidential Computing Considerations . . . . . . . . . . . .  39
+   12. Solution Mapping to Industry Gaps . . . . . . . . . . . . . .  40
 
 
 
@@ -170,16 +170,20 @@ Krishnan, et al.         Expires 27 August 2026                 [Page 3]
 Internet-Draft                    GeoW                     February 2026
 
 
+   13. Authorization Policy Implementers . . . . . . . . . . . . . .  41
+   14. Security Considerations . . . . . . . . . . . . . . . . . . .  41
+   15. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  42
+   16. Appendix - Items to follow up . . . . . . . . . . . . . . . .  43
      16.1.  OPEN ISSUES 1: Restart time attestation/remote
             verification of workload identity agent for integrity and
-            proof of residency on Host . . . . . . . . . . . . . . .  41
-     16.2.  OPEN ISSUES 2: Location privacy options  . . . . . . . .  41
-     16.3.  OPEN ISSUES 3: Attested PTP (Partially Addressed)  . . .  41
-     16.4.  OPEN ISSUES 4: Geotagging textual data . . . . . . . . .  41
-     16.5.  OPEN ISSUES 5: Attesting Geotags . . . . . . . . . . . .  42
+            proof of residency on Host . . . . . . . . . . . . . . .  43
+     16.2.  OPEN ISSUES 2: Location privacy options  . . . . . . . .  43
+     16.3.  OPEN ISSUES 3: Attested PTP (Partially Addressed)  . . .  43
+     16.4.  OPEN ISSUES 4: Geotagging textual data . . . . . . . . .  43
+     16.5.  OPEN ISSUES 5: Attesting Geotags . . . . . . . . . . . .  43
    17. Appendix - Public References for Strict Data Residency
-           Rules . . . . . . . . . . . . . . . . . . . . . . . . . .  42
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  42
+           Rules . . . . . . . . . . . . . . . . . . . . . . . . . .  43
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  44
 
 1.  Conventions and Definitions
 
@@ -212,10 +216,6 @@ Internet-Draft                    GeoW                     February 2026
    *Key Terms:*
 
    Data Residency:  Technical and Legal Challenges Ensuring compliance
-
-
-
-
 
 
 
@@ -1854,6 +1854,116 @@ Internet-Draft                    GeoW                     February 2026
    the host is within the approved geographic boundary defined by the
    geofence policy.
 
+8.7.  Privacy-Preserving Geolocation Verification (ZKP)
+
+   As an alternative to sharing precise geolocation coordinates, a Zero-
+   Knowledge Proof (ZKP) can be used to prove that a host is within an
+   approved geographic boundary *without revealing its exact location*.
+   This "Audit without Disclosure" pattern, as described in
+   [[AegisSovereignAI]], is particularly important for sovereignty-
+   sensitive deployments where even the Verifier should not learn the
+   Prover's precise coordinates.
+
+8.7.1.  Architecture
+
+   The ZKP geolocation verification separates the problem into three
+   components:
+
+   1.  *The Circuit (Shared Code):* A fixed, publicly auditable piece of
+       cryptographic logic that implements the distance formula (e.g.,
+       Haversine).  Both the Prover and Verifier compile this circuit,
+       producing a Proving Key and a Verifying Key respectively.  The
+       circuit encodes the rule: _"Given a center point, a radius, and a
+       private location, output True only if the private location is
+       within the radius of the center point."_
+   2.  *The Public Input (Geofence Policy):* The geofence
+       definition—center latitude/longitude and radius—is passed as a
+       *Public Input* to both the Prover and the Verifier.  Because the
+       policy is public, it can be dynamically updated (e.g., "workload
+       must now be within the Frankfurt region instead of Dublin")
+       without re-compiling the circuit.
+   3.  *The Private Witness (Actual Location):* The Prover's actual GPS
+       coordinates (latitude, longitude) are the *Private Witness*.
+       These never leave the Prover.  The Prover uses the private
+       witness and the public policy to generate a succinct proof
+       string.
+
+8.7.2.  Verification Flow
+
+   1.  The Prover (e.g., edge node or cloud workload) collects its
+       attested geolocation from Layer 3 (via Option A or Option B).
+   2.  The Prover runs the ZKP Proving algorithm with: (a) the geofence
+       policy as public input, (b) its actual coordinates as the private
+       witness, and (c) the shared circuit logic.
+   3.  The Prover produces a succinct *proof string* (typically a few
+       hundred bytes) and sends it to the Verifier along with the public
+       inputs.
+
+
+
+Krishnan, et al.         Expires 27 August 2026                [Page 34]
+
+Internet-Draft                    GeoW                     February 2026
+
+
+   4.  The Verifier runs the ZKP Verification algorithm using only the
+       proof string, the public inputs (the geofence policy), and the
+       Verifying Key. The Verifier learns only "True" (the Prover is
+       within the geofence) or "False" (the Prover is not), and
+       mathematically cannot extract the Prover's actual coordinates
+       from the proof.
+
+8.7.3.  Integration with the Attestation Layers
+
+   The ZKP geolocation proof can be included as an additional claim in
+   the SPIRE SVID during workload identity fusion (see Workload Identity
+   Fusion section).  In this model:
+
+   *  The *TPM Quote* (Layer 2) proves the host's software and hardware
+      integrity.
+   *  The *ZKP Proof* (Layer 3) proves the host's geographic compliance.
+   *  Neither the exact location nor the raw IMA measurements need to
+      cross organizational boundaries—only the cryptographic proofs.
+
+   This is especially valuable for cross-organizational and cross-
+   sovereign attestation, where a Verifier in one jurisdiction must
+   confirm that a workload in another jurisdiction is compliant without
+   gaining access to sensitive operational telemetry.
+
+8.7.4.  Comparison: Precise Location vs. ZKP
+
+   +==============+==========================+========================+
+   | Property     | Precise Location Sharing | ZKP Geolocation Proof  |
+   +==============+==========================+========================+
+   | *Verifier    | Exact lat/long           | Only "inside" or       |
+   | Learns*      | coordinates              | "outside" the geofence |
+   +--------------+--------------------------+------------------------+
+   | *Privacy*    | Low (full location       | High (location remains |
+   |              | disclosed)               | private)               |
+   +--------------+--------------------------+------------------------+
+   | *Policy      | Re-query with new policy | Change public input;   |
+   | Updates*     |                          | circuit unchanged      |
+   +--------------+--------------------------+------------------------+
+   | *Proof Size* | Variable (full           | Fixed, succinct (few   |
+   |              | coordinates + signature) | hundred bytes)         |
+   +--------------+--------------------------+------------------------+
+   | *GDPR/       | May conflict with data   | Compliant by design    |
+   | Sovereignty* | minimization             |                        |
+   +--------------+--------------------------+------------------------+
+   | *Cross-Org   | Requires trust in        | "Audit without         |
+   | Sharing*     | recipient                | Disclosure"            |
+   +--------------+--------------------------+------------------------+
+
+
+
+
+Krishnan, et al.         Expires 27 August 2026                [Page 35]
+
+Internet-Draft                    GeoW                     February 2026
+
+
+                                 Table 2
+
 9.  Scaling the Solution
 
    Having a geolocation sensor on every host is not scalable from a
@@ -1892,20 +2002,6 @@ Internet-Draft                    GeoW                     February 2026
    data center operators without requiring them to install a geolocation
    sensor on every data center host.
 
-
-
-
-
-
-
-
-
-
-Krishnan, et al.         Expires 27 August 2026                [Page 34]
-
-Internet-Draft                    GeoW                     February 2026
-
-
    PTP is a network protocol that enables precise synchronization of
    clocks across a computer network and can be used to measure the
    round-trip time (RTT) between the location anchor host and other data
@@ -1913,6 +2009,14 @@ Internet-Draft                    GeoW                     February 2026
    cryptographically verifiable proof of residency on the host --
    referred to as "attested PTP" -- the PTP software/hardware can be
    enhanced so that all PTP messages are signed with a private key.
+
+
+
+
+Krishnan, et al.         Expires 27 August 2026                [Page 36]
+
+Internet-Draft                    GeoW                     February 2026
+
 
    This signing can be done in two ways:
 
@@ -1950,18 +2054,6 @@ Internet-Draft                    GeoW                     February 2026
    Proof of Residency (PoR) and DPoR mechanisms that bind workload
    identity to the WIA, see [[I-D.mw-wimse-transitive-attestation]].
 
-
-
-
-
-
-
-
-Krishnan, et al.         Expires 27 August 2026                [Page 35]
-
-Internet-Draft                    GeoW                     February 2026
-
-
 10.1.  HTTP: Workload-Geo-ID Header
 
    A new HTTP header field 'Workload-Geo-ID' is proposed for conveying
@@ -1974,6 +2066,14 @@ Internet-Draft                    GeoW                     February 2026
       workload location, client workload location type (e.g. precise,
       approximated, geographic region based), client workload location
       quality (e.g. GNSS, mobile network, Wi-Fi, IP address).
+
+
+
+Krishnan, et al.         Expires 27 August 2026                [Page 37]
+
+Internet-Draft                    GeoW                     February 2026
+
+
    *  Thick or Thin client flag: Indicates whether the client workload
       is a thick client (e.g., Microsoft Teams thick client app) or a
       thin client (e.g., Microsoft Teams thin client browser app).
@@ -2011,13 +2111,6 @@ Internet-Draft                    GeoW                     February 2026
    based Secure Shell (ssh) terminals and Remote Desktop Protocol (RDP)
    terminals which tunnel traffic over HTTP/TLS.
 
-
-
-Krishnan, et al.         Expires 27 August 2026                [Page 36]
-
-Internet-Draft                    GeoW                     February 2026
-
-
 10.2.  HTTP: Geolocation in SVID
 
    The workload SVID can be used to convey the geolocation information
@@ -2027,6 +2120,15 @@ Internet-Draft                    GeoW                     February 2026
 
    The workload SVID can be conveyed in the 'Workload-Geo-ID' header
    field.
+
+
+
+
+
+Krishnan, et al.         Expires 27 August 2026                [Page 38]
+
+Internet-Draft                    GeoW                     February 2026
+
 
 10.3.  IPSEC: Geolocation in IKEv2
 
@@ -2065,15 +2167,6 @@ Internet-Draft                    GeoW                     February 2026
       -  AMD SEV-SNP "Versioned Chip Endorsement Key -- VCEK" is defined
          in the AMD SEV-SNP ABI specification (Chapter 1, Glossary,
          Table 2).
-
-
-
-
-Krishnan, et al.         Expires 27 August 2026                [Page 37]
-
-Internet-Draft                    GeoW                     February 2026
-
-
       -  Intel TDX, "Provisioning Certification Key -- PCK" is defined
          in the Intel TDX DCAP Quoting Library API documentation (Page
          6, Table 1-1: Terminology).  Role: Certifies the Attestation
@@ -2085,6 +2178,14 @@ Internet-Draft                    GeoW                     February 2026
 
    *  The confidential workload generates a hardware attestation that
       includes its hardware-rooted certification key.
+
+
+
+Krishnan, et al.         Expires 27 August 2026                [Page 39]
+
+Internet-Draft                    GeoW                     February 2026
+
+
    *  The platform owner receives this attestation and binds the
       reported hardware-rooted certification key to the TPM EK.
    *  This binding produces a cryptographic proof that the workload is
@@ -2122,14 +2223,6 @@ Internet-Draft                    GeoW                     February 2026
       Platform Attestation): The WIA private key is used for signing,
       and the WIA public key is signed by the Host TPM APP private key
       providing a cryptographically verifiable proof of residency of the
-
-
-
-Krishnan, et al.         Expires 27 August 2026                [Page 38]
-
-Internet-Draft                    GeoW                     February 2026
-
-
       WIA on the host.  Workloads use the WIA to sign requests, avoiding
       the TPM performance bottleneck (approximately 5 signatures/
       second).
@@ -2141,6 +2234,13 @@ Internet-Draft                    GeoW                     February 2026
       proof of residency on host and workload identity.  The transitive
       attestation draft defines the mTLS PoR and DPoR protocol flows
       that consume the WIA attestation established here.
+
+
+
+Krishnan, et al.         Expires 27 August 2026                [Page 40]
+
+Internet-Draft                    GeoW                     February 2026
+
 
    *  *IP Address-Based Location* and *Wi-Fi-Based Location* challenges
       are addressed by Layer 3 (Geolocation HW-Based Attestation):
@@ -2175,17 +2275,6 @@ Internet-Draft                    GeoW                     February 2026
    process scheduler or JVM class loader/deserializer, then malware can
    be prevented (similar to a code-signed application).
 
-
-
-
-
-
-
-Krishnan, et al.         Expires 27 August 2026                [Page 39]
-
-Internet-Draft                    GeoW                     February 2026
-
-
 14.  Security Considerations
 
    The proposed framework introduces several security considerations
@@ -2197,6 +2286,17 @@ Internet-Draft                    GeoW                     February 2026
       Physical attacks, firmware vulnerabilities, or supply chain
       compromises could undermine attestation.  Regular updates, secure
       provisioning, and monitoring are required.
+
+
+
+
+
+
+
+Krishnan, et al.         Expires 27 August 2026                [Page 41]
+
+Internet-Draft                    GeoW                     February 2026
+
 
    *  *Geolocation Spoofing*: Location sensors (e.g., GPS) are
       susceptible to spoofing or replay attacks.  Use of
@@ -2232,16 +2332,6 @@ Internet-Draft                    GeoW                     February 2026
       must be protected against unauthorized access and tampering, using
       encryption and access controls.
 
-
-
-
-
-
-Krishnan, et al.         Expires 27 August 2026                [Page 40]
-
-Internet-Draft                    GeoW                     February 2026
-
-
    *  *Management Processor Security* (Option B): The management
       processor firmware and its communication channels to the
       management plane must be secured against tampering.  OEM firmware
@@ -2254,6 +2344,15 @@ Internet-Draft                    GeoW                     February 2026
 15.  IANA Considerations
 
    This document has no IANA actions.
+
+
+
+
+
+Krishnan, et al.         Expires 27 August 2026                [Page 42]
+
+Internet-Draft                    GeoW                     February 2026
+
 
 16.  Appendix - Items to follow up
 
@@ -2286,18 +2385,6 @@ Internet-Draft                    GeoW                     February 2026
    standard for geotagging textual data.  If there is no geolocation
    tag, data can be stored/processed in non-compliant locations.
 
-
-
-
-
-
-
-
-Krishnan, et al.         Expires 27 August 2026                [Page 41]
-
-Internet-Draft                    GeoW                     February 2026
-
-
 16.5.  OPEN ISSUES 5: Attesting Geotags
 
    There is no standard for attesting (signing) geolocation tag.  If
@@ -2313,6 +2400,15 @@ Internet-Draft                    GeoW                     February 2026
    only in India.  This data should include the full end-to-end
    transaction details / information collected / carried / processed as
    part of the message / payment instruction."
+
+
+
+
+
+Krishnan, et al.         Expires 27 August 2026                [Page 43]
+
+Internet-Draft                    GeoW                     February 2026
+
 
    South Korea's Data Localization Regulations -- Geospatial Information
    Management Act (Spatial Data Act): Article 16, Paragraph 1: Prohibits
@@ -2349,4 +2445,20 @@ Authors' Addresses
 
 
 
-Krishnan, et al.         Expires 27 August 2026                [Page 42]
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Krishnan, et al.         Expires 27 August 2026                [Page 44]
