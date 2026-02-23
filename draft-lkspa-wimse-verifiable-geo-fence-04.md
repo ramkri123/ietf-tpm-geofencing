@@ -321,6 +321,18 @@ TPM Platform Attestation establishes three properties:
 2. **OS Integrity:** The host booted with approved firmware, bootloader, and operating system, as measured during the boot process and recorded in TPM Platform Configuration Registers (PCRs).
 3. **WIA Integrity:** The Workload Identity Agent binary was measured (e.g., via Linux IMA) and matches approved values before execution.
 
+### Comparison of Deployment Options
+
+The following table summarizes the architectural and security differences between the three deployment options for TPM platform attestation.
+
+| Feature | Option A (In-Band) | **Option B (Out-of-Band)** | Option C (Cloud vTPM) |
+| :--- | :--- | :--- | :--- |
+| **Trust Anchor** | Host OS + TPM | **Isolated Mgmt Silicon + TPM** | Hypervisor + vTPM |
+| **Integrity** | High (TPM-signed) | **Highest (TPM-signed + Physical Isolation)** | High (Silicon-rooted) |
+| **Kernel Bypass?** | No (Agent relies on kernel) | **Yes (Independent Hardware Path)** | No (Hypervisor handles vTPM) |
+| **Network Path** | Shared Host NIC | **Dedicated Management NIC** | Virtualized NIC |
+| **Main Use Case** | General Purpose / On-Prem | High-Assurance / Enterprise | Cloud / EKS / Virtualized |
+
 ## Measured Boot and OS Integrity Attestation
 
 As part of the system boot/reboot process, a boot-loader-based measured system boot with remote Workload Identity Manager verification is used to ensure that only an approved OS is running on an approved hardware platform.

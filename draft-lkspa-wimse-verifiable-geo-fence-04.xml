@@ -286,6 +286,56 @@
 <li><strong>OS Integrity:</strong> The host booted with approved firmware, bootloader, and operating system, as measured during the boot process and recorded in TPM Platform Configuration Registers (PCRs).</li>
 <li><strong>WIA Integrity:</strong> The Workload Identity Agent binary was measured (e.g., via Linux IMA) and matches approved values before execution.</li>
 </ol>
+
+<section anchor="comparison-of-deployment-options"><name>Comparison of Deployment Options</name>
+<t>The following table summarizes the architectural and security differences between the three deployment options for TPM platform attestation.</t>
+<table>
+<thead>
+<tr>
+<th align="left">Feature</th>
+<th align="left">Option A (In-Band)</th>
+<th align="left"><strong>Option B (Out-of-Band)</strong></th>
+<th align="left">Option C (Cloud vTPM)</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="left"><strong>Trust Anchor</strong></td>
+<td align="left">Host OS + TPM</td>
+<td align="left"><strong>Isolated Mgmt Silicon + TPM</strong></td>
+<td align="left">Hypervisor + vTPM</td>
+</tr>
+
+<tr>
+<td align="left"><strong>Integrity</strong></td>
+<td align="left">High (TPM-signed)</td>
+<td align="left"><strong>Highest (TPM-signed + Physical Isolation)</strong></td>
+<td align="left">High (Silicon-rooted)</td>
+</tr>
+
+<tr>
+<td align="left"><strong>Kernel Bypass?</strong></td>
+<td align="left">No (Agent relies on kernel)</td>
+<td align="left"><strong>Yes (Independent Hardware Path)</strong></td>
+<td align="left">No (Hypervisor handles vTPM)</td>
+</tr>
+
+<tr>
+<td align="left"><strong>Network Path</strong></td>
+<td align="left">Shared Host NIC</td>
+<td align="left"><strong>Dedicated Management NIC</strong></td>
+<td align="left">Virtualized NIC</td>
+</tr>
+
+<tr>
+<td align="left"><strong>Main Use Case</strong></td>
+<td align="left">General Purpose / On-Prem</td>
+<td align="left">High-Assurance / Enterprise</td>
+<td align="left">Cloud / EKS / Virtualized</td>
+</tr>
+</tbody>
+</table></section>
 </section>
 
 <section anchor="measured-boot-and-os-integrity-attestation"><name>Measured Boot and OS Integrity Attestation</name>
