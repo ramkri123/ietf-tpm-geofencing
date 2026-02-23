@@ -73,8 +73,8 @@
 <dd>A host with a trusted location source (GNSS/5G) cryptographically bound to its hardware root of trust.</dd>
 <dt>Composite Geolocation:</dt>
 <dd>A location estimate fused from multiple sources (e.g., local GNSS and mobile network APIs) to produce a quality-scored, verifiable location claim.</dd>
-<dt>Proof-Of-Residency (PoR):</dt>
-<dd>A cryptographic proof that a workload is executing within approved geographic and host-integrity boundaries.</dd>
+<dt>Proof-Of-Residency (PoR) / Co-location:</dt>
+<dd>A cryptographic proof that binds a workload's current execution session to a specific, verified local environment or host.</dd>
 <dt>Silicon Root of Trust:</dt>
 <dd>A hardware-based trust anchor (e.g., HPE Silicon Root of Trust or AWS Nitro Security Chip) that verifies low-level firmware and protects the system from the first moment of power-on.</dd>
 <dt>Transparent Zero-Knowledge Proof (ZKP):</dt>
@@ -118,21 +118,21 @@
 <td align="left"><strong>Layer 1</strong></td>
 <td align="left"><strong>Transitive Attestation</strong></td>
 <td align="left"><strong>WIMSE</strong></td>
-<td align="left"><strong>Conveyance</strong>: Binds workload identity (SVID) to the attested agent (PoR).</td>
+<td align="left"><strong>Conveyance</strong>: Binds identity to the local agent (Co-location/Residency).</td>
 </tr>
 
 <tr>
 <td align="left"><strong>Layer 2</strong></td>
 <td align="left"><strong>Verifiable Geofencing</strong></td>
 <td align="left"><strong>WIMSE/RATS</strong></td>
-<td align="left"><strong>Platform</strong>: Verifies host integrity, firmware, and WIA residency (TPM).</td>
+<td align="left"><strong>Platform</strong>: Verifies host integrity and WIA hardware residency (TPM).</td>
 </tr>
 
 <tr>
 <td align="left"><strong>Layer 3</strong></td>
 <td align="left"><strong>Verifiable Geofencing</strong></td>
 <td align="left"><strong>WIMSE/RATS</strong></td>
-<td align="left"><strong>Location</strong>: Verifies physical geography and geofence compliance (GNSS/ZKP).</td>
+<td align="left"><strong>Location</strong>: Verifies physical geography (GNSS/ZKP).</td>
 </tr>
 </tbody>
 </table><t>Together, the complete chain is:</t>

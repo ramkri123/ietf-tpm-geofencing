@@ -1713,8 +1713,8 @@ li > p:last-of-type:only-child {
         <dd style="margin-left: 1.5em" id="section-1-5.14">A location estimate fused from multiple sources (e.g., local GNSS and mobile network APIs) to produce a quality-scored, verifiable location claim.<a href="#section-1-5.14" class="pilcrow">¶</a>
 </dd>
         <dd class="break"></dd>
-<dt id="section-1-5.15">Proof-Of-Residency (PoR):</dt>
-        <dd style="margin-left: 1.5em" id="section-1-5.16">A cryptographic proof that a workload is executing within approved geographic and host-integrity boundaries.<a href="#section-1-5.16" class="pilcrow">¶</a>
+<dt id="section-1-5.15">Proof-Of-Residency (PoR) / Co-location:</dt>
+        <dd style="margin-left: 1.5em" id="section-1-5.16">A cryptographic proof that binds a workload's current execution session to a specific, verified local environment or host.<a href="#section-1-5.16" class="pilcrow">¶</a>
 </dd>
         <dd class="break"></dd>
 <dt id="section-1-5.17">Silicon Root of Trust:</dt>
@@ -1783,7 +1783,7 @@ li > p:last-of-type:only-child {
               <strong>WIMSE</strong>
 </td>
             <td class="text-left" rowspan="1" colspan="1">
-              <strong>Conveyance</strong>: Binds workload identity (SVID) to the attested agent (PoR).</td>
+              <strong>Conveyance</strong>: Binds identity to the local agent (Co-location/Residency).</td>
           </tr>
           <tr>
             <td class="text-left" rowspan="1" colspan="1">
@@ -1796,7 +1796,7 @@ li > p:last-of-type:only-child {
               <strong>WIMSE/RATS</strong>
 </td>
             <td class="text-left" rowspan="1" colspan="1">
-              <strong>Platform</strong>: Verifies host integrity, firmware, and WIA residency (TPM).</td>
+              <strong>Platform</strong>: Verifies host integrity and WIA hardware residency (TPM).</td>
           </tr>
           <tr>
             <td class="text-left" rowspan="1" colspan="1">
@@ -1809,7 +1809,7 @@ li > p:last-of-type:only-child {
               <strong>WIMSE/RATS</strong>
 </td>
             <td class="text-left" rowspan="1" colspan="1">
-              <strong>Location</strong>: Verifies physical geography and geofence compliance (GNSS/ZKP).</td>
+              <strong>Location</strong>: Verifies physical geography (GNSS/ZKP).</td>
           </tr>
         </tbody>
       </table>

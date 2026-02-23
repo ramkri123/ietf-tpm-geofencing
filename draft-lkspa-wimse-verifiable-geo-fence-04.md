@@ -143,8 +143,8 @@ Location Anchor Host (LAH):
 Composite Geolocation:
 : A location estimate fused from multiple sources (e.g., local GNSS and mobile network APIs) to produce a quality-scored, verifiable location claim.
 
-Proof-Of-Residency (PoR):
-: A cryptographic proof that a workload is executing within approved geographic and host-integrity boundaries.
+Proof-Of-Residency (PoR) / Co-location:
+: A cryptographic proof that binds a workload's current execution session to a specific, verified local environment or host.
 
 Silicon Root of Trust:
 : A hardware-based trust anchor (e.g., HPE Silicon Root of Trust or AWS Nitro Security Chip) that verifies low-level firmware and protects the system from the first moment of power-on.
@@ -179,9 +179,9 @@ The following table maps these layers to the broader IETF ecosystem, forming a c
 
 | Layer | Component | WG | Core Responsibility |
 | :--- | :--- | :--- | :--- |
-| **Layer 1** | **Transitive Attestation** | **WIMSE** | **Conveyance**: Binds workload identity (SVID) to the attested agent (PoR). |
-| **Layer 2** | **Verifiable Geofencing** | **WIMSE/RATS** | **Platform**: Verifies host integrity, firmware, and WIA residency (TPM). |
-| **Layer 3** | **Verifiable Geofencing** | **WIMSE/RATS** | **Location**: Verifies physical geography and geofence compliance (GNSS/ZKP). |
+| **Layer 1** | **Transitive Attestation** | **WIMSE** | **Conveyance**: Binds identity to the local agent (Co-location/Residency). |
+| **Layer 2** | **Verifiable Geofencing** | **WIMSE/RATS** | **Platform**: Verifies host integrity and WIA hardware residency (TPM). |
+| **Layer 3** | **Verifiable Geofencing** | **WIMSE/RATS** | **Location**: Verifies physical geography (GNSS/ZKP). |
 
 Together, the complete chain is:
 
