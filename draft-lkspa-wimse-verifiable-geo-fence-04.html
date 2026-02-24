@@ -1333,7 +1333,7 @@ li > p:last-of-type:only-child {
             <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
-                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-strategic-narrative-the-acc" class="internal xref">Strategic Narrative: The Accountability Bridge</a></p>
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-strategic-narrative-hardwar" class="internal xref">Strategic Narrative: Hardware-Enforced Sovereignty (The Accountability Bridge)</a></p>
 </li>
             </ul>
 </li>
@@ -1693,12 +1693,13 @@ li > p:last-of-type:only-child {
 <p id="section-1-1">As organizations increasingly adopt cloud and distributed computing, the need to enforce data residency, geolocation affinity, and Workload Host affinity has become critical for regulatory compliance and risk management. Traditional approaches rely on trust in infrastructure providers, which are often insufficient in adversarial or multi-tenant environments.<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2">Modern workload security faces challenges from stolen bearer tokens, protocol replay, and trust gaps in transit. This document defines a specialized <strong>RATS Profile</strong> that cryptographically binds the <strong>Workload Identity Agent</strong>—the entity responsible with issuing software identities—to a hardware-verified platform and physical location.<a href="#section-1-2" class="pilcrow">¶</a></p>
 <p id="section-1-3">The architecture follows the <strong>RATS Architecture [[RFC9334]]</strong>, defining the interactions between <strong>Provers</strong>, <strong>Verifiers</strong>, and <strong>Relying Parties</strong> to generate and validate <strong>High-Confidence Evidence</strong> regarding the Workload Identity Agent's status. It provides the hardware-rooted "Evidence Layer" required by the high-level <strong>WIMSE Architecture [[I-D.ietf-wimse-architecture]]</strong>, establishing a <strong>"Silicon-to-Audit"</strong> chain of trust that ensures sensitive data is only processed by authorized workloads in approved, integral environments.<a href="#section-1-3" class="pilcrow">¶</a></p>
-<div id="strategic-narrative-the-accountability-bridge">
+<div id="strategic-narrative-hardware-enforced-sovereignty-the-accountability-bridge">
 <section id="section-1.1">
-        <h3 id="name-strategic-narrative-the-acc">
-<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-strategic-narrative-the-acc" class="section-name selfRef">Strategic Narrative: The Accountability Bridge</a>
+        <h3 id="name-strategic-narrative-hardwar">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-strategic-narrative-hardwar" class="section-name selfRef">Strategic Narrative: Hardware-Enforced Sovereignty (The Accountability Bridge)</a>
         </h3>
-<p id="section-1.1-1">In modern distributed systems, there exists a "Perception Gap" between the high-level workload identity (who represents the software) and the physical reality of where that software is running (on what hardware and in what country). V-GAP bridged this gap by federating the <strong>Identity Plane (SPIFFE/SPIRE)</strong> with the <strong>Hardware Management Plane (e.g., HPE OneView)</strong>. This creates a "Compliance Moat" where software identity is no longer a portable bearer token, but a hardware-bound proof of residency. For regulated industries like Oil &amp; Gas, this provides <strong>Edge Autonomy</strong> (local execution during satcom outages) with <strong>Cloud Control</strong> (centralized governance of cryptographic keys).<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.1-1">In modern distributed systems, there exists a "Perception Gap" between the high-level workload identity (who represents the software) and the physical reality of where that software is running (on what hardware and in what country). V-GAP bridged this gap by federating the <strong>Identity Plane (SPIFFE/SPIRE)</strong> with the <strong>Hardware Management Plane (e.g., HPE OneView)</strong>. This creates a "Compliance Moat" where software identity is no longer a portable bearer token, but a hardware-bound proof of residency.<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+<p id="section-1.1-2">For regulated industries like Oil &amp; Gas, this provides <strong>Edge Autonomy</strong> (local execution during satcom outages) with <strong>Cloud Control</strong> (centralized governance). By binding the <strong>Workload Identity Agent Image Digest</strong> directly to the hardware-rooted <strong>Outer Seal</strong>, we solve the <strong>"Rogue Agent"</strong> problem. Even if an attacker achieves local root compromise, they cannot substitute the SPIRE Agent with a modified binary to exfiltrate keys—any change to the binary results in an immediate TPM measurement mismatch (PCR 10). This establishes a <strong>"Silicon-to-Audit"</strong> chain that survives environment breaches, ensuring that only authorized software in authorized locations can access high-value enterprise assets.<a href="#section-1.1-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2220,23 +2221,26 @@ li > p:last-of-type:only-child {
         <h3 id="name-formal-data-structure-cddl">
 <a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-formal-data-structure-cddl" class="section-name selfRef">Formal Data Structure (CDDL)</a>
         </h3>
-<p id="section-6.2-1">The following CDDL defines the structure of the V-GAP Nested Evidence Bundle, formatted as an Entity Attestation Token (EAT) profile.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+<p id="section-6.2-1">The following CDDL defines the structure of the V-GAP Nested Evidence Bundle, formatted as an Entity Attestation Token (EAT) profile. The <strong>Outer Bundle</strong> (V-GAP-Profile) cryptographically binds the Workload Identity Agent's <strong>Image Digest</strong> to the hardware-rooted platform integrity, while the <strong>Inner Bundle</strong> (Location-Anchor-Host-Bundle) provides the verified geolocation evidence.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
 <div class="lang-cddl sourcecode" id="section-6.2-2">
-<pre>V-GAP-Profile = {
-    1 =&gt; bstr,                      ; Workload Host AK
-    2 =&gt; bstr,                      ; host-proximity-proof-hash (Log or "SELF")
-    3 =&gt; Inner-Evidence-Bundle,     ; The nested LAH bundle
-    4 =&gt; bstr                       ; Atomic Seal (TPM2_Quote)
+<pre>; Outer bundle - Workload Host
+V-GAP-Profile = {
+    1 =&gt; bstr,                        ; Workload Host Attestation Key (AK)
+    2 =&gt; bstr,                        ; Workload host proximity proof hash (Log or "SELF")
+    3 =&gt; bstr,                        ; Workload host workload identity agent image digest; IMA (Integrity Measurement Architecture) measurement of the agent binary (open source verifiability enhances trust)
+    4 =&gt; Location-Anchor-Host-Bundle, ; The nested LAH bundle
+    ? 5 =&gt; bstr,                      ; Optional freshness-nonce for remote verifier (if prover timestamp is not trusted by verifier)
+    6 =&gt; bstr                         ; Outer Seal over [1..5] (TPM2_Quote)
 }
 
-Inner-Evidence-Bundle = {
-    1 =&gt; bstr,                      ; Location Anchor Host AK
-    2 =&gt; bstr,                      ; lah-geolocation-proof-hash
-    3 =&gt; int,                       ; Privacy Technique (0=None, 1=ZKP, 2=TEE)
-    4 =&gt; uint,                      ; Hardware-rooted epoch (Timestamp)
-    5 =&gt; uint,                      ; accuracy-sub-claim (Milliseconds)
-    ? 6 =&gt; bstr,                    ; Optional freshness-nonce
-    7 =&gt; bstr                       ; Inner Seal over [1..6]
+; Inner bundle - Location Anchor Host
+Location-Anchor-Host-Bundle = {
+    1 =&gt; bstr,                        ; Location Anchor Host Attestation Key (AK)
+    2 =&gt; bstr,                        ; Location Anchor Host geolocation proof hash
+    3 =&gt; int,                         ; Privacy Technique (0=None, 1=ZKP)
+    4 =&gt; uint,                        ; Hardware-rooted epoch (Timestamp)
+    5 =&gt; uint,                        ; Accuracy sub-claim (Milliseconds)
+    6 =&gt; bstr                         ; Inner Seal over [1..5] (TPM2_Quote)
 }
 </pre><a href="#section-6.2-2" class="pilcrow">¶</a>
 </div>
@@ -2542,7 +2546,7 @@ Inner-Evidence-Bundle = {
 </li>
           <li id="section-9.4-8.9">The Workload Identity Manager verifies that the decrypted secret matches the original secret used to build the challenge.<a href="#section-9.4-8.9" class="pilcrow">¶</a>
 </li>
-          <li id="section-9.4-8.10">The Workload Identity Manager issues the Workload Identity Agent ID (SVID). <strong>The V-GAP Evidence Bundle (CBOR-formatted) MUST be embedded as a CRITICAL X.509 extension within the Workload Identity Agent's SVID certificate, encoded as an <code>OCTET STRING</code> containing the CBOR-encoded evidence.</strong> The extension SHALL use the OID <code>1.3.6.1.4.1.60265.1.1</code> (V-GAP). The <strong>Atomic Seal</strong> (Field 4 of the profile) MUST be a standard <strong>TPM2_Quote</strong> where the <code>qualifyingData</code> is the <code>temporal-nonce</code> and the <code>message</code> being signed is the SHA-256 hash of the preceding bytes in the bundle.<a href="#section-9.4-8.10" class="pilcrow">¶</a>
+          <li id="section-9.4-8.10">The Workload Identity Manager issues the Workload Identity Agent ID (SVID). <strong>The V-GAP Evidence Bundle (CBOR-formatted) MUST be embedded as a CRITICAL X.509 extension within the Workload Identity Agent's SVID certificate, encoded as an <code>OCTET STRING</code> containing the CBOR-encoded evidence.</strong> The extension SHALL use the OID <code>1.3.6.1.4.1.60265.1.1</code> (V-GAP). The <strong>Outer Seal</strong> (Field 6 of the profile) MUST be a standard <strong>TPM2_Quote</strong> where the <code>qualifyingData</code> is the <code>lah-timestamp</code> (or <code>freshness-nonce</code> if present) and the <code>message</code> being signed is the SHA-256 hash of the preceding bytes in the bundle.<a href="#section-9.4-8.10" class="pilcrow">¶</a>
 </li>
           <li id="section-9.4-8.11">
             <strong>Criticality Enforcement:</strong> Any verifier that encounters a Sovereign SVID and does not support the V-GAP OID MUST reject the certificate. This ensures that a residency-constrained workload cannot accidentally be authorized by a gateway that doesn't understand the "Residency Moat."<a href="#section-9.4-8.11" class="pilcrow">¶</a>
@@ -3514,7 +3518,15 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
           <strong>SVID Extraction</strong>: Retrieve the SVID and the attached V-GAP Evidence Bundle.<a href="#section-10-2.1" class="pilcrow">¶</a>
 </li>
         <li id="section-10-2.2">
-          <strong>Outer Quote Verification</strong>: Validate the <code>host-tpm-ak</code> signature against the authorized fleet registry and confirm PCR integrity. The Outer Quote <span class="bcp14">MUST</span> cover PCRs for software integrity (<strong>PCR 10 - IMA</strong>) and, if applicable, the hardware-rooted location state (<strong>PCR 15</strong>).<a href="#section-10-2.2" class="pilcrow">¶</a>
+          <p id="section-10-2.2.1"><strong>Hardware Integrity Verification</strong>:<a href="#section-10-2.2.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-10-2.2.2.1">
+              <strong>Outer Quote</strong>: Validate the <code>host-tpm-ak</code> signature and ensure PCR integrity (PCR 10 for software, PCR 15 for location).<a href="#section-10-2.2.2.1" class="pilcrow">¶</a>
+</li>
+            <li class="compact" id="section-10-2.2.2.2">
+              <strong>Agent Integrity</strong>: Validate the <strong>agent-image-digest</strong> (Field 3) against the Enterprise "Known-Good" version. This ensures that the SPIRE Agent has not been replaced by a modified or malicious binary (<strong>Rogue Agent Protection</strong>).<a href="#section-10-2.2.2.2" class="pilcrow">¶</a>
+</li>
+          </ul>
 </li>
         <li id="section-10-2.3">
           <strong>Proximity Verification</strong>: Verify the <code>host-proximity-proof-hash</code> matches expected low-latency bounds (or the "SELF" constant).<a href="#section-10-2.3" class="pilcrow">¶</a>
@@ -3523,27 +3535,27 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
           <strong>Inner Quote Verification</strong>: Validate the <code>location-anchor-host-tpm-ak</code> signature and ensure the LAH hardware is an approved location source.<a href="#section-10-2.4" class="pilcrow">¶</a>
 </li>
         <li id="section-10-2.5">
-          <strong>Residency Validation</strong>: Compute the ZKP or boundary check on the geolocation payload.<a href="#section-10-2.5" class="pilcrow">¶</a>
+          <strong>Residency Validation</strong>: Compute the ZKP or boundary check on the geolocation payload within the <strong>lah-bundle</strong>.<a href="#section-10-2.5" class="pilcrow">¶</a>
 </li>
         <li id="section-10-2.6">
-          <strong>Freshness and Clock Sync</strong>: Ensure the <code>temporal-nonce</code> is within the policy-defined window relative to the Verifier's clock.<a href="#section-10-2.6" class="pilcrow">¶</a>
+          <strong>Freshness and Clock Sync</strong>: Ensure the <code>lah-timestamp</code> (or <code>freshness-nonce</code> if provided in Field 5) is within the policy-defined window relative to the Verifier's clock.<a href="#section-10-2.6" class="pilcrow">¶</a>
 </li>
         <li id="section-10-2.7">
           <strong>Accuracy Validation</strong>: Verify that the <code>accuracy-sub-claim</code> meets the minimum residency confidence required by the workload's policy (e.g., &lt; 100ms drift).<a href="#section-10-2.7" class="pilcrow">¶</a>
 </li>
         <li id="section-10-2.8">
-          <p id="section-10-2.8.1"><strong>Freshness Window Policy (Clock-Warp Guard &amp; Recovery)</strong>: The Verifier MUST reject any bundle where the <code>temporal-nonce</code> deviates from the Verifier's own hardware-anchored clock by more than a defined threshold (<strong>Maximum Skew: +/- 100ms</strong>).<a href="#section-10-2.8.1" class="pilcrow">¶</a></p>
+          <p id="section-10-2.8.1"><strong>Freshness Window Policy (Clock-Warp Guard &amp; Recovery)</strong>: The Verifier MUST reject any bundle where the timestamp/nonce deviates from the Verifier's own hardware-anchored clock by more than a defined threshold (<strong>Maximum Skew: +/- 100ms</strong>).<a href="#section-10-2.8.1" class="pilcrow">¶</a></p>
 <ul class="compact">
 <li class="compact" id="section-10-2.8.2.1">
-              <strong>Sync Recovery (Slow Path)</strong>: Upon rejection due to clock-warp, the system SHOULD trigger an immediate <strong>"Slow Path" re-attestation</strong>. This forces a full <strong>TPM2_MakeCredential</strong> challenge-response cycle (Credential Activation) to reset the hardware-anchored time baseline and re-verify the platform posture.<a href="#section-10-2.8.2.1" class="pilcrow">¶</a>
+              <strong>Sync Recovery (Slow Path)</strong>: Upon rejection due to clock-warp, the system SHOULD trigger an immediate <strong>"Slow Path" re-attestation</strong> (forced <code>TPM2_MakeCredential</code>).<a href="#section-10-2.8.2.1" class="pilcrow">¶</a>
 </li>
             <li class="compact" id="section-10-2.8.2.2">
-              <strong>Revocation</strong>: If Sync Recovery fails twice consecutively, the Verifier MUST trigger an <strong>Immediate Revocation</strong> of the Workload Identity Agent's keys.<a href="#section-10-2.8.2.2" class="pilcrow">¶</a>
+              <strong>Revocation</strong>: If Sync Recovery fails twice consecutively, the Verifier MUST trigger an <strong>Immediate Revocation</strong>.<a href="#section-10-2.8.2.2" class="pilcrow">¶</a>
 </li>
           </ul>
 </li>
         <li id="section-10-2.9">
-          <strong>Downstream Authorization (KMS Gatekeeping)</strong>: Successful verification of the V-GAP Evidence Bundle SHALL be a mandatory precondition for a downstream <strong>Key Management Service (KMS)</strong> or Workload Identity Manager to release high-value assets (e.g., AI model decryption keys). The Verifier MUST propagate the "Sovereign-Verified" status to the KMS along with the <code>temporal-nonce</code> for freshness binding.<a href="#section-10-2.9" class="pilcrow">¶</a>
+          <strong>Downstream Authorization (KMS Gatekeeping)</strong>: Successful verification of the V-GAP Evidence Bundle SHALL be a mandatory precondition for a downstream <strong>Key Management Service (KMS)</strong> or Workload Identity Manager to release high-value assets (e.g., AI model decryption keys). The Verifier MUST propagate the "Sovereign-Verified" status to the KMS along with the residency timestamp for freshness binding.<a href="#section-10-2.9" class="pilcrow">¶</a>
 </li>
       </ol>
 </section>
@@ -3784,20 +3796,21 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 <p id="section-16-1">The following CDDL defines the structure of the V-GAP Nested Evidence Bundle, using the integer-keyed schema for EAT interoperability.<a href="#section-16-1" class="pilcrow">¶</a></p>
 <div class="lang-cddl sourcecode" id="section-16-2">
 <pre>V-GAP-Profile = {
-    1 =&gt; host-tpm-ak,               ; bstr (Workload Host AK)
-    2 =&gt; host-proximity-proof-hash, ; bstr (Hash of PTP logs or "SELF")
-    3 =&gt; inner-evidence-bundle,     ; The nested LAH bundle
-    4 =&gt; host-tpm-quote-hash        ; Atomic Seal over [1, 2, 3]
+    1 =&gt; host-tpm-ak,                 ; bstr (Workload Host AK)
+    2 =&gt; host-proximity-proof-hash,   ; bstr (Hash of PTP logs or "SELF")
+    3 =&gt; agent-image-digest,          ; bstr (IMA measurement of the agent binary)
+    4 =&gt; lah-bundle,                  ; Location-Anchor-Host-Bundle
+    ? 5 =&gt; freshness-nonce,           ; bstr (Optional freshness-nonce)
+    6 =&gt; host-tpm-quote-hash          ; Outer Seal over [1..5]
 }
 
-Inner-Evidence-Bundle = {
-    1 =&gt; lah-tpm-ak,                ; bstr (Anchor Host AK)
-    2 =&gt; lah-geolocation-proof-hash,    ; bstr (ZKP/Residency Hash)
-    3 =&gt; privacy-technique,         ; int (0=None, 1=ZKP, 2=TEE)
-    4 =&gt; lah-timestamp,             ; uint (Hardware-rooted epoch)
-    5 =&gt; accuracy-sub-claim,        ; uint (Milliseconds)
-    ? 6 =&gt; freshness-nonce,         ; bstr (Optional if timestamp is attested)
-    7 =&gt; lah-tpm-quote-hash         ; Inner Seal over [1..6]
+Location-Anchor-Host-Bundle = {
+    1 =&gt; lah-tpm-ak,                  ; bstr (Anchor Host AK)
+    2 =&gt; lah-geolocation-proof-hash,  ; bstr (ZKP/Residency Hash)
+    3 =&gt; privacy-technique,           ; int (0=None, 1=ZKP)
+    4 =&gt; lah-timestamp,               ; uint (Hardware-rooted epoch)
+    5 =&gt; accuracy-sub-claim,          ; uint (Milliseconds)
+    6 =&gt; lah-tpm-quote-hash           ; Inner Seal over [1..5]
 }
 </pre><a href="#section-16-2" class="pilcrow">¶</a>
 </div>
