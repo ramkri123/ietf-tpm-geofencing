@@ -375,7 +375,7 @@ Managing hardware-rooted identities at scale requires automated lifecycle manage
 * **Manufacturer Linkage:** The Sovereign Verifier MUST maintain a mapping between the rotated AK and the **HPE Endorsement Key (EK) Certificate**.
 * **Elevated Verification:** Upon onboarding or policy violation, the Verifier SHALL invoke the **TPM2_MakeCredential** procedure to verify that the rotated AK is physically bound to a genuine HPE silicon root of trust.
 
-# Distributed SVID Issuance
+# Distributed SVID Issuance and Scaling
 
 To maintain sub-microsecond determinism and regional sovereignty, identity issuance logic is pushed to the edge.
 
@@ -383,11 +383,23 @@ To maintain sub-microsecond determinism and regional sovereignty, identity issua
 * **Regional Specificity:** SVIDs issued by an Edge SPIRE server are cryptographically restricted to that specific deployment and cannot be used in other regions.
 * **Co-Resident Optimization:** In deployments where the Location Anchor Host (LAH) and Compute Host are the same physical machine, the `proximity-proof-hash` SHALL be set to a well-known constant (e.g., `Hash("SELF")`) to signal zero-distance loopback attestation.
 
-# TPM Platform Attestation (Layer 2)
+## End user location anchor host
 
-This section describes how the Workload Identity Agent is attested to be running on an approved hardware platform. This forms the hardware root of trust on which all subsequent layers depend.
+Enterprises ensure that they are communicating with a server (e.g., cloud services) located within a specific geographic boundary. The LAH ensures high-assurance residency.
 
-## Overview
+## Data center location anchor host
+
+Enterprises ensure that they are communicating with data center servers (e.g., cloud services) located within a specific geographic boundary.
+
+# Hardware-Rooted Attestation Layers
+
+This section describes the technical mechanics for Layer 2 (Platform) and Layer 3 (Location) attestation.
+
+## TPM Platform Attestation (Layer 2)
+
+TPM Platform Attestation establishes host integrity through Endorsement Key (EK) verification and Measured Boot (PCRs).
+
+### Overview
 
 TPM Platform Attestation establishes three properties:
 
@@ -397,8 +409,6 @@ TPM Platform Attestation establishes three properties:
 
 ### Comparison of Deployment Options
 
-The following table summarizes the architectural and security differences between the three deployment options for TPM platform attestation.
-
 | Feature | Option A (In-Band) | **Option B (Out-of-Band)** | Option C (Cloud vTPM) |
 | :--- | :--- | :--- | :--- |
 | **Trust Anchor** | Host OS + TPM | **Isolated Mgmt Silicon + TPM** | Hypervisor + vTPM |
@@ -406,6 +416,14 @@ The following table summarizes the architectural and security differences betwee
 | **Kernel Bypass?** | No (Agent relies on kernel) | **Yes (Independent Hardware Path)** | No (Hypervisor handles vTPM) |
 | **Network Path** | Shared Host NIC | **Dedicated Management NIC** | Virtualized NIC |
 | **Main Use Case** | General Purpose / On-Prem | High-Assurance / Enterprise | Cloud / EKS / Virtualized |
+
+## Geolocation HW-Based Attestation (Layer 3)
+
+This layer verifies the physical geography of the attested host using cryptographically bound sensors.
+
+### Privacy-Preserving Geolocation Verification (ZKP)
+
+Mathematical transparency is achieved through non-interactive, hash-based ZKPs (e.g., STARKs/FRI) to prove residency without disclosing exact coordinates.
 
 ## Measured Boot and OS Integrity Attestation
 
@@ -912,18 +930,22 @@ Note that attested PTP is a proposed enhancement to the existing PTP hardware an
 
 All geolocation information captured at this layer (Layer 3) is intended for consumption by the Workload Identity Agent. The conveyance of this information in the data plane (e.g., via HTTP headers or within SVIDs) and the associated Proof of Residency (PoR) bindings for various protocols are handled in [[I-D.mw-wimse-transitive-attestation]].
 
-# The RATS/WIMSE Verification Logic
+# RATS/WIMSE Verification Logic
 
-The Sovereign Verifier SHALL follow these steps to validate the V-GAP evidence bundle:
+The Sovereign Verifier executes a multi-stage validation sequence to confirm the V-GAP Evidence Bundle's integrity and residency.
 
-1.  **SVID Extraction**: Extract the V-GAP evidence bundle from the workload's SPIFFE SVID extensions (as defined in [[I-D.mw-wimse-transitive-attestation]]).
-2.  **Outer Quote Verification**: Verify the `host-tpm-quote-hash` against the `host-tpm-ak` public key. This ensures the compute host's environment is integral.
-3.  **Proximity Verification**: Validate the `location-anchor-host-proximity-proof-hash`. If co-resident, verify the "SELF" constant. If remote, verify that the Attested PTP RTT is within the sovereign data center's sub-microsecond threshold.
-4.  **Inner Quote Verification**: Verify the `location-anchor-host-tpm-quote-hash` using the `location-anchor-host-tpm-ak`.
-5.  **Residency Validation**: Compare the `location-anchor-host-geolocation-privacy-preserving-proof-hash` against the registered geofence policy.
-6.  **Freshness Verification**: Ensure the `location-anchor-host-timestamp` (Temporal Nonce) is within the allowable drift window. This prevents "Stale Location" replay attacks.
+1.  **SVID Extraction**: Retrieve the SVID and the attached V-GAP Evidence Bundle.
+2.  **Outer Quote Verification**: Validate the `host-tpm-ak` signature against the authorized fleet registry and confirm PCR integrity.
+3.  **Proximity Verification**: Verify the `location-anchor-host-proximity-proof-hash` matches expected low-latency PTP bounds.
+4.  **Inner Quote Verification**: Validate the `location-anchor-host-tpm-ak` signature and ensure the LAH hardware is an approved location source.
+5.  **Residency Validation**: Compute the ZKP or boundary check on the geolocation payload.
+6.  **Freshness Verification**: Ensure the `Temporal Nonce` or `sovereign-verifier-nonce` is within the policy-defined window.
 
-# Confidential Computing Considerations
+# Implementation and Compliance Considerations
+
+This section covers Confidential Computing, alignment with industry gaps, and policy implementer guidance.
+
+## Confidential Computing Considerations
 
 In confidential computing, the host operating system cannot be trusted. Instead, the platform owner must maintain and verify the relationships between three hardware identifiers:
 
@@ -948,7 +970,9 @@ Proof of Geolocation:
 
 Note: The Intel SGX Attestation Service utilizing the Enhanced Privacy ID (EPID) group-signature mechanism is a legacy, privacy-preserving attestation path. Intel has announced that this service will reach end-of-life on April 2 2025, after which EPID-based attestation will no longer be supported. This discussion focuses on current attestation models (e.g., ECDSA-based DCAP for SGX and PCK-based attestation for TDX) and excludes EPID/DAA from scope. ECDSA-based DCAP for SGX and PCK-based attestation for TDX are closely related in structure and trust model -- both are part of Intel's Data Center Attestation Primitives (DCAP).
 
-# Solution Mapping to Industry Gaps
+Deployments in TEEs (e.g., Intel SGX, AMD SEV) MUST bind the V-GAP Evidence to the TEE quote via a shared nonce or public key hash in the TPM's PCRs.
+
+## Solution Mapping to Industry Gaps
 
 This section maps the layered attestation framework to the industry gaps identified in the Industry Gaps section.
 
