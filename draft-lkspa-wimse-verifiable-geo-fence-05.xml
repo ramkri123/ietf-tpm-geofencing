@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- name="GENERATOR" content="github.com/mmarkdown/mmark Mmark Markdown Processor - mmark.miek.nl" -->
-<rfc version="3" ipr="trust200902" docName="draft-lkspa-wimse-verifiable-geo-fence-04" submissionType="IETF" category="info" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true">
+<rfc version="3" ipr="trust200902" docName="draft-lkspa-wimse-verifiable-geo-fence-05" submissionType="IETF" category="info" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true">
 
 <front>
-<title abbrev="RATS-GEO-POR">Verifiable Geofencing and Residency Proofs for Sovereign Workloads: A RATS Profile</title><seriesInfo value="draft-lkspa-wimse-verifiable-geo-fence-04" stream="IETF" status="informational" name="Internet-Draft"></seriesInfo>
+<title abbrev="RATS-GEO-POR">Verifiable Geofencing and Residency Proofs for Sovereign Workloads: A RATS Profile</title><seriesInfo value="draft-lkspa-wimse-verifiable-geo-fence-05" stream="IETF" status="informational" name="Internet-Draft"></seriesInfo>
 <author initials="R." surname="Krishnan" fullname="Ram Krishnan"><organization>JPMorgan Chase &amp; Co.</organization><address><postal><street></street>
 </postal><email>ramkri123@gmail.com</email>
 </address></author><author initials="N." surname="Smith" fullname="Ned Smith"><organization>Intel</organization><address><postal><street></street>
@@ -302,44 +302,27 @@
 
 <section anchor="the-nested-evidence-structure"><name>The Nested Evidence Structure</name>
 <t>The V-GAP evidence bundle MUST be structured as two nested cryptographic entities to ensure transitive trust and separation of concerns.</t>
-
-<section anchor="inner-evidence-the-location-anchor-lah"><name>Inner Evidence: The Location Anchor (LAH)</name>
-<t>The Inner Evidence represents the ground truth of the physical location as verified by an isolated hardware anchor.</t>
-
-<ul>
-<li><strong>Signed By:</strong> <tt>location-anchor-host-tpm-ak</tt></li>
-<li><t><strong>Payload:</strong></t>
-
-<ul spacing="compact">
-<li><t><tt>location-anchor-host-geolocation-privacy-preserving-proof-hash</tt>: The root of the location proof.</t>
-
-<ul spacing="compact">
-<li><tt>location-anchor-host-privacy-preserving-technique</tt>: Defined as an integer enum: <strong>0=None (Precise), 1=ZKP (Succinct)</strong>.</li>
-</ul></li>
-<li><tt>location-anchor-host-timestamp</tt>: Hardware-signed high-resolution timestamp (ms since epoch).</li>
-<li><tt>location-anchor-host-accuracy-sub-claim</tt>: A hardware-attested sub-claim specifying the sensor accuracy (e.g., +/- 100ms for time or +/- 5m for space).</li>
-<li><tt>sovereign-verifier-nonce</tt>: Optional if the hardware timestamp is used for freshness.</li>
-</ul></li>
-<li><t><strong>Signature:</strong> <tt>location-anchor-host-tpm-quote-hash</tt></t>
-</li>
-</ul>
 </section>
 
-<section anchor="outer-evidence-the-compute-host"><name>Outer Evidence: The Compute Host</name>
-<t>The Outer Evidence represents the compute environment where the workload resides, cryptographically wrapped around the location anchor's proof.</t>
+<section anchor="formal-data-structure-cddl"><name>Formal Data Structure (CDDL)</name>
+<t>The following CDDL defines the structure of the V-GAP Nested Evidence Bundle, formatted as an Entity Attestation Token (EAT) profile.</t>
 
-<ul>
-<li><strong>Signed By:</strong> <tt>host-tpm-ak</tt></li>
-<li><t><strong>Payload:</strong></t>
+<sourcecode type="cddl"><![CDATA[V-GAP-Profile = {
+    1 => host-tpm-ak,               ; bstr (Compute Host AK)
+    2 => host-proximity-proof-hash, ; bstr (Hash of PTP logs or "SELF")
+    3 => inner-evidence-bundle,     ; The nested LAH bundle
+    4 => host-tpm-quote-hash        ; Atomic Seal over [1, 2, 3]
+}
 
-<ul spacing="compact">
-<li><tt>inner-evidence-bundle-hash</tt>: Cryptographic binding to the entire signed Inner Evidence structure.</li>
-<li><tt>location-anchor-host-proximity-proof-hash</tt>: PTP log hash or the &quot;LOCAL_BUS&quot; constant.</li>
-</ul></li>
-<li><t><strong>Signature:</strong> <tt>host-tpm-quote-hash</tt> (The &quot;Atomic Seal&quot;)</t>
-</li>
-</ul>
-</section>
+Inner-Evidence-Bundle = {
+    1 => lah-tpm-ak,                ; bstr (Anchor Host AK)
+    2 => geo-privacy-proof-hash,    ; bstr (ZKP/Residency Hash)
+    3 => privacy-technique,         ; int (0=None, 1=ZKP, 2=TEE)
+    4 => lah-timestamp,             ; uint (Hardware-rooted epoch)
+    ? 5 => freshness-nonce,         ; bstr (Optional if timestamp is attested)
+    6 => lah-tpm-quote-hash         ; Inner Seal over [1, 2, 3, 4, 5]
+}
+]]></sourcecode>
 </section>
 </section>
 
@@ -359,6 +342,7 @@
 <li>Policy violation or audit failure.</li>
 <li>Escalation to a &quot;Sovereign High-Trust&quot; workload request.</li>
 </ul></li>
+<li><strong>Revocation and Hardware Health Bit:</strong> The Edge Management Plane MUST maintain a <strong>&quot;Hardware Health Bit&quot;</strong> for each node. If the hardware root of trust (e.g., iLO 7) detects a security breach (e.g., chassis intrusion, unauthorized firmware update), it MUST trigger an immediate <strong>AK Revocation</strong> signal to the Sovereign Verifier. The Verifier SHALL instantly invalidate all active SVIDs associated with that AK, regardless of their freshness.</li>
 <li><strong>Continuous Validation:</strong> Between full handshakes, the Verifier accepts hardware-signed Quotes from the registered AK as proof of continued residency in approved silicon.</li>
 </ul>
 </section>
@@ -370,7 +354,7 @@
 <ul spacing="compact">
 <li><strong>Edge SPIRE Server:</strong> SVID issuance is distributed to Edge SPIRE Servers located within the same sovereign boundary as the workloads.</li>
 <li><strong>Regional Specificity:</strong> SVIDs issued by an Edge SPIRE server are cryptographically restricted to that specific deployment and cannot be used in other regions.</li>
-<li><strong>Co-Resident Optimization:</strong> In deployments where the Location Anchor Host (LAH) and Compute Host are the same physical machine (Unified Host), the <tt>location-anchor-host-proximity-proof-hash</tt> SHALL be set to the well-known constant <tt>Hash(&quot;LOCAL_BUS&quot;)</tt>. This signals to auditors that proximity was verified via internal silicon paths rather than an external network protocol.</li>
+<li><strong>Unified Host Proximity Enforcement:</strong> In deployments where the Location Anchor Host (LAH) and Compute Host are the same physical machine (Unified Host), the proximity proof MUST be generated via an <strong>internal silicon measurement</strong> (e.g., measuring PCIe latency or local bus delay) rather than a network protocol. The Verifier SHALL validate that the reported bus latency is within the microsecond bounds of local silicon to prevent a remote attacker from spoofing a 1:1 residency status.</li>
 </ul>
 
 <section anchor="end-user-location-anchor-host"><name>End user location anchor host</name>
@@ -1098,7 +1082,7 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 <li><strong>Residency Validation</strong>: Compute the ZKP or boundary check on the geolocation payload.</li>
 <li><strong>Freshness and Clock Sync</strong>: Ensure the <tt>temporal-nonce</tt> is within the policy-defined window relative to the Verifier's clock.</li>
 <li><strong>Accuracy Validation</strong>: Verify that the <tt>accuracy-sub-claim</tt> meets the minimum residency confidence required by the workload's policy (e.g., &lt; 100ms drift).</li>
-<li><strong>Clock Skew Guard</strong>: The Verifier MUST reject any bundle where the <tt>temporal-nonce</tt> deviates from the Verifier's hardware-anchored clock by more than the allowed <strong>Maximum Skew</strong> (e.g., +/- 100ms).</li>
+<li><strong>Freshness Window Policy (Clock-Warp Guard)</strong>: The Verifier MUST reject any bundle where the <tt>temporal-nonce</tt> deviates from the Verifier's own hardware-anchored clock by more than a defined threshold (<strong>Maximum Skew: +/- 100ms</strong>). This ensures hardware remains synchronized via Attested PTP and prevents replay-by-clock-warp attacks.</li>
 </ol>
 </section>
 
@@ -1138,8 +1122,8 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 
 <section anchor="technical-security-considerations"><name>Technical Security Considerations</name>
 
-<section anchor="anti-tunneling-for-proximity"><name>Anti-Tunneling for Proximity</name>
-<t>To prevent &quot;Proxy Attacks&quot; where PTP packets are tunneled to a remote anchor, the <strong>Attested PTP daemon</strong> MUST execute within a <strong>Trusted Execution Environment (TEE)</strong> or a secure management processor (e.g., iLO 7). This ensures that RTT measurements are signed at the point of origin and cannot be manipulated or &quot;pre-calculated&quot; by a compromised Host OS to mask geographic distance.</t>
+<section anchor="anti-tunneling-and-tee-enforced-proximity"><name>Anti-Tunneling and TEE-Enforced Proximity</name>
+<t>To prevent &quot;Proxy Attacks&quot; where network packets are tunneled to a remote anchor to fake proximity, the <strong>Attested PTP daemon</strong> MUST execute within a <strong>Trusted Execution Environment (TEE)</strong> or the <strong>iLO 7 Enhanced Security Processor</strong>. This ensures that the round-trip measurements (RTT) and latency claims are signed in silicon at the point of origin, preventing a compromised Host OS from manipulating or &quot;pre-calculating&quot; results to mask geographic distance.</t>
 
 <ul>
 <li><t><strong>TPM and Hardware Trust</strong>: The security of the solution depends on the integrity of the TPM and other hardware roots of trust. Physical attacks, firmware vulnerabilities, or supply chain compromises could undermine attestation. Regular updates, secure provisioning, and monitoring are required.</t>
@@ -1212,35 +1196,22 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 </section>
 
 <section anchor="appendix-cddl-for-v-gap-profile"><name>Appendix - CDDL for V-GAP Profile</name>
-<t>The following CDDL defines the structure of the V-GAP Nested Evidence Bundle.</t>
+<t>The following CDDL defines the structure of the V-GAP Nested Evidence Bundle, using the integer-keyed schema for EAT interoperability.</t>
 
-<sourcecode type="cddl"><![CDATA[v-gap-bundle = {
-    inner-evidence: inner-evidence-bundle,
-    outer-evidence: outer-evidence-bundle
+<sourcecode type="cddl"><![CDATA[V-GAP-Profile = {
+    1 => host-tpm-ak,               ; bstr (Compute Host AK)
+    2 => host-proximity-proof-hash, ; bstr (Hash of PTP logs or "SELF")
+    3 => inner-evidence-bundle,     ; The nested LAH bundle
+    4 => host-tpm-quote-hash        ; Atomic Seal over [1, 2, 3]
 }
 
-inner-evidence-bundle = {
-    lah-ak-pub: bstr,
-    payload: lah-payload,
-    signature: bstr ; TPM Quote from LAH
-}
-
-lah-payload = {
-    geo-proof-hash: bstr,
-    privacy-mode: uint, ; 0=None, 1=ZKP
-    temporal-nonce: uint, ; Unix Timestamp (ms)
-    accuracy-sub-claim: tstr ; Accuracy metadata
-}
-
-outer-evidence-bundle = {
-    host-ak-pub: bstr,
-    payload: host-payload,
-    signature: bstr ; TPM Quote from Compute Host
-}
-
-host-payload = {
-    inner-bundle-hash: bstr,
-    proximity-proof-hash: bstr ; PTP Log Hash or "LOCAL_BUS"
+Inner-Evidence-Bundle = {
+    1 => lah-tpm-ak,                ; bstr (Anchor Host AK)
+    2 => geo-privacy-proof-hash,    ; bstr (ZKP/Residency Hash)
+    3 => privacy-technique,         ; int (0=None, 1=ZKP, 2=TEE)
+    4 => lah-timestamp,             ; uint (Hardware-rooted epoch)
+    ? 5 => freshness-nonce,         ; bstr (Optional if timestamp is attested)
+    6 => lah-tpm-quote-hash         ; Inner Seal over [1, 2, 3, 4, 5]
 }
 ]]></sourcecode>
 </section>

@@ -22,7 +22,7 @@
 <meta content="residency" name="keyword">
 <meta content="TPM" name="keyword">
 <meta content="GNSS" name="keyword">
-<meta content="draft-lkspa-wimse-verifiable-geo-fence-04" name="ietf.draft">
+<meta content="draft-lkspa-wimse-verifiable-geo-fence-05" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.31.0
     Python 3.10.12
@@ -37,7 +37,7 @@
     requests 2.32.5
     wcwidth 0.6.0
 -->
-<link href="draft-lkspa-wimse-verifiable-geo-fence-04.xml" rel="alternate" type="application/rfc+xml">
+<link href="draft-lkspa-wimse-verifiable-geo-fence-05.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
 <style type="text/css">/*
 
@@ -1240,7 +1240,7 @@ li > p:last-of-type:only-child {
 <dt class="label-workgroup">Workgroup:</dt>
 <dd class="workgroup">RATS</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
-<dd class="internet-draft">draft-lkspa-wimse-verifiable-geo-fence-04</dd>
+<dd class="internet-draft">draft-lkspa-wimse-verifiable-geo-fence-05</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
 <time datetime="2026-02-24" class="published">24 February 2026</time>
@@ -1396,14 +1396,9 @@ li > p:last-of-type:only-child {
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1">
                 <p id="section-toc.1-1.6.2.1.1"><a href="#section-6.1" class="auto internal xref">6.1</a>.  <a href="#name-the-nested-evidence-structu" class="internal xref">The Nested Evidence Structure</a></p>
-<ul class="compact toc ulBare ulEmpty">
-<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1.2.1">
-                    <p id="section-toc.1-1.6.2.1.2.1.1"><a href="#section-6.1.1" class="auto internal xref">6.1.1</a>.  <a href="#name-inner-evidence-the-location" class="internal xref">Inner Evidence: The Location Anchor (LAH)</a></p>
 </li>
-                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.1.2.2">
-                    <p id="section-toc.1-1.6.2.1.2.2.1"><a href="#section-6.1.2" class="auto internal xref">6.1.2</a>.  <a href="#name-outer-evidence-the-compute-" class="internal xref">Outer Evidence: The Compute Host</a></p>
-</li>
-                </ul>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
+                <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-formal-data-structure-cddl" class="internal xref">Formal Data Structure (CDDL)</a></p>
 </li>
             </ul>
 </li>
@@ -1623,7 +1618,7 @@ li > p:last-of-type:only-child {
                 <p id="section-toc.1-1.12.2.3.1"><a href="#section-12.3" class="auto internal xref">12.3</a>.  <a href="#name-technical-security-consider" class="internal xref">Technical Security Considerations</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.3.2.1">
-                    <p id="section-toc.1-1.12.2.3.2.1.1"><a href="#section-12.3.1" class="auto internal xref">12.3.1</a>.  <a href="#name-anti-tunneling-for-proximit" class="internal xref">Anti-Tunneling for Proximity</a></p>
+                    <p id="section-toc.1-1.12.2.3.2.1.1"><a href="#section-12.3.1" class="auto internal xref">12.3.1</a>.  <a href="#name-anti-tunneling-and-tee-enfo" class="internal xref">Anti-Tunneling and TEE-Enforced Proximity</a></p>
 </li>
                 </ul>
 </li>
@@ -2139,70 +2134,31 @@ li > p:last-of-type:only-child {
 <a href="#section-6.1" class="section-number selfRef">6.1. </a><a href="#name-the-nested-evidence-structu" class="section-name selfRef">The Nested Evidence Structure</a>
         </h3>
 <p id="section-6.1-1">The V-GAP evidence bundle MUST be structured as two nested cryptographic entities to ensure transitive trust and separation of concerns.<a href="#section-6.1-1" class="pilcrow">¶</a></p>
-<div id="inner-evidence-the-location-anchor-lah">
-<section id="section-6.1.1">
-          <h4 id="name-inner-evidence-the-location">
-<a href="#section-6.1.1" class="section-number selfRef">6.1.1. </a><a href="#name-inner-evidence-the-location" class="section-name selfRef">Inner Evidence: The Location Anchor (LAH)</a>
-          </h4>
-<p id="section-6.1.1-1">The Inner Evidence represents the ground truth of the physical location as verified by an isolated hardware anchor.<a href="#section-6.1.1-1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-6.1.1-2.1">
-              <strong>Signed By:</strong> <code>location-anchor-host-tpm-ak</code><a href="#section-6.1.1-2.1" class="pilcrow">¶</a>
-</li>
-            <li class="normal" id="section-6.1.1-2.2">
-              <p id="section-6.1.1-2.2.1"><strong>Payload:</strong><a href="#section-6.1.1-2.2.1" class="pilcrow">¶</a></p>
-<ul class="compact normal">
-<li class="compact normal" id="section-6.1.1-2.2.2.1">
-                  <p id="section-6.1.1-2.2.2.1.1"><code>location-anchor-host-geolocation-privacy-preserving-proof-hash</code>: The root of the location proof.<a href="#section-6.1.1-2.2.2.1.1" class="pilcrow">¶</a></p>
-<ul class="compact normal">
-<li class="compact normal" id="section-6.1.1-2.2.2.1.2.1">
-                      <code>location-anchor-host-privacy-preserving-technique</code>: Defined as an integer enum: <strong>0=None (Precise), 1=ZKP (Succinct)</strong>.<a href="#section-6.1.1-2.2.2.1.2.1" class="pilcrow">¶</a>
-</li>
-                  </ul>
-</li>
-                <li class="compact normal" id="section-6.1.1-2.2.2.2">
-                  <code>location-anchor-host-timestamp</code>: Hardware-signed high-resolution timestamp (ms since epoch).<a href="#section-6.1.1-2.2.2.2" class="pilcrow">¶</a>
-</li>
-                <li class="compact normal" id="section-6.1.1-2.2.2.3">
-                  <code>location-anchor-host-accuracy-sub-claim</code>: A hardware-attested sub-claim specifying the sensor accuracy (e.g., +/- 100ms for time or +/- 5m for space).<a href="#section-6.1.1-2.2.2.3" class="pilcrow">¶</a>
-</li>
-                <li class="compact normal" id="section-6.1.1-2.2.2.4">
-                  <code>sovereign-verifier-nonce</code>: Optional if the hardware timestamp is used for freshness.<a href="#section-6.1.1-2.2.2.4" class="pilcrow">¶</a>
-</li>
-              </ul>
-</li>
-            <li class="normal" id="section-6.1.1-2.3">
-              <p id="section-6.1.1-2.3.1"><strong>Signature:</strong> <code>location-anchor-host-tpm-quote-hash</code><a href="#section-6.1.1-2.3.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
 </section>
 </div>
-<div id="outer-evidence-the-compute-host">
-<section id="section-6.1.2">
-          <h4 id="name-outer-evidence-the-compute-">
-<a href="#section-6.1.2" class="section-number selfRef">6.1.2. </a><a href="#name-outer-evidence-the-compute-" class="section-name selfRef">Outer Evidence: The Compute Host</a>
-          </h4>
-<p id="section-6.1.2-1">The Outer Evidence represents the compute environment where the workload resides, cryptographically wrapped around the location anchor's proof.<a href="#section-6.1.2-1" class="pilcrow">¶</a></p>
-<ul class="normal">
-<li class="normal" id="section-6.1.2-2.1">
-              <strong>Signed By:</strong> <code>host-tpm-ak</code><a href="#section-6.1.2-2.1" class="pilcrow">¶</a>
-</li>
-            <li class="normal" id="section-6.1.2-2.2">
-              <p id="section-6.1.2-2.2.1"><strong>Payload:</strong><a href="#section-6.1.2-2.2.1" class="pilcrow">¶</a></p>
-<ul class="compact normal">
-<li class="compact normal" id="section-6.1.2-2.2.2.1">
-                  <code>inner-evidence-bundle-hash</code>: Cryptographic binding to the entire signed Inner Evidence structure.<a href="#section-6.1.2-2.2.2.1" class="pilcrow">¶</a>
-</li>
-                <li class="compact normal" id="section-6.1.2-2.2.2.2">
-                  <code>location-anchor-host-proximity-proof-hash</code>: PTP log hash or the "LOCAL_BUS" constant.<a href="#section-6.1.2-2.2.2.2" class="pilcrow">¶</a>
-</li>
-              </ul>
-</li>
-            <li class="normal" id="section-6.1.2-2.3">
-              <p id="section-6.1.2-2.3.1"><strong>Signature:</strong> <code>host-tpm-quote-hash</code> (The "Atomic Seal")<a href="#section-6.1.2-2.3.1" class="pilcrow">¶</a></p>
-</li>
-          </ul>
-</section>
+<div id="formal-data-structure-cddl">
+<section id="section-6.2">
+        <h3 id="name-formal-data-structure-cddl">
+<a href="#section-6.2" class="section-number selfRef">6.2. </a><a href="#name-formal-data-structure-cddl" class="section-name selfRef">Formal Data Structure (CDDL)</a>
+        </h3>
+<p id="section-6.2-1">The following CDDL defines the structure of the V-GAP Nested Evidence Bundle, formatted as an Entity Attestation Token (EAT) profile.<a href="#section-6.2-1" class="pilcrow">¶</a></p>
+<div class="lang-cddl sourcecode" id="section-6.2-2">
+<pre>V-GAP-Profile = {
+    1 =&gt; host-tpm-ak,               ; bstr (Compute Host AK)
+    2 =&gt; host-proximity-proof-hash, ; bstr (Hash of PTP logs or "SELF")
+    3 =&gt; inner-evidence-bundle,     ; The nested LAH bundle
+    4 =&gt; host-tpm-quote-hash        ; Atomic Seal over [1, 2, 3]
+}
+
+Inner-Evidence-Bundle = {
+    1 =&gt; lah-tpm-ak,                ; bstr (Anchor Host AK)
+    2 =&gt; geo-privacy-proof-hash,    ; bstr (ZKP/Residency Hash)
+    3 =&gt; privacy-technique,         ; int (0=None, 1=ZKP, 2=TEE)
+    4 =&gt; lah-timestamp,             ; uint (Hardware-rooted epoch)
+    ? 5 =&gt; freshness-nonce,         ; bstr (Optional if timestamp is attested)
+    6 =&gt; lah-tpm-quote-hash         ; Inner Seal over [1, 2, 3, 4, 5]
+}
+</pre><a href="#section-6.2-2" class="pilcrow">¶</a>
 </div>
 </section>
 </div>
@@ -2240,7 +2196,10 @@ li > p:last-of-type:only-child {
             </ul>
 </li>
           <li class="compact" id="section-7.1-1.4">
-            <strong>Continuous Validation:</strong> Between full handshakes, the Verifier accepts hardware-signed Quotes from the registered AK as proof of continued residency in approved silicon.<a href="#section-7.1-1.4" class="pilcrow">¶</a>
+            <strong>Revocation and Hardware Health Bit:</strong> The Edge Management Plane MUST maintain a <strong>"Hardware Health Bit"</strong> for each node. If the hardware root of trust (e.g., iLO 7) detects a security breach (e.g., chassis intrusion, unauthorized firmware update), it MUST trigger an immediate <strong>AK Revocation</strong> signal to the Sovereign Verifier. The Verifier SHALL instantly invalidate all active SVIDs associated with that AK, regardless of their freshness.<a href="#section-7.1-1.4" class="pilcrow">¶</a>
+</li>
+          <li class="compact" id="section-7.1-1.5">
+            <strong>Continuous Validation:</strong> Between full handshakes, the Verifier accepts hardware-signed Quotes from the registered AK as proof of continued residency in approved silicon.<a href="#section-7.1-1.5" class="pilcrow">¶</a>
 </li>
         </ul>
 </section>
@@ -2261,7 +2220,7 @@ li > p:last-of-type:only-child {
           <strong>Regional Specificity:</strong> SVIDs issued by an Edge SPIRE server are cryptographically restricted to that specific deployment and cannot be used in other regions.<a href="#section-8-2.2" class="pilcrow">¶</a>
 </li>
         <li class="compact" id="section-8-2.3">
-          <strong>Co-Resident Optimization:</strong> In deployments where the Location Anchor Host (LAH) and Compute Host are the same physical machine (Unified Host), the <code>location-anchor-host-proximity-proof-hash</code> SHALL be set to the well-known constant <code>Hash("LOCAL_BUS")</code>. This signals to auditors that proximity was verified via internal silicon paths rather than an external network protocol.<a href="#section-8-2.3" class="pilcrow">¶</a>
+          <strong>Unified Host Proximity Enforcement:</strong> In deployments where the Location Anchor Host (LAH) and Compute Host are the same physical machine (Unified Host), the proximity proof MUST be generated via an <strong>internal silicon measurement</strong> (e.g., measuring PCIe latency or local bus delay) rather than a network protocol. The Verifier SHALL validate that the reported bus latency is within the microsecond bounds of local silicon to prevent a remote attacker from spoofing a 1:1 residency status.<a href="#section-8-2.3" class="pilcrow">¶</a>
 </li>
       </ul>
 <div id="end-user-location-anchor-host">
@@ -3461,7 +3420,7 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
           <strong>Accuracy Validation</strong>: Verify that the <code>accuracy-sub-claim</code> meets the minimum residency confidence required by the workload's policy (e.g., &lt; 100ms drift).<a href="#section-10-2.7" class="pilcrow">¶</a>
 </li>
         <li id="section-10-2.8">
-          <strong>Clock Skew Guard</strong>: The Verifier MUST reject any bundle where the <code>temporal-nonce</code> deviates from the Verifier's hardware-anchored clock by more than the allowed <strong>Maximum Skew</strong> (e.g., +/- 100ms).<a href="#section-10-2.8" class="pilcrow">¶</a>
+          <strong>Freshness Window Policy (Clock-Warp Guard)</strong>: The Verifier MUST reject any bundle where the <code>temporal-nonce</code> deviates from the Verifier's own hardware-anchored clock by more than a defined threshold (<strong>Maximum Skew: +/- 100ms</strong>). This ensures hardware remains synchronized via Attested PTP and prevents replay-by-clock-warp attacks.<a href="#section-10-2.8" class="pilcrow">¶</a>
 </li>
       </ol>
 </section>
@@ -3534,12 +3493,12 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
         <h3 id="name-technical-security-consider">
 <a href="#section-12.3" class="section-number selfRef">12.3. </a><a href="#name-technical-security-consider" class="section-name selfRef">Technical Security Considerations</a>
         </h3>
-<div id="anti-tunneling-for-proximity">
+<div id="anti-tunneling-and-tee-enforced-proximity">
 <section id="section-12.3.1">
-          <h4 id="name-anti-tunneling-for-proximit">
-<a href="#section-12.3.1" class="section-number selfRef">12.3.1. </a><a href="#name-anti-tunneling-for-proximit" class="section-name selfRef">Anti-Tunneling for Proximity</a>
+          <h4 id="name-anti-tunneling-and-tee-enfo">
+<a href="#section-12.3.1" class="section-number selfRef">12.3.1. </a><a href="#name-anti-tunneling-and-tee-enfo" class="section-name selfRef">Anti-Tunneling and TEE-Enforced Proximity</a>
           </h4>
-<p id="section-12.3.1-1">To prevent "Proxy Attacks" where PTP packets are tunneled to a remote anchor, the <strong>Attested PTP daemon</strong> MUST execute within a <strong>Trusted Execution Environment (TEE)</strong> or a secure management processor (e.g., iLO 7). This ensures that RTT measurements are signed at the point of origin and cannot be manipulated or "pre-calculated" by a compromised Host OS to mask geographic distance.<a href="#section-12.3.1-1" class="pilcrow">¶</a></p>
+<p id="section-12.3.1-1">To prevent "Proxy Attacks" where network packets are tunneled to a remote anchor to fake proximity, the <strong>Attested PTP daemon</strong> MUST execute within a <strong>Trusted Execution Environment (TEE)</strong> or the <strong>iLO 7 Enhanced Security Processor</strong>. This ensures that the round-trip measurements (RTT) and latency claims are signed in silicon at the point of origin, preventing a compromised Host OS from manipulating or "pre-calculating" results to mask geographic distance.<a href="#section-12.3.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
 <li class="normal" id="section-12.3.1-2.1">
               <p id="section-12.3.1-2.1.1"><strong>TPM and Hardware Trust</strong>: The security of the solution depends on the integrity of the TPM and other hardware roots of trust. Physical attacks, firmware vulnerabilities, or supply chain compromises could undermine attestation. Regular updates, secure provisioning, and monitoring are required.<a href="#section-12.3.1-2.1.1" class="pilcrow">¶</a></p>
@@ -3670,35 +3629,22 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
       <h2 id="name-appendix-cddl-for-v-gap-pro">
 <a href="#section-16" class="section-number selfRef">16. </a><a href="#name-appendix-cddl-for-v-gap-pro" class="section-name selfRef">Appendix - CDDL for V-GAP Profile</a>
       </h2>
-<p id="section-16-1">The following CDDL defines the structure of the V-GAP Nested Evidence Bundle.<a href="#section-16-1" class="pilcrow">¶</a></p>
+<p id="section-16-1">The following CDDL defines the structure of the V-GAP Nested Evidence Bundle, using the integer-keyed schema for EAT interoperability.<a href="#section-16-1" class="pilcrow">¶</a></p>
 <div class="lang-cddl sourcecode" id="section-16-2">
-<pre>v-gap-bundle = {
-    inner-evidence: inner-evidence-bundle,
-    outer-evidence: outer-evidence-bundle
+<pre>V-GAP-Profile = {
+    1 =&gt; host-tpm-ak,               ; bstr (Compute Host AK)
+    2 =&gt; host-proximity-proof-hash, ; bstr (Hash of PTP logs or "SELF")
+    3 =&gt; inner-evidence-bundle,     ; The nested LAH bundle
+    4 =&gt; host-tpm-quote-hash        ; Atomic Seal over [1, 2, 3]
 }
 
-inner-evidence-bundle = {
-    lah-ak-pub: bstr,
-    payload: lah-payload,
-    signature: bstr ; TPM Quote from LAH
-}
-
-lah-payload = {
-    geo-proof-hash: bstr,
-    privacy-mode: uint, ; 0=None, 1=ZKP
-    temporal-nonce: uint, ; Unix Timestamp (ms)
-    accuracy-sub-claim: tstr ; Accuracy metadata
-}
-
-outer-evidence-bundle = {
-    host-ak-pub: bstr,
-    payload: host-payload,
-    signature: bstr ; TPM Quote from Compute Host
-}
-
-host-payload = {
-    inner-bundle-hash: bstr,
-    proximity-proof-hash: bstr ; PTP Log Hash or "LOCAL_BUS"
+Inner-Evidence-Bundle = {
+    1 =&gt; lah-tpm-ak,                ; bstr (Anchor Host AK)
+    2 =&gt; geo-privacy-proof-hash,    ; bstr (ZKP/Residency Hash)
+    3 =&gt; privacy-technique,         ; int (0=None, 1=ZKP, 2=TEE)
+    4 =&gt; lah-timestamp,             ; uint (Hardware-rooted epoch)
+    ? 5 =&gt; freshness-nonce,         ; bstr (Optional if timestamp is attested)
+    6 =&gt; lah-tpm-quote-hash         ; Inner Seal over [1, 2, 3, 4, 5]
 }
 </pre><a href="#section-16-2" class="pilcrow">¶</a>
 </div>
