@@ -37,7 +37,11 @@
 <section anchor="introduction"><name>Introduction</name>
 <t>As organizations increasingly adopt cloud and distributed computing, the need to enforce data residency, geolocation affinity, and Workload Host affinity has become critical for regulatory compliance and risk management. Traditional approaches rely on trust in infrastructure providers, which are often insufficient in adversarial or multi-tenant environments.</t>
 <t>Modern workload security faces challenges from stolen bearer tokens, protocol replay, and trust gaps in transit. This document defines a specialized <strong>RATS Profile</strong> that cryptographically binds the <strong>Workload Identity Agent</strong>—the entity responsible with issuing software identities—to a hardware-verified platform and physical location.</t>
-<t>The architecture follows the <strong>RATS Architecture [[RFC9334]]</strong>, defining the interactions between <strong>Provers</strong>, <strong>Verifiers</strong>, and <strong>Relying Parties</strong> to generate and validate <strong>High-Confidence Evidence</strong> regarding the Workload Identity Agent's status. It provides the hardware-rooted &quot;Evidence Layer&quot; required by the high-level <strong>WIMSE Architecture [[I-D.ietf-wimse-architecture]]</strong>, establishing a &quot;Silicon-to-Audit&quot; chain of trust that ensures sensitive data is only processed by authorized workloads in approved, integral environments.</t>
+<t>The architecture follows the <strong>RATS Architecture [[RFC9334]]</strong>, defining the interactions between <strong>Provers</strong>, <strong>Verifiers</strong>, and <strong>Relying Parties</strong> to generate and validate <strong>High-Confidence Evidence</strong> regarding the Workload Identity Agent's status. It provides the hardware-rooted &quot;Evidence Layer&quot; required by the high-level <strong>WIMSE Architecture [[I-D.ietf-wimse-architecture]]</strong>, establishing a <strong>&quot;Silicon-to-Audit&quot;</strong> chain of trust that ensures sensitive data is only processed by authorized workloads in approved, integral environments.</t>
+
+<section anchor="strategic-narrative-the-accountability-bridge"><name>Strategic Narrative: The Accountability Bridge</name>
+<t>In modern distributed systems, there exists a &quot;Perception Gap&quot; between the high-level workload identity (who represents the software) and the physical reality of where that software is running (on what hardware and in what country). V-GAP bridged this gap by federating the <strong>Identity Plane (SPIFFE/SPIRE)</strong> with the <strong>Hardware Management Plane (e.g., HPE OneView)</strong>. This creates a &quot;Compliance Moat&quot; where software identity is no longer a portable bearer token, but a hardware-bound proof of residency. For regulated industries like Oil &amp; Gas, this provides <strong>Edge Autonomy</strong> (local execution during satcom outages) with <strong>Cloud Control</strong> (centralized governance of cryptographic keys).</t>
+</section>
 </section>
 
 <section anchor="conventions-and-definitions"><name>Conventions and Definitions</name>
@@ -223,12 +227,42 @@
 
 <section anchor="federated-ai-decryption-gatekeeper"><name>Federated AI (Decryption Gatekeeper)</name>
 <t>In federated learning scenarios, multiple organizations collaborate to train machine learning models without sharing raw data. In regulated industries like Oil &amp; Gas, this often involves &quot;Edge AI&quot; processing on remote rigs where high-value model weights or decryption keys are only released if the edge environment is currently &quot;Sovereign and Integral.&quot;</t>
-<t>The <strong>Decryption Gatekeeper Workflow</strong> enables this &quot;Silicon-to-Key&quot; chain:
-1. <strong>Edge Attestation</strong>: The Edge AI workload presents its <strong>Sovereign SVID</strong> (containing the V-GAP bundle) to the Cloud Verifier.
-2. <strong>ZKP Validation</strong>: The Cloud Verifier validates the <strong>lah-geolocation-proof-hash</strong> to ensure the rig is in approved waters.
-3. <strong>Hardware Cross-Check</strong>: The Cloud Verifier queries the <strong>Cloud Host Management Plane</strong> to confirm the <tt>host-tpm-ak</tt> is &quot;In-Status&quot; and silicon-verified.
-4. <strong>Decryption Key Release</strong>: Only upon successful geofence and integrity verification does the Cloud issue the model decryption keys to the Edge AI workload.</t>
-</section>
+<t>The Cloud Workload Identity Manager acts as the <strong>Decryption Gatekeeper</strong>, ensuring the AI model remains &quot;locked&quot; until the environment is proven integral via the following workflow:</t>
+<table>
+<thead>
+<tr>
+<th align="left">Step</th>
+<th align="left">Action</th>
+<th align="left">Logic</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="left"><strong>1. Edge Attestation</strong></td>
+<td align="left">Edge AI workload presents its <strong>Sovereign SVID</strong> (with V-GAP bundle) to the Cloud Verifier.</td>
+<td align="left">Requesting the model decryption key.</td>
+</tr>
+
+<tr>
+<td align="left"><strong>2. ZKP Validation</strong></td>
+<td align="left">Cloud Verifier validates the <strong>lah-geolocation-proof-hash</strong>.</td>
+<td align="left">Ensures the rig is in a compliant offshore zone.</td>
+</tr>
+
+<tr>
+<td align="left"><strong>3. Cross-Check</strong></td>
+<td align="left">Cloud Verifier queries the Cloud Management Plane.</td>
+<td align="left">Verifies the <tt>host-tpm-ak</tt> is &quot;In-Status&quot; and &quot;Silicon-Verified.&quot;</td>
+</tr>
+
+<tr>
+<td align="left"><strong>4. Key Release</strong></td>
+<td align="left">Cloud Verifier releases the <strong>Decryption Key</strong> via a secure OIDC/JWE flow.</td>
+<td align="left">Only occurs if <strong>Hardware Integrity</strong> and <strong>Geofence</strong> pass.</td>
+</tr>
+</tbody>
+</table></section>
 
 <section anchor="user-workload-to-server-workload"><name>User workload to Server workload</name>
 <t>Enterprises ensure that they are communicating with a server (e.g., cloud services) located within a specific geographic boundary.</t>
@@ -337,20 +371,26 @@ Inner-Evidence-Bundle = {
 
 <section anchor="attestation-key-ak-management"><name>Attestation Key (AK) Management</name>
 
-<ul spacing="compact">
+<ul>
 <li><strong>Rotation &amp; Sync:</strong> The Edge Management Plane SHALL rotate both the <tt>host-tpm-ak</tt> and <tt>lah-tpm-ak</tt> periodically. To maintain the chain of trust during rotation, the Cloud Host Management Plane MUST ONLY accept a newly synced AK if the Edge Management Plane provides a <strong>&quot;Rotation Proof&quot;</strong>—typically a signature from the <em>preceding</em> AK blessing the new AK, or a fresh Out-of-Band (OOB) quote from the hardware root of trust (i.e., iLO 7).</li>
 <li><strong>Hardware-Rooted Registry:</strong> The Sovereign Verifier MUST maintain a registry mapping verified AKs to their manufacturer <strong>Endorsement Key (EK)</strong> certificates.</li>
-<li><t><strong>Credential Activation (Handshake):</strong> To avoid the &quot;MakeCredential tax&quot; (high-latency challenge/response) on every request, the Verifier SHALL perform the full <strong>TPM2_MakeCredential</strong> procedure only upon:</t>
+<li><t><strong>Credential Activation (Handshake) &amp; The On-Demand Kill-Switch:</strong> To avoid the &quot;MakeCredential tax&quot; (high-latency challenge/response) on every request, the Verifier SHALL perform the full <strong>TPM2_MakeCredential</strong> procedure (linked to the manufacturer EK and HPE Root CA) only upon:</t>
 
 <ul spacing="compact">
 <li>Initial node onboarding.</li>
 <li>Node reboot (detected via TPM Clock/ResetCount reset).</li>
-<li>Policy violation or audit failure.</li>
+<li>Policy violation (e.g., unauthorized firmware update detected via OOB).</li>
+<li>Failure of the PTP Proximity Proof.</li>
 <li>Escalation to a &quot;Sovereign High-Trust&quot; workload request.</li>
-</ul></li>
-<li><strong>Revocation and Hardware Health Bit:</strong> The Edge Management Plane MUST maintain a <strong>&quot;Hardware Health Bit&quot;</strong> for each node. If the hardware root of trust (e.g., iLO 7) detects a security breach (e.g., chassis intrusion, unauthorized firmware update), it MUST trigger an immediate <strong>AK Revocation</strong> signal to the Sovereign Verifier. The Verifier SHALL instantly invalidate all active SVIDs associated with that AK, regardless of their freshness.</li>
-<li><strong>Continuous Validation:</strong> Between full handshakes, the Verifier accepts hardware-signed Quotes from the registered AK as proof of continued residency in approved silicon.</li>
-<li><strong>Offline Survival &amp; Leased Identity:</strong> In environments with intermittent connectivity (e.g., offshore rigs), the Cloud Verifier MAY issue a <strong>&quot;Leased Identity&quot;</strong> with an extended validity period (e.g., 48 hours). This lease is contingent on the local hardware root of trust (iLO 7) performing continuous monitoring for physical tampering (chassis intrusion, signal jamming) and triggering a local &quot;Self-Destruct&quot; of the identity keys if a breach is detected while offline.</li>
+</ul>
+<t>This serves as the ultimate <strong>Security Baseline</strong>: if the Cloud Verifier detects any drift in the edge posture, it can refuse to release decryption keys until a successful EK-rooted handshake is completed, effectively locking the workload.</t>
+</li>
+<li><t><strong>Revocation and Hardware Health Bit:</strong> The Edge Management Plane MUST maintain a <strong>&quot;Hardware Health Bit&quot;</strong> for each node. If the hardware root of trust (e.g., iLO 7) detects a security breach (e.g., chassis intrusion, unauthorized firmware update), it MUST trigger an immediate <strong>AK Revocation</strong> signal to the Sovereign Verifier. The Verifier SHALL instantly invalidate all active SVIDs associated with that AK, regardless of their freshness.</t>
+</li>
+<li><t><strong>Continuous Validation:</strong> Between full handshakes, the Verifier accepts hardware-signed Quotes from the registered AK as proof of continued residency in approved silicon.</t>
+</li>
+<li><t><strong>Offline Survival &amp; Leased Identity:</strong> In environments with intermittent connectivity (e.g., offshore rigs), the Cloud Verifier MAY issue a <strong>&quot;Leased Identity&quot;</strong> with an extended validity period (e.g., 48 hours). This lease is contingent on the local hardware root of trust (iLO 7) performing continuous monitoring for physical tampering (chassis intrusion, signal jamming) and triggering a local &quot;Self-Destruct&quot; of the identity keys if a breach is detected while offline.</t>
+</li>
 </ul>
 </section>
 </section>

@@ -1331,6 +1331,11 @@ li > p:last-of-type:only-child {
 <nav class="toc"><ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1">
             <p id="section-toc.1-1.1.1" class="keepWithNext"><a href="#section-1" class="auto internal xref">1</a>.  <a href="#name-introduction" class="internal xref">Introduction</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.1.2.1">
+                <p id="section-toc.1-1.1.2.1.1" class="keepWithNext"><a href="#section-1.1" class="auto internal xref">1.1</a>.  <a href="#name-strategic-narrative-the-acc" class="internal xref">Strategic Narrative: The Accountability Bridge</a></p>
+</li>
+            </ul>
 </li>
           <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2">
             <p id="section-toc.1-1.2.1"><a href="#section-2" class="auto internal xref">2</a>.  <a href="#name-conventions-and-definitions" class="internal xref">Conventions and Definitions</a></p>
@@ -1342,7 +1347,7 @@ li > p:last-of-type:only-child {
                     <p id="section-toc.1-1.2.2.1.2.1.1" class="keepWithNext"><a href="#section-2.1.1" class="auto internal xref">2.1.1</a>.  <a href="#name-data-generation-at-rest-cha" class="internal xref">Data Generation/at-Rest Challenges</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.2.2.1.2.2">
-                    <p id="section-toc.1-1.2.2.1.2.2.1" class="keepWithNext"><a href="#section-2.1.2" class="auto internal xref">2.1.2</a>.  <a href="#name-data-in-use-challenges" class="internal xref">Data-in-Use Challenges</a></p>
+                    <p id="section-toc.1-1.2.2.1.2.2.1"><a href="#section-2.1.2" class="auto internal xref">2.1.2</a>.  <a href="#name-data-in-use-challenges" class="internal xref">Data-in-Use Challenges</a></p>
 </li>
                 </ul>
 </li>
@@ -1670,7 +1675,15 @@ li > p:last-of-type:only-child {
       </h2>
 <p id="section-1-1">As organizations increasingly adopt cloud and distributed computing, the need to enforce data residency, geolocation affinity, and Workload Host affinity has become critical for regulatory compliance and risk management. Traditional approaches rely on trust in infrastructure providers, which are often insufficient in adversarial or multi-tenant environments.<a href="#section-1-1" class="pilcrow">¶</a></p>
 <p id="section-1-2">Modern workload security faces challenges from stolen bearer tokens, protocol replay, and trust gaps in transit. This document defines a specialized <strong>RATS Profile</strong> that cryptographically binds the <strong>Workload Identity Agent</strong>—the entity responsible with issuing software identities—to a hardware-verified platform and physical location.<a href="#section-1-2" class="pilcrow">¶</a></p>
-<p id="section-1-3">The architecture follows the <strong>RATS Architecture [[RFC9334]]</strong>, defining the interactions between <strong>Provers</strong>, <strong>Verifiers</strong>, and <strong>Relying Parties</strong> to generate and validate <strong>High-Confidence Evidence</strong> regarding the Workload Identity Agent's status. It provides the hardware-rooted "Evidence Layer" required by the high-level <strong>WIMSE Architecture [[I-D.ietf-wimse-architecture]]</strong>, establishing a "Silicon-to-Audit" chain of trust that ensures sensitive data is only processed by authorized workloads in approved, integral environments.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<p id="section-1-3">The architecture follows the <strong>RATS Architecture [[RFC9334]]</strong>, defining the interactions between <strong>Provers</strong>, <strong>Verifiers</strong>, and <strong>Relying Parties</strong> to generate and validate <strong>High-Confidence Evidence</strong> regarding the Workload Identity Agent's status. It provides the hardware-rooted "Evidence Layer" required by the high-level <strong>WIMSE Architecture [[I-D.ietf-wimse-architecture]]</strong>, establishing a <strong>"Silicon-to-Audit"</strong> chain of trust that ensures sensitive data is only processed by authorized workloads in approved, integral environments.<a href="#section-1-3" class="pilcrow">¶</a></p>
+<div id="strategic-narrative-the-accountability-bridge">
+<section id="section-1.1">
+        <h3 id="name-strategic-narrative-the-acc">
+<a href="#section-1.1" class="section-number selfRef">1.1. </a><a href="#name-strategic-narrative-the-acc" class="section-name selfRef">Strategic Narrative: The Accountability Bridge</a>
+        </h3>
+<p id="section-1.1-1">In modern distributed systems, there exists a "Perception Gap" between the high-level workload identity (who represents the software) and the physical reality of where that software is running (on what hardware and in what country). V-GAP bridged this gap by federating the <strong>Identity Plane (SPIFFE/SPIRE)</strong> with the <strong>Hardware Management Plane (e.g., HPE OneView)</strong>. This creates a "Compliance Moat" where software identity is no longer a portable bearer token, but a hardware-bound proof of residency. For regulated industries like Oil &amp; Gas, this provides <strong>Edge Autonomy</strong> (local execution during satcom outages) with <strong>Cloud Control</strong> (centralized governance of cryptographic keys).<a href="#section-1.1-1" class="pilcrow">¶</a></p>
+</section>
+</div>
 </section>
 </div>
 <div id="conventions-and-definitions">
@@ -2012,11 +2025,47 @@ li > p:last-of-type:only-child {
 <a href="#section-5.1.3" class="section-number selfRef">5.1.3. </a><a href="#name-federated-ai-decryption-gat" class="section-name selfRef">Federated AI (Decryption Gatekeeper)</a>
           </h4>
 <p id="section-5.1.3-1">In federated learning scenarios, multiple organizations collaborate to train machine learning models without sharing raw data. In regulated industries like Oil &amp; Gas, this often involves "Edge AI" processing on remote rigs where high-value model weights or decryption keys are only released if the edge environment is currently "Sovereign and Integral."<a href="#section-5.1.3-1" class="pilcrow">¶</a></p>
-<p id="section-5.1.3-2">The <strong>Decryption Gatekeeper Workflow</strong> enables this "Silicon-to-Key" chain:
-1. <strong>Edge Attestation</strong>: The Edge AI workload presents its <strong>Sovereign SVID</strong> (containing the V-GAP bundle) to the Cloud Verifier.
-2. <strong>ZKP Validation</strong>: The Cloud Verifier validates the <strong>lah-geolocation-proof-hash</strong> to ensure the rig is in approved waters.
-3. <strong>Hardware Cross-Check</strong>: The Cloud Verifier queries the <strong>Cloud Host Management Plane</strong> to confirm the <code>host-tpm-ak</code> is "In-Status" and silicon-verified.
-4. <strong>Decryption Key Release</strong>: Only upon successful geofence and integrity verification does the Cloud issue the model decryption keys to the Edge AI workload.<a href="#section-5.1.3-2" class="pilcrow">¶</a></p>
+<p id="section-5.1.3-2">The Cloud Workload Identity Manager acts as the <strong>Decryption Gatekeeper</strong>, ensuring the AI model remains "locked" until the environment is proven integral via the following workflow:<a href="#section-5.1.3-2" class="pilcrow">¶</a></p>
+<table class="center" id="table-2">
+            <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
+<thead>
+              <tr>
+                <th class="text-left" rowspan="1" colspan="1">Step</th>
+                <th class="text-left" rowspan="1" colspan="1">Action</th>
+                <th class="text-left" rowspan="1" colspan="1">Logic</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <strong>1. Edge Attestation</strong>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Edge AI workload presents its <strong>Sovereign SVID</strong> (with V-GAP bundle) to the Cloud Verifier.</td>
+                <td class="text-left" rowspan="1" colspan="1">Requesting the model decryption key.</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <strong>2. ZKP Validation</strong>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Cloud Verifier validates the <strong>lah-geolocation-proof-hash</strong>.</td>
+                <td class="text-left" rowspan="1" colspan="1">Ensures the rig is in a compliant offshore zone.</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <strong>3. Cross-Check</strong>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Cloud Verifier queries the Cloud Management Plane.</td>
+                <td class="text-left" rowspan="1" colspan="1">Verifies the <code>host-tpm-ak</code> is "In-Status" and "Silicon-Verified."</td>
+              </tr>
+              <tr>
+                <td class="text-left" rowspan="1" colspan="1">
+                  <strong>4. Key Release</strong>
+</td>
+                <td class="text-left" rowspan="1" colspan="1">Cloud Verifier releases the <strong>Decryption Key</strong> via a secure OIDC/JWE flow.</td>
+                <td class="text-left" rowspan="1" colspan="1">Only occurs if <strong>Hardware Integrity</strong> and <strong>Geofence</strong> pass.</td>
+              </tr>
+            </tbody>
+          </table>
 </section>
 </div>
 <div id="user-workload-to-server-workload">
@@ -2181,34 +2230,37 @@ Inner-Evidence-Bundle = {
         <h3 id="name-attestation-key-ak-manageme">
 <a href="#section-7.1" class="section-number selfRef">7.1. </a><a href="#name-attestation-key-ak-manageme" class="section-name selfRef">Attestation Key (AK) Management</a>
         </h3>
-<ul class="compact">
-<li class="compact" id="section-7.1-1.1">
+<ul class="normal">
+<li class="normal" id="section-7.1-1.1">
             <strong>Rotation &amp; Sync:</strong> The Edge Management Plane SHALL rotate both the <code>host-tpm-ak</code> and <code>lah-tpm-ak</code> periodically. To maintain the chain of trust during rotation, the Cloud Host Management Plane MUST ONLY accept a newly synced AK if the Edge Management Plane provides a <strong>"Rotation Proof"</strong>—typically a signature from the <em>preceding</em> AK blessing the new AK, or a fresh Out-of-Band (OOB) quote from the hardware root of trust (i.e., iLO 7).<a href="#section-7.1-1.1" class="pilcrow">¶</a>
 </li>
-          <li class="compact" id="section-7.1-1.2">
+          <li class="normal" id="section-7.1-1.2">
             <strong>Hardware-Rooted Registry:</strong> The Sovereign Verifier MUST maintain a registry mapping verified AKs to their manufacturer <strong>Endorsement Key (EK)</strong> certificates.<a href="#section-7.1-1.2" class="pilcrow">¶</a>
 </li>
-          <li class="compact" id="section-7.1-1.3">
-            <p id="section-7.1-1.3.1"><strong>Credential Activation (Handshake):</strong> To avoid the "MakeCredential tax" (high-latency challenge/response) on every request, the Verifier SHALL perform the full <strong>TPM2_MakeCredential</strong> procedure only upon:<a href="#section-7.1-1.3.1" class="pilcrow">¶</a></p>
-<ul class="compact">
-<li class="compact" id="section-7.1-1.3.2.1">Initial node onboarding.<a href="#section-7.1-1.3.2.1" class="pilcrow">¶</a>
+          <li class="normal" id="section-7.1-1.3">
+            <p id="section-7.1-1.3.1"><strong>Credential Activation (Handshake) &amp; The On-Demand Kill-Switch:</strong> To avoid the "MakeCredential tax" (high-latency challenge/response) on every request, the Verifier SHALL perform the full <strong>TPM2_MakeCredential</strong> procedure (linked to the manufacturer EK and HPE Root CA) only upon:<a href="#section-7.1-1.3.1" class="pilcrow">¶</a></p>
+<ul class="compact normal">
+<li class="compact normal" id="section-7.1-1.3.2.1">Initial node onboarding.<a href="#section-7.1-1.3.2.1" class="pilcrow">¶</a>
 </li>
-              <li class="compact" id="section-7.1-1.3.2.2">Node reboot (detected via TPM Clock/ResetCount reset).<a href="#section-7.1-1.3.2.2" class="pilcrow">¶</a>
+              <li class="compact normal" id="section-7.1-1.3.2.2">Node reboot (detected via TPM Clock/ResetCount reset).<a href="#section-7.1-1.3.2.2" class="pilcrow">¶</a>
 </li>
-              <li class="compact" id="section-7.1-1.3.2.3">Policy violation or audit failure.<a href="#section-7.1-1.3.2.3" class="pilcrow">¶</a>
+              <li class="compact normal" id="section-7.1-1.3.2.3">Policy violation (e.g., unauthorized firmware update detected via OOB).<a href="#section-7.1-1.3.2.3" class="pilcrow">¶</a>
 </li>
-              <li class="compact" id="section-7.1-1.3.2.4">Escalation to a "Sovereign High-Trust" workload request.<a href="#section-7.1-1.3.2.4" class="pilcrow">¶</a>
+              <li class="compact normal" id="section-7.1-1.3.2.4">Failure of the PTP Proximity Proof.<a href="#section-7.1-1.3.2.4" class="pilcrow">¶</a>
+</li>
+              <li class="compact normal" id="section-7.1-1.3.2.5">Escalation to a "Sovereign High-Trust" workload request.<a href="#section-7.1-1.3.2.5" class="pilcrow">¶</a>
 </li>
             </ul>
+<p id="section-7.1-1.3.3">This serves as the ultimate <strong>Security Baseline</strong>: if the Cloud Verifier detects any drift in the edge posture, it can refuse to release decryption keys until a successful EK-rooted handshake is completed, effectively locking the workload.<a href="#section-7.1-1.3.3" class="pilcrow">¶</a></p>
 </li>
-          <li class="compact" id="section-7.1-1.4">
-            <strong>Revocation and Hardware Health Bit:</strong> The Edge Management Plane MUST maintain a <strong>"Hardware Health Bit"</strong> for each node. If the hardware root of trust (e.g., iLO 7) detects a security breach (e.g., chassis intrusion, unauthorized firmware update), it MUST trigger an immediate <strong>AK Revocation</strong> signal to the Sovereign Verifier. The Verifier SHALL instantly invalidate all active SVIDs associated with that AK, regardless of their freshness.<a href="#section-7.1-1.4" class="pilcrow">¶</a>
+          <li class="normal" id="section-7.1-1.4">
+            <p id="section-7.1-1.4.1"><strong>Revocation and Hardware Health Bit:</strong> The Edge Management Plane MUST maintain a <strong>"Hardware Health Bit"</strong> for each node. If the hardware root of trust (e.g., iLO 7) detects a security breach (e.g., chassis intrusion, unauthorized firmware update), it MUST trigger an immediate <strong>AK Revocation</strong> signal to the Sovereign Verifier. The Verifier SHALL instantly invalidate all active SVIDs associated with that AK, regardless of their freshness.<a href="#section-7.1-1.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="compact" id="section-7.1-1.5">
-            <strong>Continuous Validation:</strong> Between full handshakes, the Verifier accepts hardware-signed Quotes from the registered AK as proof of continued residency in approved silicon.<a href="#section-7.1-1.5" class="pilcrow">¶</a>
+          <li class="normal" id="section-7.1-1.5">
+            <p id="section-7.1-1.5.1"><strong>Continuous Validation:</strong> Between full handshakes, the Verifier accepts hardware-signed Quotes from the registered AK as proof of continued residency in approved silicon.<a href="#section-7.1-1.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="compact" id="section-7.1-1.6">
-            <strong>Offline Survival &amp; Leased Identity:</strong> In environments with intermittent connectivity (e.g., offshore rigs), the Cloud Verifier MAY issue a <strong>"Leased Identity"</strong> with an extended validity period (e.g., 48 hours). This lease is contingent on the local hardware root of trust (iLO 7) performing continuous monitoring for physical tampering (chassis intrusion, signal jamming) and triggering a local "Self-Destruct" of the identity keys if a breach is detected while offline.<a href="#section-7.1-1.6" class="pilcrow">¶</a>
+          <li class="normal" id="section-7.1-1.6">
+            <p id="section-7.1-1.6.1"><strong>Offline Survival &amp; Leased Identity:</strong> In environments with intermittent connectivity (e.g., offshore rigs), the Cloud Verifier MAY issue a <strong>"Leased Identity"</strong> with an extended validity period (e.g., 48 hours). This lease is contingent on the local hardware root of trust (iLO 7) performing continuous monitoring for physical tampering (chassis intrusion, signal jamming) and triggering a local "Self-Destruct" of the identity keys if a breach is detected while offline.<a href="#section-7.1-1.6.1" class="pilcrow">¶</a></p>
 </li>
         </ul>
 </section>
@@ -2286,8 +2338,8 @@ Inner-Evidence-Bundle = {
           <h4 id="name-comparison-of-deployment-op">
 <a href="#section-9.1.2" class="section-number selfRef">9.1.2. </a><a href="#name-comparison-of-deployment-op" class="section-name selfRef">Comparison of Deployment Options</a>
           </h4>
-<table class="center" id="table-2">
-            <caption><a href="#table-2" class="selfRef">Table 2</a></caption>
+<table class="center" id="table-3">
+            <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Feature</th>
@@ -3276,8 +3328,8 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
           <h4 id="name-comparison-precise-location">
 <a href="#section-9.15.4" class="section-number selfRef">9.15.4. </a><a href="#name-comparison-precise-location" class="section-name selfRef">Comparison: Precise Location vs. ZKP</a>
           </h4>
-<table class="center" id="table-3">
-            <caption><a href="#table-3" class="selfRef">Table 3</a></caption>
+<table class="center" id="table-4">
+            <caption><a href="#table-4" class="selfRef">Table 4</a></caption>
 <thead>
               <tr>
                 <th class="text-left" rowspan="1" colspan="1">Property</th>
