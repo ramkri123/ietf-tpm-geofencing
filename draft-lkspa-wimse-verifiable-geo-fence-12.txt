@@ -17,7 +17,7 @@ Expires: 28 August 2026                                            Intel
 
  Verifiable Geofencing and Residency Proofs for Sovereign Workloads: A
                               RATS Profile
-               draft-lkspa-wimse-verifiable-geo-fence-11
+               draft-lkspa-wimse-verifiable-geo-fence-12
 
 Abstract
 
@@ -135,14 +135,14 @@ Internet-Draft                RATS-GEO-POR                 February 2026
      9.2.  Confidential Computing Considerations . . . . . . . . . .  16
      9.3.  Measured Boot and OS Integrity Attestation  . . . . . . .  17
      9.4.  Workload Identity Agent Attestation and Identity
-           Issuance  . . . . . . . . . . . . . . . . . . . . . . . .  18
+            Issuance . . . . . . . . . . . . . . . . . . . . . . . .  18
      9.5.  Deployment Option A: Host OS-Based (Keylime)  . . . . . .  19
        9.5.1.  Architecture  . . . . . . . . . . . . . . . . . . . .  19
        9.5.2.  Integration with SPIRE  . . . . . . . . . . . . . . .  20
        9.5.3.  Advantages  . . . . . . . . . . . . . . . . . . . . .  20
        9.5.4.  Limitations . . . . . . . . . . . . . . . . . . . . .  20
      9.6.  Deployment Option B: External Management Processor (e.g.,
-           HPE iLO)  . . . . . . . . . . . . . . . . . . . . . . . .  20
+            HPE iLO) . . . . . . . . . . . . . . . . . . . . . . . .  20
        9.6.1.  Dual TPM Access Paths . . . . . . . . . . . . . . . .  20
        9.6.2.  Architecture  . . . . . . . . . . . . . . . . . . . .  21
        9.6.3.  Hardware Inventory and Continuous Monitoring  . . . .  22
@@ -156,12 +156,12 @@ Internet-Draft                RATS-GEO-POR                 February 2026
        9.6.11. Advantages  . . . . . . . . . . . . . . . . . . . . .  29
        9.6.12. Limitations . . . . . . . . . . . . . . . . . . . . .  29
      9.7.  Workload Identity Fusion: Periodic SPIRE
-           Re-Attestation  . . . . . . . . . . . . . . . . . . . . .  30
+            Re-Attestation . . . . . . . . . . . . . . . . . . . . .  30
      9.8.  Privacy Options for TPM-Based Attestation . . . . . . . .  31
-   10. Geolocation HW-Based Attestation (Layer 3)  . . . . . . . . .  32
-     10.1.  Overview . . . . . . . . . . . . . . . . . . . . . . . .  32
-     10.2.  Sensor Composition and Binding to TPM EK . . . . . . . .  33
-     10.3.  Geolocation Gathering Workflow . . . . . . . . . . . . .  33
+     9.9.  Detailed Geolocation HW-Based Attestation Mechanics (Layer
+            3) . . . . . . . . . . . . . . . . . . . . . . . . . . .  32
+     9.10. Overview  . . . . . . . . . . . . . . . . . . . . . . . .  32
+     9.11. Sensor Composition and Binding to TPM EK  . . . . . . . .  33
 
 
 
@@ -170,49 +170,49 @@ Krishnan, et al.         Expires 28 August 2026                 [Page 3]
 Internet-Draft                RATS-GEO-POR                 February 2026
 
 
-     10.4.  Deployment Option A: Host OS-Based (Keylime) . . . . . .  34
-       10.4.1.  Architecture . . . . . . . . . . . . . . . . . . . .  34
-       10.4.2.  Mobile Location Verification (OPTIONAL)  . . . . . .  35
-       10.4.3.  Advantages . . . . . . . . . . . . . . . . . . . . .  35
-       10.4.4.  Limitations  . . . . . . . . . . . . . . . . . . . .  36
-     10.5.  Deployment Option B: Out-of-Band Geolocation (Overlay on
+     9.12. Geolocation Gathering Workflow  . . . . . . . . . . . . .  33
+     9.13. Deployment Option A: Host OS-Based (Keylime)  . . . . . .  34
+       9.13.1.  Architecture . . . . . . . . . . . . . . . . . . . .  34
+       9.13.2.  Mobile Location Verification (OPTIONAL)  . . . . . .  35
+       9.13.3.  Advantages . . . . . . . . . . . . . . . . . . . . .  35
+       9.13.4.  Limitations  . . . . . . . . . . . . . . . . . . . .  36
+     9.14. Deployment Option B: Out-of-Band Geolocation (Overlay on
             Layer 2 Option B)  . . . . . . . . . . . . . . . . . . .  36
-       10.5.1.  Architecture . . . . . . . . . . . . . . . . . . . .  36
-       10.5.2.  Technical Implementation . . . . . . . . . . . . . .  37
-       10.5.3.  Advantages . . . . . . . . . . . . . . . . . . . . .  37
-       10.5.4.  Limitations  . . . . . . . . . . . . . . . . . . . .  37
-     10.6.  Privacy-Preserving Geolocation Verification (ZKP)  . . .  38
-       10.6.1.  Architecture . . . . . . . . . . . . . . . . . . . .  39
-       10.6.2.  Verification Flow  . . . . . . . . . . . . . . . . .  39
-       10.6.3.  Integration with the Attestation Layers  . . . . . .  39
-       10.6.4.  Comparison: Precise Location vs. ZKP . . . . . . . .  40
-       10.6.5.  Mathematical Transparency and Post-Quantum
+       9.14.1.  Architecture . . . . . . . . . . . . . . . . . . . .  36
+       9.14.2.  Technical Implementation . . . . . . . . . . . . . .  37
+       9.14.3.  Advantages . . . . . . . . . . . . . . . . . . . . .  37
+       9.14.4.  Limitations  . . . . . . . . . . . . . . . . . . . .  37
+     9.15. Privacy-Preserving Geolocation Verification (ZKP) . . . .  38
+       9.15.1.  Architecture . . . . . . . . . . . . . . . . . . . .  39
+       9.15.2.  Verification Flow  . . . . . . . . . . . . . . . . .  39
+       9.15.3.  Integration with the Attestation Layers  . . . . . .  39
+       9.15.4.  Comparison: Precise Location vs. ZKP . . . . . . . .  40
+       9.15.5.  Mathematical Transparency and Post-Quantum
                Foundation  . . . . . . . . . . . . . . . . . . . . .  41
-     10.7.  Scaling the Solution Logic . . . . . . . . . . . . . . .  41
-     10.8.  End user location anchor host  . . . . . . . . . . . . .  42
-     10.9.  Data center location anchor host . . . . . . . . . . . .  42
-   11. RATS/WIMSE Verification Logic . . . . . . . . . . . . . . . .  43
-   12. Industry Alignment and Policy Guidance  . . . . . . . . . . .  43
-     12.1.  Solution Mapping to Industry Gaps  . . . . . . . . . . .  44
-     12.2.  Authorization Policy Implementers  . . . . . . . . . . .  44
-   13. Security Considerations . . . . . . . . . . . . . . . . . . .  44
-     13.1.  Mapping to WIMSE Threat Model  . . . . . . . . . . . . .  44
-     13.2.  Identity Hijacking Prevention  . . . . . . . . . . . . .  44
-     13.3.  Technical Security Considerations  . . . . . . . . . . .  45
-     13.4.  Proximity and Anchor Displacement (Layer 4)  . . . . . .  46
-   14. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  46
-   15. Appendix - Items to follow up . . . . . . . . . . . . . . . .  46
-     15.1.  OPEN ISSUES 1: Native IMA re-triggering (Partially
+     9.16. Scaling the Solution Logic  . . . . . . . . . . . . . . .  41
+     9.17. End user location anchor host . . . . . . . . . . . . . .  42
+     9.18. Data center location anchor host  . . . . . . . . . . . .  42
+   10. RATS/WIMSE Verification Logic . . . . . . . . . . . . . . . .  43
+   11. Industry Alignment and Policy Guidance  . . . . . . . . . . .  43
+     11.1.  Solution Mapping to Industry Gaps  . . . . . . . . . . .  44
+     11.2.  Authorization Policy Implementers  . . . . . . . . . . .  44
+   12. Security Considerations . . . . . . . . . . . . . . . . . . .  44
+     12.1.  Mapping to WIMSE Threat Model  . . . . . . . . . . . . .  44
+     12.2.  Identity Hijacking Prevention  . . . . . . . . . . . . .  44
+     12.3.  Technical Security Considerations  . . . . . . . . . . .  45
+     12.4.  Proximity and Anchor Displacement (Layer 4)  . . . . . .  46
+   13. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  46
+   14. Appendix - Items to follow up . . . . . . . . . . . . . . . .  46
+     14.1.  OPEN ISSUES 1: Native IMA re-triggering (Partially
             Addressed) . . . . . . . . . . . . . . . . . . . . . . .  47
-     15.2.  OPEN ISSUES 2: Location privacy options  . . . . . . . .  47
-     15.3.  OPEN ISSUES 3: Attested PTP (Partially Addressed)  . . .  47
-     15.4.  OPEN ISSUES 4: Geotagging textual data . . . . . . . . .  47
-     15.5.  OPEN ISSUES 5: Attesting Geotags . . . . . . . . . . . .  47
-   16. Appendix - Public References for Strict Data Residency
+     14.2.  OPEN ISSUES 2: Location privacy options  . . . . . . . .  47
+     14.3.  OPEN ISSUES 3: Attested PTP (Partially Addressed)  . . .  47
+     14.4.  OPEN ISSUES 4: Geotagging textual data . . . . . . . . .  47
+     14.5.  OPEN ISSUES 5: Attesting Geotags . . . . . . . . . . . .  47
+   15. Appendix - Public References for Strict Data Residency
            Rules . . . . . . . . . . . . . . . . . . . . . . . . . .  47
-   17. Appendix - CDDL for V-GAP Profile . . . . . . . . . . . . . .  48
+   16. Appendix - CDDL for V-GAP Profile . . . . . . . . . . . . . .  48
    Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  48
-
 
 
 
@@ -1763,7 +1763,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
       standard TPM AK model, while TPM DAA offers unlinkable, anonymous
       proofs of TPM possession.
 
-10.  Geolocation HW-Based Attestation (Layer 3)
+9.9.  Detailed Geolocation HW-Based Attestation Mechanics (Layer 3)
 
    This section describes how the geolocation of an attested host is
    verified using hardware sensors.  Geolocation attestation is layered
@@ -1772,7 +1772,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    because the geolocation sensor identities are cryptographically bound
    to the host TPM identity.
 
-10.1.  Overview
+9.10.  Overview
 
    Geolocation HW-Based Attestation establishes two additional
    properties beyond TPM Platform Attestation:
@@ -1794,7 +1794,7 @@ Krishnan, et al.         Expires 28 August 2026                [Page 32]
 Internet-Draft                RATS-GEO-POR                 February 2026
 
 
-10.2.  Sensor Composition and Binding to TPM EK
+9.11.  Sensor Composition and Binding to TPM EK
 
    The *Host Management Plane* geolocation sensor composition manager
    runs outside of the host.  In addition to obtaining location from
@@ -1820,7 +1820,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
        location.  Note that e-SIM does not have the plugging out problem
        like standard SIM but could be subject to e-SIM swap attack.
 
-10.3.  Geolocation Gathering Workflow
+9.12.  Geolocation Gathering Workflow
 
    The process described below is run at a programmable interval (e.g.,
    every 30 seconds for frequently mobile hosts such as smartphones;
@@ -1882,7 +1882,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    (relevant to all thin clients and indexed using user in OAuth bearer
    token/server website URL).
 
-10.4.  Deployment Option A: Host OS-Based (Keylime)
+9.13.  Deployment Option A: Host OS-Based (Keylime)
 
    In this option, the Keylime agent collects geolocation sensor data on
    the host OS and MAY extend TPM PCR 15 with a hash of the *Geolocation
@@ -1890,7 +1890,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    coarse location state to the TPM attestation.  Per-request location
    freshness MUST NOT rely on PCR accumulation.
 
-10.4.1.  Architecture
+9.13.1.  Architecture
 
    1.  *Keylime Agent (on host):* In addition to its TPM attestation
        role (Layer 2), the agent interfaces with GNSS sensors and mobile
@@ -1940,7 +1940,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
           operator's location service (GSMA/CAMARA API) using the IMEI/
           IMSI from the TPM-attested data.
 
-10.4.2.  Mobile Location Verification (OPTIONAL)
+9.13.2.  Mobile Location Verification (OPTIONAL)
 
    A mobile location verification microservice acts as a thin CAMARA API
    wrapper.  If used, operator cross-verification SHALL be optional and
@@ -1950,7 +1950,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    trust domain and using hashed or tokenized identifiers wherever
    possible.
 
-10.4.3.  Advantages
+9.13.3.  Advantages
 
    *  Reuses the same Keylime infrastructure as Layer 2.
 
@@ -1966,7 +1966,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
       and TPM identity.
    *  Mobile network cross-verification mitigates GNSS spoofing.
 
-10.4.4.  Limitations
+9.13.4.  Limitations
 
    *  Requires GNSS sensor and/or mobile modem to be physically attached
       to the host.
@@ -1974,7 +1974,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
       they are extended into the PCR (mitigated by TPM binding and
       cross-verification).
 
-10.5.  Deployment Option B: Out-of-Band Geolocation (Overlay on Layer 2
+9.14.  Deployment Option B: Out-of-Band Geolocation (Overlay on Layer 2
        Option B)
 
    In this option, geolocation attestation is *layered directly on top
@@ -1990,7 +1990,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    isolated hardware path, the geolocation data is collected and
    attested without any Host OS involvement.
 
-10.5.1.  Architecture
+9.14.1.  Architecture
 
    1.  *Integrated Management Interface:* The management processor (BMC/
        iLO) interfaces with geolocation sensors through dedicated I/O
@@ -2022,7 +2022,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
        processor's dedicated TPM bus (PCR 15) to reflect the baseline
        configuration.
 
-10.5.2.  Technical Implementation
+9.14.2.  Technical Implementation
 
    Monitoring and gathering geolocation data in Option B is performed
    over dedicated hardware interfaces: * *Dedicated I2C/SPI Sensor Bus:*
@@ -2036,7 +2036,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    initialization to prevent firmware-level geolocation spoofing (e.g.
    "Virtual GPS" injection).
 
-10.5.3.  Advantages
+9.14.3.  Advantages
 
    *  *Deep Isolation:* Geolocation readings are hardware-isolated from
       the host OS -- immune to host-level malware and GNSS spoofing at
@@ -2049,7 +2049,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    *  *Suitable for High-Security Environments:* Ideal for defense,
       critical infrastructure, and high-assurance mobile deployments.
 
-10.5.4.  Limitations
+9.14.4.  Limitations
 
    *  Requires management processor with specific geolocation sensor I/O
       capabilities.
@@ -2112,7 +2112,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    the host is within the approved geographic boundary defined by the
    geofence policy.
 
-10.6.  Privacy-Preserving Geolocation Verification (ZKP)
+9.15.  Privacy-Preserving Geolocation Verification (ZKP)
 
    As an alternative to sharing precise geolocation coordinates, a Zero-
    Knowledge Proof (ZKP) can be used to prove that a host is within an
@@ -2130,7 +2130,7 @@ Krishnan, et al.         Expires 28 August 2026                [Page 38]
 Internet-Draft                RATS-GEO-POR                 February 2026
 
 
-10.6.1.  Architecture
+9.15.1.  Architecture
 
    The ZKP geolocation verification separates the problem into three
    components:
@@ -2154,7 +2154,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
        witness and the public policy to generate a succinct proof
        string.
 
-10.6.2.  Verification Flow
+9.15.2.  Verification Flow
 
    1.  The Prover (e.g., edge node or cloud workload) collects its
        attested geolocation from Layer 3 (via Option A or Option B).
@@ -2171,7 +2171,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
        mathematically cannot extract the Prover's actual coordinates
        from the proof.
 
-10.6.3.  Integration with the Attestation Layers
+9.15.3.  Integration with the Attestation Layers
 
    The ZKP geolocation proof can be included as an additional claim in
    the SPIRE SVID during workload identity fusion.
@@ -2210,7 +2210,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    confirm that a workload in another jurisdiction is compliant without
    gaining access to sensitive operational telemetry.
 
-10.6.4.  Comparison: Precise Location vs. ZKP
+9.15.4.  Comparison: Precise Location vs. ZKP
 
    +==============+==========================+========================+
    | Property     | Precise Location Sharing | ZKP Geolocation Proof  |
@@ -2244,7 +2244,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
                                  Table 3
 
-10.6.5.  Mathematical Transparency and Post-Quantum Foundation
+9.15.5.  Mathematical Transparency and Post-Quantum Foundation
 
    A critical requirement for sovereign infrastructure is the
    elimination of Trusted Third Parties (TTPs).  Legacy ZKP systems (Gen
@@ -2279,7 +2279,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    preserving but also sovereign and resilient against advanced
    cryptographic threats.
 
-10.7.  Scaling the Solution Logic
+9.16.  Scaling the Solution Logic
 
    Having a geolocation sensor on every host is not scalable from a
    deployment and management perspective and can be cost prohibitive.
@@ -2300,7 +2300,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
    hosts.  This host serves as the location anchor host.
 
-10.8.  End user location anchor host
+9.17.  End user location anchor host
 
    The goal is to provide an easy-to-use wireless solution that can be
    used by end users without requiring them to install a geolocation
@@ -2319,7 +2319,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    provides proof that the laptop/desktop host is in proximity using the
    measured signal strength and RTT.
 
-10.9.  Data center location anchor host
+9.18.  Data center location anchor host
 
    The goal is to provide an easy-to-use solution that can be used by
    data center operators without requiring them to install a geolocation
@@ -2377,7 +2377,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    bindings for various protocols are handled in [[I-D.mw-wimse-
    transitive-attestation]].
 
-11.  RATS/WIMSE Verification Logic
+10.  RATS/WIMSE Verification Logic
 
    The Sovereign Verifier executes a multi-stage validation sequence to
    confirm the V-GAP Evidence Bundle's integrity and residency.
@@ -2396,7 +2396,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    6.  *Freshness Verification*: Ensure the Temporal Nonce or sovereign-
        verifier-nonce is within the policy-defined window.
 
-12.  Industry Alignment and Policy Guidance
+11.  Industry Alignment and Policy Guidance
 
    This section maps the solution to identified gaps and provides
    implementer guidance.
@@ -2410,25 +2410,25 @@ Krishnan, et al.         Expires 28 August 2026                [Page 43]
 Internet-Draft                RATS-GEO-POR                 February 2026
 
 
-12.1.  Solution Mapping to Industry Gaps
+11.1.  Solution Mapping to Industry Gaps
 
    The V-GAP profile directly addresses the lack of high-assurance
    geolocation in transit and the vulnerability of bearer tokens in
    multi-tenant cloud environments.
 
-12.2.  Authorization Policy Implementers
+11.2.  Authorization Policy Implementers
 
    Relying Parties SHOULD use the V-GAP results to enforce Attribute-
    Based Access Control (ABAC), where "Residency" is a mandatory claim
    for sensitive data access.
 
-13.  Security Considerations
+12.  Security Considerations
 
    The proposed framework introduces several security considerations
    that must be addressed to ensure the integrity and trustworthiness of
    geofencing:
 
-13.1.  Mapping to WIMSE Threat Model
+12.1.  Mapping to WIMSE Threat Model
 
    This specification provides technical mitigations for several threats
    identified in the *WIMSE Architecture* [[I-D.ietf-wimse-
@@ -2443,7 +2443,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
       hardware composition, replacing implicit trust in infrastructure
       providers with auditable hardware-rooted evidence.
 
-13.2.  Identity Hijacking Prevention
+12.2.  Identity Hijacking Prevention
 
    Static bearer tokens and software-only identities are vulnerable to
    hijacking via proxy attacks or memory scraping.  This framework
@@ -2476,7 +2476,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    the authorized workload, on the verified hardware, at the approved
    physical location.
 
-13.3.  Technical Security Considerations
+12.3.  Technical Security Considerations
 
    *  *TPM and Hardware Trust*: The security of the solution depends on
       the integrity of the TPM and other hardware roots of trust.
@@ -2542,7 +2542,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
       -  *Log Integrity*: Shipping BMC security logs to a remote,
          immutable audit vault.
 
-13.4.  Proximity and Anchor Displacement (Layer 4)
+12.4.  Proximity and Anchor Displacement (Layer 4)
 
    Proximity-based location schemes (e.g., smartphone-as-anchor, BLE/
    UWB, or PTP) introduce relay and displacement risks.  An attacker
@@ -2560,11 +2560,11 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    secure and reliable foundation for verifiable geofencing in diverse
    deployment environments.
 
-14.  IANA Considerations
+13.  IANA Considerations
 
    This document has no IANA actions.
 
-15.  Appendix - Items to follow up
+14.  Appendix - Items to follow up
 
 
 
@@ -2578,20 +2578,20 @@ Krishnan, et al.         Expires 28 August 2026                [Page 46]
 Internet-Draft                RATS-GEO-POR                 February 2026
 
 
-15.1.  OPEN ISSUES 1: Native IMA re-triggering (Partially Addressed)
+14.1.  OPEN ISSUES 1: Native IMA re-triggering (Partially Addressed)
 
    Standardizing the mechanism for re-evaluating IMA measurements upon
    executable restart without system reboot is still an area of active
    development in the Linux kernel.  This specification currently relies
    on the Verifier detecting restarts via the IMA log stream.
 
-15.2.  OPEN ISSUES 2: Location privacy options
+14.2.  OPEN ISSUES 2: Location privacy options
 
    The current approach includes some location privacy options for the
    geolocation in the Geolocation Information Cache.  This may need to
    be expanded further in the future.
 
-15.3.  OPEN ISSUES 3: Attested PTP (Partially Addressed)
+14.3.  OPEN ISSUES 3: Attested PTP (Partially Addressed)
 
    Attested PTP is a software/hardware-based solution using Precision
    Time Protocol (PTP) for measuring proximity between hosts in a data
@@ -2599,19 +2599,19 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    rooted-attestation]].  Standardization of the attested PTP mechanism
    is ongoing.
 
-15.4.  OPEN ISSUES 4: Geotagging textual data
+14.4.  OPEN ISSUES 4: Geotagging textual data
 
    Popular standard for geotagging photos/videos is EXIF.  There is no
    standard for geotagging textual data.  If there is no geolocation
    tag, data can be stored/processed in non-compliant locations.
 
-15.5.  OPEN ISSUES 5: Attesting Geotags
+14.5.  OPEN ISSUES 5: Attesting Geotags
 
    There is no standard for attesting (signing) geolocation tag.  If
    geolocation tag is not signed, it can be manipulated through
    techniques such as VPNs.
 
-16.  Appendix - Public References for Strict Data Residency Rules
+15.  Appendix - Public References for Strict Data Residency Rules
 
    India -- Reserve Bank of India (RBI): Payment System Data
    Localization (2018): From RBI Circular RBI/2017-18/153 (April 6,
@@ -2634,7 +2634,7 @@ Krishnan, et al.         Expires 28 August 2026                [Page 47]
 Internet-Draft                RATS-GEO-POR                 February 2026
 
 
-17.  Appendix - CDDL for V-GAP Profile
+16.  Appendix - CDDL for V-GAP Profile
 
    The following CDDL defines the structure of the V-GAP Nested Evidence
    Bundle.

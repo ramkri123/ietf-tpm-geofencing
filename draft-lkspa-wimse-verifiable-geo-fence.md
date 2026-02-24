@@ -716,7 +716,7 @@ From a privacy standpoint, sharing TPM details--especially the EK certificate--a
     - The **Workload Identity Manager** verifies the signature against the DAA group public key--proving membership without exposing or linking any device identity.
 * Both options remove direct TPM EK exposure. Pseudonymity uses the standard TPM AK model, while TPM DAA offers unlinkable, anonymous proofs of TPM possession.
 
-# Geolocation HW-Based Attestation (Layer 3)
+## Detailed Geolocation HW-Based Attestation Mechanics (Layer 3)
 
 This section describes how the geolocation of an attested host is verified using hardware sensors. Geolocation attestation is layered on top of TPM Platform Attestation (Layer 2)--a successful TPM platform attestation is a prerequisite for geolocation attestation, because the geolocation sensor identities are cryptographically bound to the host TPM identity.
 
