@@ -106,11 +106,14 @@ Modern workload security faces challenges from stolen bearer tokens, protocol re
 
 The architecture follows the **RATS Architecture [[RFC9334]]**, defining the interactions between **Provers**, **Verifiers**, and **Relying Parties** to generate and validate **High-Confidence Evidence** regarding the Workload Identity Agent's status. It provides the hardware-rooted "Evidence Layer" required by the high-level **WIMSE Architecture [[I-D.ietf-wimse-architecture]]**, establishing a **"Silicon-to-Audit"** chain of trust that ensures sensitive data is only processed by authorized workloads in approved, integral environments.
 
-## Strategic Narrative: Hardware-Enforced Sovereignty (The Accountability Bridge)
+## Strategic Narrative: Hardware-Enforced Sovereignty (The Symmetry of Trust)
 
-In modern distributed systems, there exists a "Perception Gap" between the high-level workload identity (who represents the software) and the physical reality of where that software is running (on what hardware and in what country). V-GAP bridged this gap by federating the **Workload Identity Management Plane (SPIFFE/SPIRE)** with the **Host Identity Management Plane (e.g., HPE OneView)**. This creates a "Compliance Moat" where software identity is no longer a portable bearer token, but a hardware-bound proof of residency.
+The Aegis framework establishes a "Silicon-to-Audit" chain of trust built on two parallel but federated pillars: the **Workload Identity Management Plane** and the **Host Identity Management Plane**. This symmetry allows for the binding of ephemeral software identities to persistent silicon identities, bridging the "Perception Gap" in modern distributed systems.
 
-For regulated industries like Oil & Gas, this provides **Edge Autonomy** (local execution during satcom outages) with **Cloud Control** (centralized governance). By binding the **Workload Identity Agent Image Digest** directly to the hardware-rooted **Outer Seal**, we solve the **"Rogue Agent"** problem. Even if an attacker achieves local root compromise, they cannot substitute the SPIRE Agent with a modified binary to exfiltrate keys—any change to the binary results in an immediate TPM measurement mismatch (PCR 10). This establishes a **"Silicon-to-Audit"** chain that survives environment breaches, ensuring that only authorized software in authorized locations can access high-value enterprise assets.
+* **Workload Identity Management Plane**: Manages software entities (e.g., AI Models, Microservices) using the SPIFFE/SPIRE infrastructure to issue SVID credentials.
+* **Host Identity Management Plane**: Manages hardware entities (e.g., Compute Nodes, Location Anchor Hosts) using the Silicon Root of Trust (TPM/iLO 7) to verify physical platform integrity and residency.
+
+In regulated industries like Oil & Gas, this provides **Edge Autonomy** (local execution during satcom outages) with **Cloud Control** (centralized governance). An issued SVID is effectively "locked" until the Host Identity Management Plane confirms the hardware is untampered and physically resident within the geofence. By binding the **Workload Identity Agent Image Digest** directly to the hardware-rooted **Outer Seal**, we solve the **"Rogue Agent"** problem—ensuring that only authorized software in authorized locations can access high-value enterprise assets, even under local root compromise.
 
 # Conventions and Definitions
 
@@ -367,17 +370,17 @@ The following CDDL defines the structure of the V-GAP Nested Evidence Bundle, fo
 ```cddl
 ; Outer bundle - Workload Host
 V-GAP-Profile = {
-    1 => bstr,                        ; Workload Host Attestation Key (AK)
-    2 => bstr,                        ; Workload host proximity proof hash (Log or "SELF")
-    3 => bstr,                        ; Workload host workload identity agent image digest; IMA (Integrity Measurement Architecture) measurement of the agent binary (open source verifiability enhances trust)
-    4 => Location-Anchor-Host-Bundle, ; The nested LAH bundle
-    ? 5 => bstr,                      ; Optional freshness-nonce for remote verifier (if prover timestamp is not trusted by verifier)
-    6 => bstr                         ; Outer Seal over [1..5] (TPM2_Quote)
+    1 => bstr,                        ; Workload Host AK (Registered in Host Identity Mgmt Plane)
+    2 => bstr,                        ; Workload host proximity proof hash (Verified via Host Identity Mgmt Plane)
+    3 => bstr,                        ; Workload host identity agent image digest (Measured via Host Identity Mgmt Plane)
+    4 => Location-Anchor-Host-Bundle, ; Nested Evidence from the Location Anchor Host
+    ? 5 => bstr,                      ; Freshness nonce (Provided by Workload Identity Mgmt Plane)
+    6 => bstr                         ; Outer Seal (TPM2_Quote signed by the Host AK)
 }
 
 ; Inner bundle - Location Anchor Host
 Location-Anchor-Host-Bundle = {
-    1 => bstr,                        ; Location Anchor Host Attestation Key (AK)
+    1 => bstr,                        ; Location Anchor Host AK (Registered in Host Identity Mgmt Plane)
     2 => bstr,                        ; Location Anchor Host geolocation proof hash
     3 => int,                         ; Privacy Technique (0=None, 1=ZKP)
     4 => uint,                        ; Hardware-rooted epoch (Timestamp)
@@ -1118,16 +1121,16 @@ The following CDDL defines the structure of the V-GAP Nested Evidence Bundle, us
 
 ```cddl
 V-GAP-Profile = {
-    1 => host-tpm-ak,                 ; bstr (Workload Host AK)
-    2 => host-proximity-proof-hash,   ; bstr (Hash of PTP logs or "SELF")
-    3 => agent-image-digest,          ; bstr (IMA measurement of the agent binary)
+    1 => host-tpm-ak,                 ; bstr (Workload Host AK registered in Host Identity Mgmt Plane)
+    2 => host-proximity-proof-hash,   ; bstr (Proximity proof verified via Host Identity Mgmt Plane)
+    3 => agent-image-digest,          ; bstr (Agent image digest measured via Host Identity Mgmt Plane)
     4 => lah-bundle,                  ; Location-Anchor-Host-Bundle
-    ? 5 => freshness-nonce,           ; bstr (Optional freshness-nonce)
-    6 => host-tpm-quote-hash          ; Outer Seal over [1..5]
+    ? 5 => freshness-nonce,           ; bstr (Nonce provided by Workload Identity Mgmt Plane)
+    6 => host-tpm-quote-hash          ; Outer Seal over [1..5] (TPM2_Quote signed by Host AK)
 }
 
 Location-Anchor-Host-Bundle = {
-    1 => lah-tpm-ak,                  ; bstr (Anchor Host AK)
+    1 => lah-tpm-ak,                  ; bstr (Anchor Host AK registered in Host Identity Mgmt Plane)
     2 => lah-geolocation-proof-hash,  ; bstr (ZKP/Residency Hash)
     3 => privacy-technique,           ; int (0=None, 1=ZKP)
     4 => lah-timestamp,               ; uint (Hardware-rooted epoch)

@@ -39,9 +39,14 @@
 <t>Modern workload security faces challenges from stolen bearer tokens, protocol replay, and trust gaps in transit. This document defines a specialized <strong>RATS Profile</strong> that cryptographically binds the <strong>Workload Identity Agent</strong>—the entity responsible with issuing software identities—to a hardware-verified platform and physical location.</t>
 <t>The architecture follows the <strong>RATS Architecture [[RFC9334]]</strong>, defining the interactions between <strong>Provers</strong>, <strong>Verifiers</strong>, and <strong>Relying Parties</strong> to generate and validate <strong>High-Confidence Evidence</strong> regarding the Workload Identity Agent's status. It provides the hardware-rooted &quot;Evidence Layer&quot; required by the high-level <strong>WIMSE Architecture [[I-D.ietf-wimse-architecture]]</strong>, establishing a <strong>&quot;Silicon-to-Audit&quot;</strong> chain of trust that ensures sensitive data is only processed by authorized workloads in approved, integral environments.</t>
 
-<section anchor="strategic-narrative-hardware-enforced-sovereignty-the-accountability-bridge"><name>Strategic Narrative: Hardware-Enforced Sovereignty (The Accountability Bridge)</name>
-<t>In modern distributed systems, there exists a &quot;Perception Gap&quot; between the high-level workload identity (who represents the software) and the physical reality of where that software is running (on what hardware and in what country). V-GAP bridged this gap by federating the <strong>Workload Identity Management Plane (SPIFFE/SPIRE)</strong> with the <strong>Host Identity Management Plane (e.g., HPE OneView)</strong>. This creates a &quot;Compliance Moat&quot; where software identity is no longer a portable bearer token, but a hardware-bound proof of residency.</t>
-<t>For regulated industries like Oil &amp; Gas, this provides <strong>Edge Autonomy</strong> (local execution during satcom outages) with <strong>Cloud Control</strong> (centralized governance). By binding the <strong>Workload Identity Agent Image Digest</strong> directly to the hardware-rooted <strong>Outer Seal</strong>, we solve the <strong>&quot;Rogue Agent&quot;</strong> problem. Even if an attacker achieves local root compromise, they cannot substitute the SPIRE Agent with a modified binary to exfiltrate keys—any change to the binary results in an immediate TPM measurement mismatch (PCR 10). This establishes a <strong>&quot;Silicon-to-Audit&quot;</strong> chain that survives environment breaches, ensuring that only authorized software in authorized locations can access high-value enterprise assets.</t>
+<section anchor="strategic-narrative-hardware-enforced-sovereignty-the-symmetry-of-trust"><name>Strategic Narrative: Hardware-Enforced Sovereignty (The Symmetry of Trust)</name>
+<t>The Aegis framework establishes a &quot;Silicon-to-Audit&quot; chain of trust built on two parallel but federated pillars: the <strong>Workload Identity Management Plane</strong> and the <strong>Host Identity Management Plane</strong>. This symmetry allows for the binding of ephemeral software identities to persistent silicon identities, bridging the &quot;Perception Gap&quot; in modern distributed systems.</t>
+
+<ul spacing="compact">
+<li><strong>Workload Identity Management Plane</strong>: Manages software entities (e.g., AI Models, Microservices) using the SPIFFE/SPIRE infrastructure to issue SVID credentials.</li>
+<li><strong>Host Identity Management Plane</strong>: Manages hardware entities (e.g., Compute Nodes, Location Anchor Hosts) using the Silicon Root of Trust (TPM/iLO 7) to verify physical platform integrity and residency.</li>
+</ul>
+<t>In regulated industries like Oil &amp; Gas, this provides <strong>Edge Autonomy</strong> (local execution during satcom outages) with <strong>Cloud Control</strong> (centralized governance). An issued SVID is effectively &quot;locked&quot; until the Host Identity Management Plane confirms the hardware is untampered and physically resident within the geofence. By binding the <strong>Workload Identity Agent Image Digest</strong> directly to the hardware-rooted <strong>Outer Seal</strong>, we solve the <strong>&quot;Rogue Agent&quot;</strong> problem—ensuring that only authorized software in authorized locations can access high-value enterprise assets, even under local root compromise.</t>
 </section>
 </section>
 
@@ -353,17 +358,17 @@
 
 <sourcecode type="cddl"><![CDATA[; Outer bundle - Workload Host
 V-GAP-Profile = {
-    1 => bstr,                        ; Workload Host Attestation Key (AK)
-    2 => bstr,                        ; Workload host proximity proof hash (Log or "SELF")
-    3 => bstr,                        ; Workload host workload identity agent image digest; IMA (Integrity Measurement Architecture) measurement of the agent binary (open source verifiability enhances trust)
-    4 => Location-Anchor-Host-Bundle, ; The nested LAH bundle
-    ? 5 => bstr,                      ; Optional freshness-nonce for remote verifier (if prover timestamp is not trusted by verifier)
-    6 => bstr                         ; Outer Seal over [1..5] (TPM2_Quote)
+    1 => bstr,                        ; Workload Host AK (Registered in Host Identity Mgmt Plane)
+    2 => bstr,                        ; Workload host proximity proof hash (Verified via Host Identity Mgmt Plane)
+    3 => bstr,                        ; Workload host identity agent image digest (Measured via Host Identity Mgmt Plane)
+    4 => Location-Anchor-Host-Bundle, ; Nested Evidence from the Location Anchor Host
+    ? 5 => bstr,                      ; Freshness nonce (Provided by Workload Identity Mgmt Plane)
+    6 => bstr                         ; Outer Seal (TPM2_Quote signed by the Host AK)
 }
 
 ; Inner bundle - Location Anchor Host
 Location-Anchor-Host-Bundle = {
-    1 => bstr,                        ; Location Anchor Host Attestation Key (AK)
+    1 => bstr,                        ; Location Anchor Host AK (Registered in Host Identity Mgmt Plane)
     2 => bstr,                        ; Location Anchor Host geolocation proof hash
     3 => int,                         ; Privacy Technique (0=None, 1=ZKP)
     4 => uint,                        ; Hardware-rooted epoch (Timestamp)
@@ -1296,16 +1301,16 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 <t>The following CDDL defines the structure of the V-GAP Nested Evidence Bundle, using the integer-keyed schema for EAT interoperability.</t>
 
 <sourcecode type="cddl"><![CDATA[V-GAP-Profile = {
-    1 => host-tpm-ak,                 ; bstr (Workload Host AK)
-    2 => host-proximity-proof-hash,   ; bstr (Hash of PTP logs or "SELF")
-    3 => agent-image-digest,          ; bstr (IMA measurement of the agent binary)
+    1 => host-tpm-ak,                 ; bstr (Workload Host AK registered in Host Identity Mgmt Plane)
+    2 => host-proximity-proof-hash,   ; bstr (Proximity proof verified via Host Identity Mgmt Plane)
+    3 => agent-image-digest,          ; bstr (Agent image digest measured via Host Identity Mgmt Plane)
     4 => lah-bundle,                  ; Location-Anchor-Host-Bundle
-    ? 5 => freshness-nonce,           ; bstr (Optional freshness-nonce)
-    6 => host-tpm-quote-hash          ; Outer Seal over [1..5]
+    ? 5 => freshness-nonce,           ; bstr (Nonce provided by Workload Identity Mgmt Plane)
+    6 => host-tpm-quote-hash          ; Outer Seal over [1..5] (TPM2_Quote signed by Host AK)
 }
 
 Location-Anchor-Host-Bundle = {
-    1 => lah-tpm-ak,                  ; bstr (Anchor Host AK)
+    1 => lah-tpm-ak,                  ; bstr (Anchor Host AK registered in Host Identity Mgmt Plane)
     2 => lah-geolocation-proof-hash,  ; bstr (ZKP/Residency Hash)
     3 => privacy-technique,           ; int (0=None, 1=ZKP)
     4 => lah-timestamp,               ; uint (Hardware-rooted epoch)
