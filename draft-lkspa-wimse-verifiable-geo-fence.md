@@ -346,10 +346,11 @@ The Inner Evidence represents the ground truth of the physical location as verif
 
 * **Signed By:** `location-anchor-host-tpm-ak`
 * **Payload:**
-    * `location-anchor-host-geolocation-privacy-preserving-proof-hash`
-    * `location-anchor-host-privacy-preserving-technique` (e.g., 0=None, 1=ZKP)
-    * `location-anchor-host-timestamp` (Temporal Anchor)
-    * `sovereign-verifier-nonce` (Optional if timestamp is attested)
+    * `location-anchor-host-geolocation-privacy-preserving-proof-hash`: The root of the location proof.
+     * `location-anchor-host-privacy-preserving-technique`: Defined as an integer enum: **0=None (Precise), 1=ZKP (Succinct)**.
+    * `location-anchor-host-timestamp`: Hardware-signed high-resolution timestamp (ms since epoch).
+    * `location-anchor-host-accuracy-sub-claim`: A hardware-attested sub-claim specifying the sensor accuracy (e.g., +/- 100ms for time or +/- 5m for space).
+    * `sovereign-verifier-nonce`: Optional if the hardware timestamp is used for freshness.
 
 * **Signature:** `location-anchor-host-tpm-quote-hash`
 
@@ -359,8 +360,8 @@ The Outer Evidence represents the compute environment where the workload resides
 
 * **Signed By:** `host-tpm-ak`
 * **Payload:**
-    * `Inner-Evidence-Bundle` (The entire signed structure from above)
-    * `location-anchor-host-proximity-proof-hash` (Attested PTP log hash)
+    * `inner-evidence-bundle-hash`: Cryptographic binding to the entire signed Inner Evidence structure.
+    * `location-anchor-host-proximity-proof-hash`: PTP log hash or the "LOCAL_BUS" constant.
 
 * **Signature:** `host-tpm-quote-hash` (The "Atomic Seal")
 
@@ -371,9 +372,13 @@ Managing hardware-rooted identities at scale requires automated lifecycle manage
 ## Attestation Key (AK) Management
 
 * **Rotation:** The Edge Management Plane SHALL rotate both the `host-tpm-ak` and `lah-tpm-ak` periodically.
-* **Registry Binding:** The Management Plane shares the rotated AK public keys with the Sovereign Verifier.
-* **Manufacturer Linkage:** The Sovereign Verifier MUST maintain a mapping between the rotated AK and the **HPE Endorsement Key (EK) Certificate**.
-* **Elevated Verification:** Upon onboarding or policy violation, the Verifier SHALL invoke the **TPM2_MakeCredential** procedure to verify that the rotated AK is physically bound to a genuine HPE silicon root of trust.
+* **Hardware-Rooted Registry:** The Sovereign Verifier MUST maintain a registry mapping verified AKs to their manufacturer **Endorsement Key (EK)** certificates.
+* **Credential Activation (Handshake):** To avoid the "MakeCredential tax" (high-latency challenge/response) on every request, the Verifier SHALL perform the full **TPM2_MakeCredential** procedure only upon:
+    - Initial node onboarding.
+    - Node reboot (detected via TPM Clock/ResetCount reset).
+    - Policy violation or audit failure.
+    - Escalation to a "Sovereign High-Trust" workload request.
+* **Continuous Validation:** Between full handshakes, the Verifier accepts hardware-signed Quotes from the registered AK as proof of continued residency in approved silicon.
 
 # Distributed SVID Issuance and Scaling
 
@@ -381,7 +386,7 @@ To maintain sub-microsecond determinism and regional sovereignty, identity issua
 
 * **Edge SPIRE Server:** SVID issuance is distributed to Edge SPIRE Servers located within the same sovereign boundary as the workloads.
 * **Regional Specificity:** SVIDs issued by an Edge SPIRE server are cryptographically restricted to that specific deployment and cannot be used in other regions.
-* **Co-Resident Optimization:** In deployments where the Location Anchor Host (LAH) and Compute Host are the same physical machine, the `proximity-proof-hash` SHALL be set to a well-known constant (e.g., `Hash("SELF")`) to signal zero-distance loopback attestation.
+* **Co-Resident Optimization:** In deployments where the Location Anchor Host (LAH) and Compute Host are the same physical machine (Unified Host), the `location-anchor-host-proximity-proof-hash` SHALL be set to the well-known constant `Hash("LOCAL_BUS")`. This signals to auditors that proximity was verified via internal silicon paths rather than an external network protocol.
 
 ## End user location anchor host
 
@@ -477,6 +482,7 @@ Step 2 (Workload Identity Agent ID issuance):
 8. The Workload Identity Agent sends back the decrypted secret.
 9. The Workload Identity Manager verifies that the decrypted secret matches the original secret used to build the challenge.
 10. The Workload Identity Manager issues the Workload Identity Agent ID using the Workload Identity Agent public key, the TPM APP signature of the Workload Identity Agent public key, and the Workload Identity Agent TPM APP ID.
+11. **Criticality Requirement:** The resulting X.509 SVID (or JWT) MUST mark the V-GAP residency extension as **CRITICAL**. Any verifier that encounters a Sovereign SVID and does not support the V-GAP OID MUST reject the certificate.
 
 ## Deployment Option A: Host OS-Based (Keylime)
 
@@ -943,7 +949,9 @@ The Sovereign Verifier executes a multi-stage validation sequence to confirm the
 3.  **Proximity Verification**: Verify the `location-anchor-host-proximity-proof-hash` matches expected low-latency PTP bounds.
 4.  **Inner Quote Verification**: Validate the `location-anchor-host-tpm-ak` signature and ensure the LAH hardware is an approved location source.
 5.  **Residency Validation**: Compute the ZKP or boundary check on the geolocation payload.
-6.  **Freshness Verification**: Ensure the `Temporal Nonce` or `sovereign-verifier-nonce` is within the policy-defined window.
+6.  **Freshness and Clock Sync**: Ensure the `temporal-nonce` is within the policy-defined window relative to the Verifier's clock.
+7.  **Accuracy Validation**: Verify that the `accuracy-sub-claim` meets the minimum residency confidence required by the workload's policy (e.g., < 100ms drift).
+8.  **Clock Skew Guard**: The Verifier MUST reject any bundle where the `temporal-nonce` deviates from the Verifier's hardware-anchored clock by more than the allowed **Maximum Skew** (e.g., +/- 100ms).
 
 # Industry Alignment and Policy Guidance
 
@@ -978,6 +986,10 @@ Static bearer tokens and software-only identities are vulnerable to hijacking vi
 This double-bind ensures that an identity is only valid when used by the authorized workload, on the verified hardware, at the approved physical location.
 
 ## Technical Security Considerations
+
+### Anti-Tunneling for Proximity
+
+To prevent "Proxy Attacks" where PTP packets are tunneled to a remote anchor, the **Attested PTP daemon** MUST execute within a **Trusted Execution Environment (TEE)** or a secure management processor (e.g., iLO 7). This ensures that RTT measurements are signed at the point of origin and cannot be manipulated or "pre-calculated" by a compromised Host OS to mask geographic distance.
 
 - **TPM and Hardware Trust**: The security of the solution depends on the integrity of the TPM and other hardware roots of trust. Physical attacks, firmware vulnerabilities, or supply chain compromises could undermine attestation. Regular updates, secure provisioning, and monitoring are required.
 
@@ -1061,7 +1073,8 @@ inner-evidence-bundle = {
 lah-payload = {
     geo-proof-hash: bstr,
     privacy-mode: uint, ; 0=None, 1=ZKP
-    temporal-nonce: uint ; Unix Timestamp (ms)
+    temporal-nonce: uint, ; Unix Timestamp (ms)
+    accuracy-sub-claim: tstr ; Accuracy metadata
 }
 
 outer-evidence-bundle = {
@@ -1072,7 +1085,7 @@ outer-evidence-bundle = {
 
 host-payload = {
     inner-bundle-hash: bstr,
-    proximity-proof-hash: bstr ; PTP Log Hash or "SELF"
+    proximity-proof-hash: bstr ; PTP Log Hash or "LOCAL_BUS"
 }
 ```
 

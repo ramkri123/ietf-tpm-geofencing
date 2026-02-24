@@ -22,7 +22,7 @@
 <meta content="residency" name="keyword">
 <meta content="TPM" name="keyword">
 <meta content="GNSS" name="keyword">
-<meta content="draft-lkspa-wimse-verifiable-geo-fence-12" name="ietf.draft">
+<meta content="draft-lkspa-wimse-verifiable-geo-fence-13" name="ietf.draft">
 <!-- Generator version information:
   xml2rfc 3.31.0
     Python 3.10.12
@@ -37,7 +37,7 @@
     requests 2.32.5
     wcwidth 0.6.0
 -->
-<link href="draft-lkspa-wimse-verifiable-geo-fence-12.xml" rel="alternate" type="application/rfc+xml">
+<link href="draft-lkspa-wimse-verifiable-geo-fence-13.xml" rel="alternate" type="application/rfc+xml">
 <link href="#copyright" rel="license">
 <style type="text/css">/*
 
@@ -1240,7 +1240,7 @@ li > p:last-of-type:only-child {
 <dt class="label-workgroup">Workgroup:</dt>
 <dd class="workgroup">RATS</dd>
 <dt class="label-internet-draft">Internet-Draft:</dt>
-<dd class="internet-draft">draft-lkspa-wimse-verifiable-geo-fence-12</dd>
+<dd class="internet-draft">draft-lkspa-wimse-verifiable-geo-fence-13</dd>
 <dt class="label-published">Published:</dt>
 <dd class="published">
 <time datetime="2026-02-24" class="published">24 February 2026</time>
@@ -1621,6 +1621,11 @@ li > p:last-of-type:only-child {
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.3">
                 <p id="section-toc.1-1.12.2.3.1"><a href="#section-12.3" class="auto internal xref">12.3</a>.  <a href="#name-technical-security-consider" class="internal xref">Technical Security Considerations</a></p>
+<ul class="compact toc ulBare ulEmpty">
+<li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.3.2.1">
+                    <p id="section-toc.1-1.12.2.3.2.1.1"><a href="#section-12.3.1" class="auto internal xref">12.3.1</a>.  <a href="#name-anti-tunneling-for-proximit" class="internal xref">Anti-Tunneling for Proximity</a></p>
+</li>
+                </ul>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.12.2.4">
                 <p id="section-toc.1-1.12.2.4.1"><a href="#section-12.4" class="auto internal xref">12.4</a>.  <a href="#name-proximity-and-anchor-displa" class="internal xref">Proximity and Anchor Displacement (Layer 4)</a></p>
@@ -2148,16 +2153,21 @@ li > p:last-of-type:only-child {
               <p id="section-6.1.1-2.2.1"><strong>Payload:</strong><a href="#section-6.1.1-2.2.1" class="pilcrow">¶</a></p>
 <ul class="compact normal">
 <li class="compact normal" id="section-6.1.1-2.2.2.1">
-                  <code>location-anchor-host-geolocation-privacy-preserving-proof-hash</code><a href="#section-6.1.1-2.2.2.1" class="pilcrow">¶</a>
+                  <p id="section-6.1.1-2.2.2.1.1"><code>location-anchor-host-geolocation-privacy-preserving-proof-hash</code>: The root of the location proof.<a href="#section-6.1.1-2.2.2.1.1" class="pilcrow">¶</a></p>
+<ul class="compact normal">
+<li class="compact normal" id="section-6.1.1-2.2.2.1.2.1">
+                      <code>location-anchor-host-privacy-preserving-technique</code>: Defined as an integer enum: <strong>0=None (Precise), 1=ZKP (Succinct)</strong>.<a href="#section-6.1.1-2.2.2.1.2.1" class="pilcrow">¶</a>
+</li>
+                  </ul>
 </li>
                 <li class="compact normal" id="section-6.1.1-2.2.2.2">
-                  <code>location-anchor-host-privacy-preserving-technique</code> (e.g., 0=None, 1=ZKP)<a href="#section-6.1.1-2.2.2.2" class="pilcrow">¶</a>
+                  <code>location-anchor-host-timestamp</code>: Hardware-signed high-resolution timestamp (ms since epoch).<a href="#section-6.1.1-2.2.2.2" class="pilcrow">¶</a>
 </li>
                 <li class="compact normal" id="section-6.1.1-2.2.2.3">
-                  <code>location-anchor-host-timestamp</code> (Temporal Anchor)<a href="#section-6.1.1-2.2.2.3" class="pilcrow">¶</a>
+                  <code>location-anchor-host-accuracy-sub-claim</code>: A hardware-attested sub-claim specifying the sensor accuracy (e.g., +/- 100ms for time or +/- 5m for space).<a href="#section-6.1.1-2.2.2.3" class="pilcrow">¶</a>
 </li>
                 <li class="compact normal" id="section-6.1.1-2.2.2.4">
-                  <code>sovereign-verifier-nonce</code> (Optional if timestamp is attested)<a href="#section-6.1.1-2.2.2.4" class="pilcrow">¶</a>
+                  <code>sovereign-verifier-nonce</code>: Optional if the hardware timestamp is used for freshness.<a href="#section-6.1.1-2.2.2.4" class="pilcrow">¶</a>
 </li>
               </ul>
 </li>
@@ -2181,10 +2191,10 @@ li > p:last-of-type:only-child {
               <p id="section-6.1.2-2.2.1"><strong>Payload:</strong><a href="#section-6.1.2-2.2.1" class="pilcrow">¶</a></p>
 <ul class="compact normal">
 <li class="compact normal" id="section-6.1.2-2.2.2.1">
-                  <code>Inner-Evidence-Bundle</code> (The entire signed structure from above)<a href="#section-6.1.2-2.2.2.1" class="pilcrow">¶</a>
+                  <code>inner-evidence-bundle-hash</code>: Cryptographic binding to the entire signed Inner Evidence structure.<a href="#section-6.1.2-2.2.2.1" class="pilcrow">¶</a>
 </li>
                 <li class="compact normal" id="section-6.1.2-2.2.2.2">
-                  <code>location-anchor-host-proximity-proof-hash</code> (Attested PTP log hash)<a href="#section-6.1.2-2.2.2.2" class="pilcrow">¶</a>
+                  <code>location-anchor-host-proximity-proof-hash</code>: PTP log hash or the "LOCAL_BUS" constant.<a href="#section-6.1.2-2.2.2.2" class="pilcrow">¶</a>
 </li>
               </ul>
 </li>
@@ -2214,13 +2224,23 @@ li > p:last-of-type:only-child {
             <strong>Rotation:</strong> The Edge Management Plane SHALL rotate both the <code>host-tpm-ak</code> and <code>lah-tpm-ak</code> periodically.<a href="#section-7.1-1.1" class="pilcrow">¶</a>
 </li>
           <li class="compact" id="section-7.1-1.2">
-            <strong>Registry Binding:</strong> The Management Plane shares the rotated AK public keys with the Sovereign Verifier.<a href="#section-7.1-1.2" class="pilcrow">¶</a>
+            <strong>Hardware-Rooted Registry:</strong> The Sovereign Verifier MUST maintain a registry mapping verified AKs to their manufacturer <strong>Endorsement Key (EK)</strong> certificates.<a href="#section-7.1-1.2" class="pilcrow">¶</a>
 </li>
           <li class="compact" id="section-7.1-1.3">
-            <strong>Manufacturer Linkage:</strong> The Sovereign Verifier MUST maintain a mapping between the rotated AK and the <strong>HPE Endorsement Key (EK) Certificate</strong>.<a href="#section-7.1-1.3" class="pilcrow">¶</a>
+            <p id="section-7.1-1.3.1"><strong>Credential Activation (Handshake):</strong> To avoid the "MakeCredential tax" (high-latency challenge/response) on every request, the Verifier SHALL perform the full <strong>TPM2_MakeCredential</strong> procedure only upon:<a href="#section-7.1-1.3.1" class="pilcrow">¶</a></p>
+<ul class="compact">
+<li class="compact" id="section-7.1-1.3.2.1">Initial node onboarding.<a href="#section-7.1-1.3.2.1" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-7.1-1.3.2.2">Node reboot (detected via TPM Clock/ResetCount reset).<a href="#section-7.1-1.3.2.2" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-7.1-1.3.2.3">Policy violation or audit failure.<a href="#section-7.1-1.3.2.3" class="pilcrow">¶</a>
+</li>
+              <li class="compact" id="section-7.1-1.3.2.4">Escalation to a "Sovereign High-Trust" workload request.<a href="#section-7.1-1.3.2.4" class="pilcrow">¶</a>
+</li>
+            </ul>
 </li>
           <li class="compact" id="section-7.1-1.4">
-            <strong>Elevated Verification:</strong> Upon onboarding or policy violation, the Verifier SHALL invoke the <strong>TPM2_MakeCredential</strong> procedure to verify that the rotated AK is physically bound to a genuine HPE silicon root of trust.<a href="#section-7.1-1.4" class="pilcrow">¶</a>
+            <strong>Continuous Validation:</strong> Between full handshakes, the Verifier accepts hardware-signed Quotes from the registered AK as proof of continued residency in approved silicon.<a href="#section-7.1-1.4" class="pilcrow">¶</a>
 </li>
         </ul>
 </section>
@@ -2241,7 +2261,7 @@ li > p:last-of-type:only-child {
           <strong>Regional Specificity:</strong> SVIDs issued by an Edge SPIRE server are cryptographically restricted to that specific deployment and cannot be used in other regions.<a href="#section-8-2.2" class="pilcrow">¶</a>
 </li>
         <li class="compact" id="section-8-2.3">
-          <strong>Co-Resident Optimization:</strong> In deployments where the Location Anchor Host (LAH) and Compute Host are the same physical machine, the <code>proximity-proof-hash</code> SHALL be set to a well-known constant (e.g., <code>Hash("SELF")</code>) to signal zero-distance loopback attestation.<a href="#section-8-2.3" class="pilcrow">¶</a>
+          <strong>Co-Resident Optimization:</strong> In deployments where the Location Anchor Host (LAH) and Compute Host are the same physical machine (Unified Host), the <code>location-anchor-host-proximity-proof-hash</code> SHALL be set to the well-known constant <code>Hash("LOCAL_BUS")</code>. This signals to auditors that proximity was verified via internal silicon paths rather than an external network protocol.<a href="#section-8-2.3" class="pilcrow">¶</a>
 </li>
       </ul>
 <div id="end-user-location-anchor-host">
@@ -2453,6 +2473,9 @@ li > p:last-of-type:only-child {
           <li id="section-9.4-8.9">The Workload Identity Manager verifies that the decrypted secret matches the original secret used to build the challenge.<a href="#section-9.4-8.9" class="pilcrow">¶</a>
 </li>
           <li id="section-9.4-8.10">The Workload Identity Manager issues the Workload Identity Agent ID using the Workload Identity Agent public key, the TPM APP signature of the Workload Identity Agent public key, and the Workload Identity Agent TPM APP ID.<a href="#section-9.4-8.10" class="pilcrow">¶</a>
+</li>
+          <li id="section-9.4-8.11">
+            <strong>Criticality Requirement:</strong> The resulting X.509 SVID (or JWT) MUST mark the V-GAP residency extension as <strong>CRITICAL</strong>. Any verifier that encounters a Sovereign SVID and does not support the V-GAP OID MUST reject the certificate.<a href="#section-9.4-8.11" class="pilcrow">¶</a>
 </li>
         </ol>
 </section>
@@ -3432,7 +3455,13 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
           <strong>Residency Validation</strong>: Compute the ZKP or boundary check on the geolocation payload.<a href="#section-10-2.5" class="pilcrow">¶</a>
 </li>
         <li id="section-10-2.6">
-          <strong>Freshness Verification</strong>: Ensure the <code>Temporal Nonce</code> or <code>sovereign-verifier-nonce</code> is within the policy-defined window.<a href="#section-10-2.6" class="pilcrow">¶</a>
+          <strong>Freshness and Clock Sync</strong>: Ensure the <code>temporal-nonce</code> is within the policy-defined window relative to the Verifier's clock.<a href="#section-10-2.6" class="pilcrow">¶</a>
+</li>
+        <li id="section-10-2.7">
+          <strong>Accuracy Validation</strong>: Verify that the <code>accuracy-sub-claim</code> meets the minimum residency confidence required by the workload's policy (e.g., &lt; 100ms drift).<a href="#section-10-2.7" class="pilcrow">¶</a>
+</li>
+        <li id="section-10-2.8">
+          <strong>Clock Skew Guard</strong>: The Verifier MUST reject any bundle where the <code>temporal-nonce</code> deviates from the Verifier's hardware-anchored clock by more than the allowed <strong>Maximum Skew</strong> (e.g., +/- 100ms).<a href="#section-10-2.8" class="pilcrow">¶</a>
 </li>
       </ol>
 </section>
@@ -3505,49 +3534,57 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
         <h3 id="name-technical-security-consider">
 <a href="#section-12.3" class="section-number selfRef">12.3. </a><a href="#name-technical-security-consider" class="section-name selfRef">Technical Security Considerations</a>
         </h3>
+<div id="anti-tunneling-for-proximity">
+<section id="section-12.3.1">
+          <h4 id="name-anti-tunneling-for-proximit">
+<a href="#section-12.3.1" class="section-number selfRef">12.3.1. </a><a href="#name-anti-tunneling-for-proximit" class="section-name selfRef">Anti-Tunneling for Proximity</a>
+          </h4>
+<p id="section-12.3.1-1">To prevent "Proxy Attacks" where PTP packets are tunneled to a remote anchor, the <strong>Attested PTP daemon</strong> MUST execute within a <strong>Trusted Execution Environment (TEE)</strong> or a secure management processor (e.g., iLO 7). This ensures that RTT measurements are signed at the point of origin and cannot be manipulated or "pre-calculated" by a compromised Host OS to mask geographic distance.<a href="#section-12.3.1-1" class="pilcrow">¶</a></p>
 <ul class="normal">
-<li class="normal" id="section-12.3-1.1">
-            <p id="section-12.3-1.1.1"><strong>TPM and Hardware Trust</strong>: The security of the solution depends on the integrity of the TPM and other hardware roots of trust. Physical attacks, firmware vulnerabilities, or supply chain compromises could undermine attestation. Regular updates, secure provisioning, and monitoring are required.<a href="#section-12.3-1.1.1" class="pilcrow">¶</a></p>
+<li class="normal" id="section-12.3.1-2.1">
+              <p id="section-12.3.1-2.1.1"><strong>TPM and Hardware Trust</strong>: The security of the solution depends on the integrity of the TPM and other hardware roots of trust. Physical attacks, firmware vulnerabilities, or supply chain compromises could undermine attestation. Regular updates, secure provisioning, and monitoring are required.<a href="#section-12.3.1-2.1.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-12.3-1.2">
-            <p id="section-12.3-1.2.1"><strong>Geolocation Spoofing</strong>: Location sensors (e.g., GPS) are susceptible to spoofing or replay attacks. Use of cryptographically authenticated signals (e.g., Galileo GNSS, mobile network) and cross-verification with multiple sources can mitigate this risk.<a href="#section-12.3-1.2.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-12.3.1-2.2">
+              <p id="section-12.3.1-2.2.1"><strong>Geolocation Spoofing</strong>: Location sensors (e.g., GPS) are susceptible to spoofing or replay attacks. Use of cryptographically authenticated signals (e.g., Galileo GNSS, mobile network) and cross-verification with multiple sources can mitigate this risk.<a href="#section-12.3.1-2.2.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-12.3-1.3">
-            <p id="section-12.3-1.3.1"><strong>SIM and e-SIM Attacks</strong>: Physical SIM removal or e-SIM swap attacks can break the binding between device and location. Continuous monitoring of device composition and periodic re-attestation are recommended.<a href="#section-12.3-1.3.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-12.3.1-2.3">
+              <p id="section-12.3.1-2.3.1"><strong>SIM and e-SIM Attacks</strong>: Physical SIM removal or e-SIM swap attacks can break the binding between device and location. Continuous monitoring of device composition and periodic re-attestation are recommended.<a href="#section-12.3.1-2.3.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-12.3-1.4">
-            <p id="section-12.3-1.4.1"><strong>Software Integrity</strong>: The geolocation agent and supporting software must be protected against tampering. Use of Linux IMA, secure boot, and measured launch environments helps ensure only approved software is executed.<a href="#section-12.3-1.4.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-12.3.1-2.4">
+              <p id="section-12.3.1-2.4.1"><strong>Software Integrity</strong>: The geolocation agent and supporting software must be protected against tampering. Use of Linux IMA, secure boot, and measured launch environments helps ensure only approved software is executed.<a href="#section-12.3.1-2.4.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-12.3-1.5">
-            <p id="section-12.3-1.5.1"><strong>Communication Security</strong>: All attestation and geolocation data must be transmitted over secure, authenticated channels (e.g., TLS) to prevent interception or manipulation.<a href="#section-12.3-1.5.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-12.3.1-2.5">
+              <p id="section-12.3.1-2.5.1"><strong>Communication Security</strong>: All attestation and geolocation data must be transmitted over secure, authenticated channels (e.g., TLS) to prevent interception or manipulation.<a href="#section-12.3.1-2.5.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-12.3-1.6">
-            <p id="section-12.3-1.6.1"><strong>Policy Enforcement</strong>: The enforcement of geofence policies must be robust against attempts by malicious workloads or agents to bypass controls. Policy decisions should be based on verifiable, signed attestation evidence.<a href="#section-12.3-1.6.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-12.3.1-2.6">
+              <p id="section-12.3.1-2.6.1"><strong>Policy Enforcement</strong>: The enforcement of geofence policies must be robust against attempts by malicious workloads or agents to bypass controls. Policy decisions should be based on verifiable, signed attestation evidence.<a href="#section-12.3.1-2.6.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-12.3-1.7">
-            <p id="section-12.3-1.7.1"><strong>Time Source Integrity</strong>: Trusted time sources are necessary to prevent replay attacks and ensure the freshness of attestation data.<a href="#section-12.3-1.7.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-12.3.1-2.7">
+              <p id="section-12.3.1-2.7.1"><strong>Time Source Integrity</strong>: Trusted time sources are necessary to prevent replay attacks and ensure the freshness of attestation data.<a href="#section-12.3.1-2.7.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-12.3-1.8">
-            <p id="section-12.3-1.8.1"><strong>Datastore Security</strong>: The Host hardware identity datastore containing trusted host compositions and location sensor details must be protected against unauthorized access and tampering, using encryption and access controls.<a href="#section-12.3-1.8.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-12.3.1-2.8">
+              <p id="section-12.3.1-2.8.1"><strong>Datastore Security</strong>: The Host hardware identity datastore containing trusted host compositions and location sensor details must be protected against unauthorized access and tampering, using encryption and access controls.<a href="#section-12.3.1-2.8.1" class="pilcrow">¶</a></p>
 </li>
-          <li class="normal" id="section-12.3-1.9">
-            <p id="section-12.3-1.9.1"><strong>Management Processor Security</strong> (Option B): The out-of-band (OOB) path protects against <strong>Host CPU/OS</strong> compromise, but it does not protect against <strong>Management Processor (BMC)</strong> compromise. If the BMC is compromised, an attacker can feed fake TPM quotes and inventory data to the management plane. Mitigations include:<a href="#section-12.3-1.9.1" class="pilcrow">¶</a></p>
+            <li class="normal" id="section-12.3.1-2.9">
+              <p id="section-12.3.1-2.9.1"><strong>Management Processor Security</strong> (Option B): The out-of-band (OOB) path protects against <strong>Host CPU/OS</strong> compromise, but it does not protect against <strong>Management Processor (BMC)</strong> compromise. If the BMC is compromised, an attacker can feed fake TPM quotes and inventory data to the management plane. Mitigations include:<a href="#section-12.3.1-2.9.1" class="pilcrow">¶</a></p>
 <ul class="compact normal">
-<li class="compact normal" id="section-12.3-1.9.2.1">
-                <strong>Secure Boot/Update</strong>: Ensuring the BMC only runs OEM-signed firmware.<a href="#section-12.3-1.9.2.1" class="pilcrow">¶</a>
+<li class="compact normal" id="section-12.3.1-2.9.2.1">
+                  <strong>Secure Boot/Update</strong>: Ensuring the BMC only runs OEM-signed firmware.<a href="#section-12.3.1-2.9.2.1" class="pilcrow">¶</a>
 </li>
-              <li class="compact normal" id="section-12.3-1.9.2.2">
-                <strong>Strong Authentication</strong>: Enforcing MFA/certificates for Redfish API access.<a href="#section-12.3-1.9.2.2" class="pilcrow">¶</a>
+                <li class="compact normal" id="section-12.3.1-2.9.2.2">
+                  <strong>Strong Authentication</strong>: Enforcing MFA/certificates for Redfish API access.<a href="#section-12.3.1-2.9.2.2" class="pilcrow">¶</a>
 </li>
-              <li class="compact normal" id="section-12.3-1.9.2.3">
-                <strong>Network Segmentation</strong>: Isolating the management network from the host data network.<a href="#section-12.3-1.9.2.3" class="pilcrow">¶</a>
+                <li class="compact normal" id="section-12.3.1-2.9.2.3">
+                  <strong>Network Segmentation</strong>: Isolating the management network from the host data network.<a href="#section-12.3.1-2.9.2.3" class="pilcrow">¶</a>
 </li>
-              <li class="compact normal" id="section-12.3-1.9.2.4">
-                <strong>Log Integrity</strong>: Shipping BMC security logs to a remote, immutable audit vault.<a href="#section-12.3-1.9.2.4" class="pilcrow">¶</a>
+                <li class="compact normal" id="section-12.3.1-2.9.2.4">
+                  <strong>Log Integrity</strong>: Shipping BMC security logs to a remote, immutable audit vault.<a href="#section-12.3.1-2.9.2.4" class="pilcrow">¶</a>
 </li>
-            </ul>
+              </ul>
 </li>
-        </ul>
+          </ul>
+</section>
+</div>
 </section>
 </div>
 <div id="proximity-and-anchor-displacement-layer-4">
@@ -3649,7 +3686,8 @@ inner-evidence-bundle = {
 lah-payload = {
     geo-proof-hash: bstr,
     privacy-mode: uint, ; 0=None, 1=ZKP
-    temporal-nonce: uint ; Unix Timestamp (ms)
+    temporal-nonce: uint, ; Unix Timestamp (ms)
+    accuracy-sub-claim: tstr ; Accuracy metadata
 }
 
 outer-evidence-bundle = {
@@ -3660,7 +3698,7 @@ outer-evidence-bundle = {
 
 host-payload = {
     inner-bundle-hash: bstr,
-    proximity-proof-hash: bstr ; PTP Log Hash or "SELF"
+    proximity-proof-hash: bstr ; PTP Log Hash or "LOCAL_BUS"
 }
 </pre><a href="#section-16-2" class="pilcrow">¶</a>
 </div>

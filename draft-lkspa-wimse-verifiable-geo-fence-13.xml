@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- name="GENERATOR" content="github.com/mmarkdown/mmark Mmark Markdown Processor - mmark.miek.nl" -->
-<rfc version="3" ipr="trust200902" docName="draft-lkspa-wimse-verifiable-geo-fence-12" submissionType="IETF" category="info" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true">
+<rfc version="3" ipr="trust200902" docName="draft-lkspa-wimse-verifiable-geo-fence-13" submissionType="IETF" category="info" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true">
 
 <front>
-<title abbrev="RATS-GEO-POR">Verifiable Geofencing and Residency Proofs for Sovereign Workloads: A RATS Profile</title><seriesInfo value="draft-lkspa-wimse-verifiable-geo-fence-12" stream="IETF" status="informational" name="Internet-Draft"></seriesInfo>
+<title abbrev="RATS-GEO-POR">Verifiable Geofencing and Residency Proofs for Sovereign Workloads: A RATS Profile</title><seriesInfo value="draft-lkspa-wimse-verifiable-geo-fence-13" stream="IETF" status="informational" name="Internet-Draft"></seriesInfo>
 <author initials="R." surname="Krishnan" fullname="Ram Krishnan"><organization>JPMorgan Chase &amp; Co.</organization><address><postal><street></street>
 </postal><email>ramkri123@gmail.com</email>
 </address></author><author initials="N." surname="Smith" fullname="Ned Smith"><organization>Intel</organization><address><postal><street></street>
@@ -311,10 +311,14 @@
 <li><t><strong>Payload:</strong></t>
 
 <ul spacing="compact">
-<li><tt>location-anchor-host-geolocation-privacy-preserving-proof-hash</tt></li>
-<li><tt>location-anchor-host-privacy-preserving-technique</tt> (e.g., 0=None, 1=ZKP)</li>
-<li><tt>location-anchor-host-timestamp</tt> (Temporal Anchor)</li>
-<li><tt>sovereign-verifier-nonce</tt> (Optional if timestamp is attested)</li>
+<li><t><tt>location-anchor-host-geolocation-privacy-preserving-proof-hash</tt>: The root of the location proof.</t>
+
+<ul spacing="compact">
+<li><tt>location-anchor-host-privacy-preserving-technique</tt>: Defined as an integer enum: <strong>0=None (Precise), 1=ZKP (Succinct)</strong>.</li>
+</ul></li>
+<li><tt>location-anchor-host-timestamp</tt>: Hardware-signed high-resolution timestamp (ms since epoch).</li>
+<li><tt>location-anchor-host-accuracy-sub-claim</tt>: A hardware-attested sub-claim specifying the sensor accuracy (e.g., +/- 100ms for time or +/- 5m for space).</li>
+<li><tt>sovereign-verifier-nonce</tt>: Optional if the hardware timestamp is used for freshness.</li>
 </ul></li>
 <li><t><strong>Signature:</strong> <tt>location-anchor-host-tpm-quote-hash</tt></t>
 </li>
@@ -329,8 +333,8 @@
 <li><t><strong>Payload:</strong></t>
 
 <ul spacing="compact">
-<li><tt>Inner-Evidence-Bundle</tt> (The entire signed structure from above)</li>
-<li><tt>location-anchor-host-proximity-proof-hash</tt> (Attested PTP log hash)</li>
+<li><tt>inner-evidence-bundle-hash</tt>: Cryptographic binding to the entire signed Inner Evidence structure.</li>
+<li><tt>location-anchor-host-proximity-proof-hash</tt>: PTP log hash or the &quot;LOCAL_BUS&quot; constant.</li>
 </ul></li>
 <li><t><strong>Signature:</strong> <tt>host-tpm-quote-hash</tt> (The &quot;Atomic Seal&quot;)</t>
 </li>
@@ -346,9 +350,16 @@
 
 <ul spacing="compact">
 <li><strong>Rotation:</strong> The Edge Management Plane SHALL rotate both the <tt>host-tpm-ak</tt> and <tt>lah-tpm-ak</tt> periodically.</li>
-<li><strong>Registry Binding:</strong> The Management Plane shares the rotated AK public keys with the Sovereign Verifier.</li>
-<li><strong>Manufacturer Linkage:</strong> The Sovereign Verifier MUST maintain a mapping between the rotated AK and the <strong>HPE Endorsement Key (EK) Certificate</strong>.</li>
-<li><strong>Elevated Verification:</strong> Upon onboarding or policy violation, the Verifier SHALL invoke the <strong>TPM2_MakeCredential</strong> procedure to verify that the rotated AK is physically bound to a genuine HPE silicon root of trust.</li>
+<li><strong>Hardware-Rooted Registry:</strong> The Sovereign Verifier MUST maintain a registry mapping verified AKs to their manufacturer <strong>Endorsement Key (EK)</strong> certificates.</li>
+<li><t><strong>Credential Activation (Handshake):</strong> To avoid the &quot;MakeCredential tax&quot; (high-latency challenge/response) on every request, the Verifier SHALL perform the full <strong>TPM2_MakeCredential</strong> procedure only upon:</t>
+
+<ul spacing="compact">
+<li>Initial node onboarding.</li>
+<li>Node reboot (detected via TPM Clock/ResetCount reset).</li>
+<li>Policy violation or audit failure.</li>
+<li>Escalation to a &quot;Sovereign High-Trust&quot; workload request.</li>
+</ul></li>
+<li><strong>Continuous Validation:</strong> Between full handshakes, the Verifier accepts hardware-signed Quotes from the registered AK as proof of continued residency in approved silicon.</li>
 </ul>
 </section>
 </section>
@@ -359,7 +370,7 @@
 <ul spacing="compact">
 <li><strong>Edge SPIRE Server:</strong> SVID issuance is distributed to Edge SPIRE Servers located within the same sovereign boundary as the workloads.</li>
 <li><strong>Regional Specificity:</strong> SVIDs issued by an Edge SPIRE server are cryptographically restricted to that specific deployment and cannot be used in other regions.</li>
-<li><strong>Co-Resident Optimization:</strong> In deployments where the Location Anchor Host (LAH) and Compute Host are the same physical machine, the <tt>proximity-proof-hash</tt> SHALL be set to a well-known constant (e.g., <tt>Hash(&quot;SELF&quot;)</tt>) to signal zero-distance loopback attestation.</li>
+<li><strong>Co-Resident Optimization:</strong> In deployments where the Location Anchor Host (LAH) and Compute Host are the same physical machine (Unified Host), the <tt>location-anchor-host-proximity-proof-hash</tt> SHALL be set to the well-known constant <tt>Hash(&quot;LOCAL_BUS&quot;)</tt>. This signals to auditors that proximity was verified via internal silicon paths rather than an external network protocol.</li>
 </ul>
 
 <section anchor="end-user-location-anchor-host"><name>End user location anchor host</name>
@@ -489,6 +500,7 @@
 <li>The Workload Identity Agent sends back the decrypted secret.</li>
 <li>The Workload Identity Manager verifies that the decrypted secret matches the original secret used to build the challenge.</li>
 <li>The Workload Identity Manager issues the Workload Identity Agent ID using the Workload Identity Agent public key, the TPM APP signature of the Workload Identity Agent public key, and the Workload Identity Agent TPM APP ID.</li>
+<li><strong>Criticality Requirement:</strong> The resulting X.509 SVID (or JWT) MUST mark the V-GAP residency extension as <strong>CRITICAL</strong>. Any verifier that encounters a Sovereign SVID and does not support the V-GAP OID MUST reject the certificate.</li>
 </ol>
 </section>
 
@@ -1084,7 +1096,9 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 <li><strong>Proximity Verification</strong>: Verify the <tt>location-anchor-host-proximity-proof-hash</tt> matches expected low-latency PTP bounds.</li>
 <li><strong>Inner Quote Verification</strong>: Validate the <tt>location-anchor-host-tpm-ak</tt> signature and ensure the LAH hardware is an approved location source.</li>
 <li><strong>Residency Validation</strong>: Compute the ZKP or boundary check on the geolocation payload.</li>
-<li><strong>Freshness Verification</strong>: Ensure the <tt>Temporal Nonce</tt> or <tt>sovereign-verifier-nonce</tt> is within the policy-defined window.</li>
+<li><strong>Freshness and Clock Sync</strong>: Ensure the <tt>temporal-nonce</tt> is within the policy-defined window relative to the Verifier's clock.</li>
+<li><strong>Accuracy Validation</strong>: Verify that the <tt>accuracy-sub-claim</tt> meets the minimum residency confidence required by the workload's policy (e.g., &lt; 100ms drift).</li>
+<li><strong>Clock Skew Guard</strong>: The Verifier MUST reject any bundle where the <tt>temporal-nonce</tt> deviates from the Verifier's hardware-anchored clock by more than the allowed <strong>Maximum Skew</strong> (e.g., +/- 100ms).</li>
 </ol>
 </section>
 
@@ -1124,6 +1138,9 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 
 <section anchor="technical-security-considerations"><name>Technical Security Considerations</name>
 
+<section anchor="anti-tunneling-for-proximity"><name>Anti-Tunneling for Proximity</name>
+<t>To prevent &quot;Proxy Attacks&quot; where PTP packets are tunneled to a remote anchor, the <strong>Attested PTP daemon</strong> MUST execute within a <strong>Trusted Execution Environment (TEE)</strong> or a secure management processor (e.g., iLO 7). This ensures that RTT measurements are signed at the point of origin and cannot be manipulated or &quot;pre-calculated&quot; by a compromised Host OS to mask geographic distance.</t>
+
 <ul>
 <li><t><strong>TPM and Hardware Trust</strong>: The security of the solution depends on the integrity of the TPM and other hardware roots of trust. Physical attacks, firmware vulnerabilities, or supply chain compromises could undermine attestation. Regular updates, secure provisioning, and monitoring are required.</t>
 </li>
@@ -1150,6 +1167,7 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 <li><strong>Log Integrity</strong>: Shipping BMC security logs to a remote, immutable audit vault.</li>
 </ul></li>
 </ul>
+</section>
 </section>
 
 <section anchor="proximity-and-anchor-displacement-layer-4"><name>Proximity and Anchor Displacement (Layer 4)</name>
@@ -1210,7 +1228,8 @@ inner-evidence-bundle = {
 lah-payload = {
     geo-proof-hash: bstr,
     privacy-mode: uint, ; 0=None, 1=ZKP
-    temporal-nonce: uint ; Unix Timestamp (ms)
+    temporal-nonce: uint, ; Unix Timestamp (ms)
+    accuracy-sub-claim: tstr ; Accuracy metadata
 }
 
 outer-evidence-bundle = {
@@ -1221,7 +1240,7 @@ outer-evidence-bundle = {
 
 host-payload = {
     inner-bundle-hash: bstr,
-    proximity-proof-hash: bstr ; PTP Log Hash or "SELF"
+    proximity-proof-hash: bstr ; PTP Log Hash or "LOCAL_BUS"
 }
 ]]></sourcecode>
 </section>
