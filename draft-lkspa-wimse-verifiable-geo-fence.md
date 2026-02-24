@@ -108,10 +108,15 @@ The architecture follows the **RATS Architecture [[RFC9334]]**, defining the int
 
 ## Strategic Narrative: Hardware-Enforced Sovereignty (The Symmetry of Trust)
 
-This framework establishes a "Silicon-to-Audit" chain of trust built on two parallel but federated pillars: the **Workload Identity Management Plane** and the **Host Identity Management Plane**. This symmetry allows for the binding of ephemeral software identities to persistent silicon identities, bridging the "Perception Gap" in modern distributed systems.
+### The Compliance Bridge (The Symmetry of Trust)
 
-* **Workload Identity Management Plane**: Manages software entities (e.g., AI Models, Microservices) using the SPIFFE/SPIRE infrastructure to issue SVID credentials.
-* **Host Identity Management Plane**: Manages hardware entities (e.g., Compute Nodes, Location Anchor Hosts) using the Silicon Root of Trust (TPM/iLO 7) to verify physical platform integrity and residency.
+This framework establishes a "Silicon-to-Audit" chain of trust built on two parallel but federated pillars: the **Workload Identity Management Plane** and the **Host Identity Management Plane**. This symmetry allows for the binding of ephemeral software identities to persistent silicon identities, bridging the "Perception Gap" in modern distributed systems. 
+
+The **Compliance Bridge** serves as the normative link between these two planes. It ensures that the **Workload Identity Management Plane** only issues identities (SVIDs) for workloads running on platforms that have been verified integral by the **Host Identity Management Plane**.
+
+* **Workload Identity Management Plane**: Manages software entities (e.g., AI Models, Microservices) and issues SVID credentials.
+* **Host Identity Management Plane**: Manages and attests to the physical/virtual silicon integrity (e.g., Compute Nodes, Location Anchor Hosts) using the Silicon Root of Trust (TPM/iLO 7).
+* **Compliance Bridge**: The cryptographic and policy-driven interface that binds platform-level attestation results to workload-level identity issuance, ensuring a "Fail-Closed" security posture.
 
 In regulated industries like Oil & Gas, this provides **Edge Autonomy** (local execution during satcom outages) with **Cloud Control** (centralized governance). An issued SVID is effectively "locked" until the Host Identity Management Plane confirms the hardware is untampered and physically resident within the geofence. By binding the **Identity Agent Image Digest** directly to the hardware-rooted **Outer Seal**, we solve the **"Rogue Agent"** problem—ensuring that only authorized software in authorized locations can access high-value enterprise assets, even under local root compromise.
 
@@ -284,11 +289,11 @@ Enterprises handling sensitive data rely on dedicated cloud Workload Hosts (e.g.
 
 Enterprises need to ensure that the AI agent is located within a specific geographic boundary when downloading sensitive data or performing other sensitive operations. A secure AI agent, running on a trusted Workload Host with TPM-backed attestation, interacts with geolocation and geofencing services to obtain verifiable proof of its geographic boundary. The agent periodically collects location data from trusted sensors, obtains attested composite location from a geolocation service, and enforces geofence policies via a geofencing service. The resulting attested geofence proof is used to bind workload identity to both the Workload Host and its geographic location, enabling secure, policy-driven execution of AI workloads and compliance with data residency requirements.
 
-### Federated AI (Decryption Gatekeeper)
+### Federated AI (Cloud-Gated Decryption)
 
 In federated learning scenarios, multiple organizations collaborate to train machine learning models without sharing raw data. In regulated industries like Oil & Gas, this often involves "Edge AI" processing on remote rigs where high-value model weights or decryption keys are only released if the edge environment is currently "Sovereign and Integral."
 
-The Cloud Workload Identity Management Plane acts as the **Decryption Gatekeeper**, ensuring the AI model remains "locked" until the environment is proven integral via the following workflow:
+The **Cloud Workload Identity Management Plane** acts as the final verifier and **Decryption Gatekeeper**, ensuring the AI model remains "locked" (e.g., via JWE/OIDC) until the environment is proven integral. The AI model on the edge rig remains encrypted until the Cloud Verifier confirms that the V-GAP bundle presented by the workload matches the verified silicon state maintained in the **Cloud Host Identity Management Plane** registry.
 
 | Step | Action | Logic |
 | :--- | :--- | :--- |
@@ -299,7 +304,7 @@ The Cloud Workload Identity Management Plane acts as the **Decryption Gatekeeper
 
 ### Enterprise Edge Federated Management (Oil & Gas)
 
-In remote industrial environments (e.g., offshore oil rigs), the "Dual Federation" model ensures resilient operations. An **Edge Host Identity Management Plane** (e.g., HPE OneView) manages local hardware and TPM Attestation Keys (AKs) to support offline autonomy. Periodically, these AKs are synchronized with a **Cloud Host Identity Management Plane** which acts as the global **Sovereign Registry**. This allows local SPIRE servers to issue SVIDs during satellite outages, while the cloud maintaining the ultimate "Silicon-to-Audit" verification capability required to release high-value enterprise keys once connectivity is restored.
+In remote industrial environments (e.g., offshore oil rigs), the "Dual Federation" model ensures resilient operations. An **Edge Host Identity Management Plane** (e.g., HPE OneView) manages local hardware and TPM Attestation Keys (AKs) to support offline autonomy. Periodically, these AKs are synchronized with a **Cloud Host Identity Management Plane** which acts as the global **Sovereign Registry**. This allows local SPIRE servers to issue SVIDs during satellite outages, while the cloud maintains the ultimate "Silicon-to-Audit" verification capability required to release high-value enterprise keys once connectivity is restored.
 
 ### User workload to Server workload
 
@@ -363,35 +368,92 @@ The V-GAP profile transition the geofencing logic from a general proposal to a c
 
 The V-GAP evidence bundle MUST be structured as two nested cryptographic entities to ensure transitive trust and separation of concerns.
 
-## Formal Data Structure (CDDL)
+## Formal Data Structure (JSON Schema)
 
-The following CDDL defines the structure of the V-GAP Nested Evidence Bundle, formatted as an Entity Attestation Token (EAT) profile. The **Outer Bundle** (V-GAP-Profile) cryptographically binds the Identity Agent's **Image Digest** to the hardware-rooted platform integrity, while the **Inner Bundle** (Location-Anchor-Host-Bundle) provides the verified geolocation evidence.
+The following JSON Schema defines the structure of the V-GAP Nested Evidence Bundle. The **Outer Bundle** (`v-gap-profile`) cryptographically binds the Identity Agent's **Image Digest** to the hardware-rooted platform integrity, while the **Inner Bundle** (`lah-bundle`) provides the verified geolocation evidence. All binary fields (hashes, public keys, signatures) MUST be Base64URL encoded. Going with JSON instead of CBOR as it is more widely supported and easier to implement and debug.
 
-```cddl
-; Outer bundle - Workload Host
-V-GAP-Profile = {
-    1 => bstr,                        ; Workload Host AK (Registered in Host Identity Mgmt Plane)
-    2 => bstr,                        ; Workload host proximity proof hash (Verified via Host Identity Mgmt Plane)
-    3 => bstr,                        ; Workload host identity agent image digest (Measured via Host Identity Mgmt Plane)
-    4 => Location-Anchor-Host-Bundle, ; Nested Evidence from the Location Anchor Host
-    ? 5 => bstr,                      ; Freshness nonce (Provided by Workload Identity Mgmt Plane)
-    6 => bstr                         ; Outer Seal (TPM2_Quote signed by the Host AK)
-}
-
-; Inner bundle - Location Anchor Host
-Location-Anchor-Host-Bundle = {
-    1 => bstr,                        ; Location Anchor Host AK (Registered in Host Identity Mgmt Plane)
-    2 => bstr,                        ; Location Anchor Host geolocation proof hash
-    3 => int,                         ; Privacy Technique (0=None, 1=ZKP)
-    4 => uint,                        ; Hardware-rooted epoch (Timestamp)
-    5 => uint,                        ; Accuracy sub-claim (Milliseconds)
-    6 => bstr                         ; Inner Seal over [1..5] (TPM2_Quote)
+```json
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "V-GAP Nested Evidence Bundle",
+  "type": "object",
+  "properties": {
+    "host-tpm-ak": {
+      "type": "string",
+      "description": "Workload Host AK public key (Base64URL)"
+    },
+    "host-proximity-proof-hash": {
+      "type": "string",
+      "description": "Proximity proof hash (Base64URL). For Unified Hosts, set to SHA-256('V-GAP-LOCAL-BUS-PROXIMITY')."
+    },
+    "agent-image-digest": {
+      "type": "string",
+      "description": "Identity Agent image digest (Base64URL). Measured via IMA or other attestation method."
+    },
+    "lah-bundle": {
+      "type": "object",
+      "description": "Nested Evidence from the Location Anchor Host",
+      "properties": {
+        "lah-tpm-ak": {
+          "type": "string",
+          "description": "Location Anchor Host AK public key (Base64URL)"
+        },
+        "lah-geolocation-proof-hash": {
+          "type": "string",
+          "description": "Location Anchor Host geolocation ZKP proof hash (Base64URL). If no ZKP, set to hash of geolocation."
+        },
+        "privacy-technique": {
+          "type": "integer",
+          "enum": [0, 1],
+          "description": "Privacy Technique (0=None, 1=ZKP)"
+        },
+        "nonce": {
+          "type": "string",
+          "description": "Freshness nonce from Host Identity Management Plane (Base64URL)"
+        },
+        "timestamp": {
+          "type": "integer",
+          "description": "Unix Timestamp"
+        },
+        "inner-seal": {
+          "type": "string",
+          "description": "TPM2_Quote Seal over preceding fields signed by LAH AK (Base64URL)"
+        }
+      },
+      "required": ["lah-tpm-ak", "lah-geolocation-proof-hash", "privacy-technique", "nonce", "timestamp", "inner-seal"]
+    },
+    "nonce": {
+      "type": "string",
+      "description": "Freshness nonce from Workload Identity Management Plane (Base64URL)"
+    },
+    "timestamp": {
+      "type": "integer",
+      "description": "Unix Timestamp"
+    },
+    "outer-seal": {
+      "type": "string",
+      "description": "TPM2_Quote seal over preceding fields signed by Workload Host AK (Base64URL)"
+    }
+  },
+  "required": ["host-tpm-ak", "host-proximity-proof-hash", "agent-image-digest", "lah-bundle", "nonce", "timestamp", "outer-seal"]
 }
 ```
+### Client or Prover Roles (e.g., Edge Cloud)
+
+- **Inner Bundle Generation**: The `lah-bundle` is generated by the **Host Identity Agent** and the **Host Identity Management Plane** periodically using a `nonce` provided by the Management Plane. 
+- **ZKP and Proximity**: Zero-Knowledge Proofs (ZKP) for geolocation and proximity proofs are generated by the **Workload Identity Agent** and transmitted to the **Host Identity Management Plane**.
+- **Evidence Fusion**: The **Workload Identity Agent** sends the TPM-attested `lah-bundle` to the **Host Identity Management Plane**, which verifies the bundle against known baseline values.
+- **Outer Bundle Generation**: The complete V-GAP profile (including the nested `lah-bundle`) is generated through the coordination of the Workload/Host Identity Agents and their respective Management Planes. The generation frequency of the Outer Bundle MAY differ from that of the Inner Bundle.
+
+### Server or Relying Party Roles (e.g., Central Cloud)
+
+- **Verification**: The Relying Party (e.g., an Istio Envoy proxy) verifies both the Outer and Inner bundles using the registered Attestation Key (AK) public keys. 
+- **Policy Enforcement**: The Verifier checks if the `lah-tpm-ak` is present in the "Allow List" for the specific Workload Identity domain. 
+- **Registry Synchronization**: The **Central Host Identity Management Plane** periodically synchronizes rotated TPM AKs with the **Edge Host Identity Management Plane**. This synchronization is used to maintain the "Allow List" of trusted **Location Anchor Hosts** at the Relying Party.
 
 ## The Canonical Proximity Log
 
-The `host-proximity-proof-hash` MUST be generated from a **Canonical Proximity Log**, defined as the ordered concatenation of the hardware-signed PTP timing packets (specifically the **Follow_Up** and **Delay_Resp** messages) associated with the proximity handshake. This deterministic structure prevents the truncation or substitution of individual timing metadata.
+The `host-proximity-proof-hash` MUST be generated from a **Canonical Proximity Log**, defined as the ordered concatenation of the hardware-signed PTP timing packets (specifically the **Follow_Up** and **Delay_Resp** messages) associated with the proximity handshake. This deterministic bitwise structure ensures that all verifiers perform an identical bitwise match regardless of platform. For Unified Hosts (where the LAH and Workload Host are the same), the hash SHALL be the constant **"SELF"**, defined as the 32-byte hash `SHA-256("V-GAP-LOCAL-BUS-PROXIMITY")`.
 
 # Scalable Fleet Management
 
@@ -405,7 +467,7 @@ Managing hardware-rooted identities at scale requires a **Dual Federation** mode
 
 * **Edge-to-Cloud Handshake:** The Edge Host Identity Management Plane SHALL maintain local Attestation Keys (AKs) for the `host-tpm-ak` and `lah-tpm-ak` to support offline SVID issuance. Periodically, these AKs MUST be synchronized with the Cloud-based **Sovereign Registry**.
 * **Rotation Proofs:** The Cloud Host Identity Management Plane MUST ONLY accept a newly synced AK if the Edge Host Identity Management Plane provides a **"Rotation Proof"**. This proof SHALL be either:
-    - A digital signature from the *preceding* AK blessing the new AK.
+    - A digital signature from the *preceding* AK blessing the new AK (creating a verifiable hash chain).
     - A fresh Out-of-Band (OOB) quote from the hardware root of trust (i.e., iLO 7) verifying the new AK was generated in approved silicon.
 * **Hardware-Rooted Registry:** The Sovereign Verifier MUST maintain a registry mapping verified AKs to their manufacturer **Endorsement Key (EK)** certificates.
 * **Credential Activation (Handshake) & The On-Demand Kill-Switch:** To avoid the "MakeCredential tax" (high-latency challenge/response) on every request, the Verifier SHALL perform the full **TPM2_MakeCredential** procedure (linked to the manufacturer EK and HPE Root CA) only upon:
@@ -500,10 +562,9 @@ The Identity Agent TPM plugin is a process with elevated privileges that has acc
 
 Step 1 (Identity Agent TPM APP ID issuance):
 
-1. The Identity Agent TPM plugin generates a TPM APP private key for proof of residency on the Workload Host for each start/restart.
-2. The Identity Agent TPM plugin sends the TPM APP public key, TPM AK public key and TPM EK certificate attestation parameters to the Workload Identity Management Plane.
-3. The Workload Identity Management Plane verifies the attestation parameters. It then validates that the TPM EK certificate is in the trusted TPM EK certificate list with the Host Identity Management Plane (e.g. Keylime Verifier).
-4. If validation passes, the Workload Identity Management Plane generates a credential activation challenge. The challenge's secret is encrypted using the Identity Agent TPM APP public key.
+1. The Identity Agent TPM plugin sends the TPM APP public key, TPM AK public key and TPM EK certificate attestation parameters to the Workload Identity Management Plane.
+2. The Workload Identity Management Plane verifies the attestation parameters. It then validates that the TPM EK certificate is in the trusted TPM EK certificate list with the Host Identity Management Plane (e.g. Keylime Verifier).
+3. If validation passes, the Workload Identity Management Plane generates a credential activation challenge. The challenge's secret is encrypted using the Identity Agent TPM APP public key.
 5. The Workload Identity Management Plane sends the challenge to the Identity Agent.
 6. The Identity Agent decrypts the challenge's secret using its TPM APP private key.
 7. The Identity Agent sends back the decrypted secret.
@@ -514,14 +575,14 @@ Step 2 (Identity Agent ID issuance):
 
 1. The Identity Agent generates a private/public key pair.
 2. The Identity Agent uses the TPM APP private key, stored in the TPM, to sign the public key.
-3. The Identity Agent sends the public key, signed by the TPM APP private key, to the Workload Identity Management Plane. **This request SHOULD include the V-GAP Evidence Bundle (formatted as per the CDDL in Section 6.1) as part of the signing request.**
+3. The Identity Agent sends the public key, signed by the TPM APP private key, to the Workload Identity Management Plane. **This request SHOULD include the V-GAP Evidence Bundle (formatted as per the JSON Schema in Section 6.1) as part of the signing request.**
 4. The Workload Identity Management Plane ensures the public key is associated with a Identity Agent TPM APP ID.
 5. If validation passes, the Workload Identity Management Plane generates a credential activation challenge. The challenge's secret is encrypted using the Identity Agent public key.
 6. The Workload Identity Management Plane sends the challenge to the Identity Agent.
 7. The Identity Agent decrypts the challenge's secret using its private key.
 8. The Identity Agent sends back the decrypted secret.
 9. The Workload Identity Management Plane verifies that the decrypted secret matches the original secret used to build the challenge.
-10. The Workload Identity Management Plane issues the Identity Agent ID (SVID). **The V-GAP Evidence Bundle (CBOR-formatted) MUST be embedded as a CRITICAL X.509 extension within the Identity Agent's SVID certificate, encoded as an `OCTET STRING` containing the CBOR-encoded evidence.** The extension SHALL use the OID `1.3.6.1.4.1.60265.1.1` (V-GAP). The **Outer Seal** (Field 6 of the profile) MUST be a standard **TPM2_Quote** where the `qualifyingData` is the `lah-timestamp` (or `freshness-nonce` if present) and the `message` being signed is the SHA-256 hash of the preceding bytes in the bundle.
+10. The Workload Identity Management Plane issues the Identity Agent ID (SVID). **The V-GAP Evidence Bundle (JSON-formatted) MUST be embedded as a CRITICAL X.509 extension within the Identity Agent's SVID certificate, encoded as an `OCTET STRING` containing the UTF-8 encoded JSON evidence.** The extension SHALL use the OID `1.3.6.1.4.1.60265.1.1` (V-GAP). The **Outer Seal** (`outer-seal`) MUST be a standard **TPM2_Quote** where the `qualifyingData` is the `timestamp` (or `nonce` if present) and the `message` being signed is the SHA-256 hash of the canonical JSON representation of the bundle (excluding the `outer-seal` field itself).
 11. **Criticality Enforcement:** Any verifier that encounters a Sovereign SVID and does not support the V-GAP OID MUST reject the certificate. This ensures that a residency-constrained workload cannot accidentally be authorized by a gateway that doesn't understand the "Residency Moat."
 
 ## Deployment Option A: Workload Host OS-Based (Keylime)
@@ -989,15 +1050,14 @@ The Sovereign Verifier executes a multi-stage validation sequence to confirm the
 1.  **SVID Extraction**: Retrieve the SVID and the attached V-GAP Evidence Bundle.
 2.  **Hardware Integrity Verification**:
     - **Outer Quote**: Validate the `host-tpm-ak` signature and ensure PCR integrity (PCR 10 for software, PCR 15 for location).
-    - **Agent Integrity**: Validate the **agent-image-digest** (Field 3) against the Enterprise "Known-Good" version. This ensures that the SPIRE Agent has not been replaced by a modified or malicious binary (**Rogue Agent Protection**).
+    - **Agent Integrity**: Validate the **agent-image-digest** against the Enterprise "Known-Good" version. This ensures that the SPIRE Agent has not been replaced by a modified or malicious binary (**Rogue Agent Protection**).
 3.  **Proximity Verification**: Verify the `host-proximity-proof-hash` matches expected low-latency bounds (or the "SELF" constant).
 4.  **Inner Quote Verification**: Validate the `location-anchor-host-tpm-ak` signature and ensure the LAH hardware is an approved location source.
 5.  **Residency Validation**: Compute the ZKP or boundary check on the geolocation payload within the **lah-bundle**.
-6.  **Freshness and Clock Sync**: Ensure the `lah-timestamp` (or `freshness-nonce` if provided in Field 5) is within the policy-defined window relative to the Verifier's clock.
-7.  **Accuracy Validation**: Verify that the `accuracy-sub-claim` meets the minimum residency confidence required by the workload's policy (e.g., < 100ms drift).
-8.  **Freshness Window Policy (Clock-Warp Guard & Recovery)**: The Verifier MUST reject any bundle where the timestamp/nonce deviates from the Verifier's own hardware-anchored clock by more than a defined threshold (**Maximum Skew: +/- 100ms**).
-    - **Sync Recovery (Slow Path)**: Upon rejection due to clock-warp, the system SHOULD trigger an immediate **"Slow Path" re-attestation** (forced `TPM2_MakeCredential`).
-    - **Revocation**: If Sync Recovery fails twice consecutively, the Verifier MUST trigger an **Immediate Revocation**.
+6.  **Freshness and Clock Sync**: Ensure the `timestamp` (or `nonce` if provided in the bundle) is within the policy-defined window relative to the Verifier's clock.
+7.  **Freshness Window Policy (Clock-Warp Guard & Recovery)**: The Verifier MUST reject any bundle where the `timestamp`/`nonce` deviates from the Verifier's own hardware-anchored clock by more than a defined threshold (**Maximum Skew: +/- 100ms**).
+    - **Sync Recovery (Slow Path)**: Upon rejection due to clock-warp, the system SHOULD trigger an immediate **"Slow Path" re-attestation** (forced `TPM2_MakeCredential` challenge). This serves as a "Soft-Fail" recovery mechanism to re-synchronize the hardware clocks.
+8.  **Revocation**: If Sync Recovery fails twice consecutively or if the drift significantly exceeds a "Critical Threshold" (e.g., > 1000ms), the Verifier MUST trigger an **Immediate Revocation** of all active SVIDs for that host.
 9.  **Downstream Authorization (KMS Gatekeeping)**: Successful verification of the V-GAP Evidence Bundle SHALL be a mandatory precondition for a downstream **Key Management Service (KMS)** or Workload Identity Management Plane to release high-value assets (e.g., AI model decryption keys). The Verifier MUST propagate the "Sovereign-Verified" status to the KMS along with the residency timestamp for freshness binding.
 
 # Industry Alignment and Policy Guidance
@@ -1037,7 +1097,7 @@ In environments with extended offline periods (e.g., 48+ hours), the system main
 
 Static bearer tokens and software-only identities are vulnerable to hijacking via proxy attacks or memory scraping. This framework implements a **Double-Bind Mechanism** to prevent identity export:
 
-1.  **Identity-to-Platform Bind**: The Workload SVID is cryptographically bound to the specific `host-tpm-ak` of the compute host. If the SVID is stolen and presented from any other host, the Verifier SHALL detect a signature mismatch during mTLS PoR or DPoR verification.
+1.  **Identity-to-Platform Bind**: The Workload SVID is cryptographically bound to the specific `host-tpm-ak` of the compute host. Additionally, the **Agent Image Digest** (IMA) is structurally linked to the **Outer Seal**; the TPM Quote (Outer Seal) MUST cover the PCR (e.g., PCR 10) containing the Identity Agent's measurement. If the SVID is stolen and presented from any other host, or if the Identity Agent binary is modified, the Verifier SHALL detect a signature or measurement mismatch during mTLS PoR or DPoR verification.
 2.  **Platform-to-Location Bind**: The `host-tpm-ak` is bound to the `lah-tpm-ak` via the V-GAP nested evidence. This ensures that even if a host's entire software stack is replicated (e.g., via a VM snapshot), it cannot forge a valid proximity proof without access to the physical LAH's hardware-signed Temporal Nonce.
 
 This double-bind ensures that an identity is only valid when used by the authorized workload, on the verified hardware, at the approved physical location.
@@ -1081,11 +1141,13 @@ By addressing these considerations, the framework aims to provide a secure and r
 
 # IANA Considerations
 
-IANA is requested to register the following Object Identifier (OID) in the "SMI Numbers" registry under the "SMI Private Enterprise Numbers" (1.3.6.1.4.1) branch, or as appropriate for the V-GAP profile:
+IANA is requested to register the following Object Identifier (OID) in the "SMI Numbers" registry under the "SMI Private Enterprise Numbers" (1.3.6.1.4.1) branch, or as appropriate for the V-GAP profile. 
+
+**Mandatory Criticality:** Implementations of this profile MUST mark the X.509 extension containing the V-GAP Evidence Bundle as **CRITICAL**. This ensures that non-compliant gateways "fail-closed" rather than granting access to residency-constrained workloads.
 
 * **OID**: `1.3.6.1.4.1.60265.1.1`
 * **Description**: Verifiable Geofencing Attestation Profile (V-GAP) Evidence Bundle
-* **Reference**: This document, Section 10.
+* **Reference**: This document, Section 6 and Section 10.
 
 # Appendix - Items to follow up
 
@@ -1114,30 +1176,6 @@ There is no standard for attesting (signing) geolocation tag. If geolocation tag
 India -- Reserve Bank of India (RBI): Payment System Data Localization (2018): From RBI Circular RBI/2017-18/153 (April 6, 2018): "All system providers shall ensure that the entire data relating to payment systems operated by them are stored in a system only in India. This data should include the full end-to-end transaction details / information collected / carried / processed as part of the message / payment instruction."
 
 South Korea's Data Localization Regulations -- Geospatial Information Management Act (Spatial Data Act): Article 16, Paragraph 1: Prohibits the export of state-led survey data.
-
-# Appendix - CDDL for V-GAP Profile
-
-The following CDDL defines the structure of the V-GAP Nested Evidence Bundle, using the integer-keyed schema for EAT interoperability.
-
-```cddl
-V-GAP-Profile = {
-    1 => host-tpm-ak,                 ; bstr (Workload Host AK registered in Host Identity Mgmt Plane)
-    2 => host-proximity-proof-hash,   ; bstr (Proximity proof verified via Host Identity Mgmt Plane)
-    3 => agent-image-digest,          ; bstr (Agent image digest measured via Host Identity Mgmt Plane)
-    4 => lah-bundle,                  ; Location-Anchor-Host-Bundle
-    ? 5 => freshness-nonce,           ; bstr (Nonce provided by Workload Identity Mgmt Plane)
-    6 => host-tpm-quote-hash          ; Outer Seal over [1..5] (TPM2_Quote signed by Host AK)
-}
-
-Location-Anchor-Host-Bundle = {
-    1 => lah-tpm-ak,                  ; bstr (Anchor Host AK registered in Host Identity Mgmt Plane)
-    2 => lah-geolocation-proof-hash,  ; bstr (ZKP/Residency Hash)
-    3 => privacy-technique,           ; int (0=None, 1=ZKP)
-    4 => lah-timestamp,               ; uint (Hardware-rooted epoch)
-    5 => accuracy-sub-claim,          ; uint (Milliseconds)
-    6 => lah-tpm-quote-hash           ; Inner Seal over [1..5]
-}
-```
 
 {backmatter}
 
