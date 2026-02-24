@@ -127,17 +127,25 @@ Usage Examples:
         if md_files:
             prefixes = set()
             for f in md_files:
+                # 1. Try to match versioned file (draft-xxx-00.md)
                 match = re.match(r'(draft-.*?)-\d+\.md', f.name)
                 if match:
                     prefixes.add(match.group(1))
+                # 2. Try to match master file (draft-xxx.md) if it doesn't have a version
+                elif not re.search(r'-\d+(\.|$)', f.name):
+                    prefixes.add(f.stem)
+            
             if len(prefixes) == 1:
                 args.prefix = list(prefixes)[0]
                 print(f"Inferred prefix: {args.prefix}")
+            elif len(prefixes) > 1:
+                print(f"Error: Multiple prefixes found ({prefixes}). Specify --prefix.")
+                sys.exit(1)
             else:
-                print("Error: Could not infer prefix. Specify --prefix.")
+                print("Error: Could not infer prefix from draft files. Specify --prefix.")
                 sys.exit(1)
         else:
-            print("Error: No versioned .md files found.")
+            print("Error: No draft-*.md files found.")
             sys.exit(1)
 
     if args.version:
