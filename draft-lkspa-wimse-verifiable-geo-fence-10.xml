@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- name="GENERATOR" content="github.com/mmarkdown/mmark Mmark Markdown Processor - mmark.miek.nl" -->
-<rfc version="3" ipr="trust200902" docName="draft-lkspa-wimse-verifiable-geo-fence-08" submissionType="IETF" category="info" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true">
+<rfc version="3" ipr="trust200902" docName="draft-lkspa-wimse-verifiable-geo-fence-10" submissionType="IETF" category="info" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true">
 
 <front>
-<title abbrev="RATS-GEO-POR">Verifiable Geofencing and Residency Proofs for Sovereign Workloads: A RATS Profile</title><seriesInfo value="draft-lkspa-wimse-verifiable-geo-fence-08" stream="IETF" status="informational" name="Internet-Draft"></seriesInfo>
+<title abbrev="RATS-GEO-POR">Verifiable Geofencing and Residency Proofs for Sovereign Workloads: A RATS Profile</title><seriesInfo value="draft-lkspa-wimse-verifiable-geo-fence-10" stream="IETF" status="informational" name="Internet-Draft"></seriesInfo>
 <author initials="R." surname="Krishnan" fullname="Ram Krishnan"><organization>JPMorgan Chase &amp; Co.</organization><address><postal><street></street>
 </postal><email>ramkri123@gmail.com</email>
 </address></author><author initials="N." surname="Smith" fullname="Ned Smith"><organization>Intel</organization><address><postal><street></street>
@@ -371,8 +371,8 @@
 </section>
 </section>
 
-<section anchor="hardware-rooted-attestation-layers"><name>Hardware-Rooted Attestation Layers</name>
-<t>This section describes the technical mechanics for Layer 2 (Platform) and Layer 3 (Location) attestation.</t>
+<section anchor="hardware-rooted-attestation-mechanics-layer-2-and-3"><name>Hardware-Rooted Attestation Mechanics (Layer 2 and 3)</name>
+<t>This section describes the technical mechanics for platform and location attestation.</t>
 
 <section anchor="tpm-platform-attestation-layer-2"><name>TPM Platform Attestation (Layer 2)</name>
 <t>TPM Platform Attestation establishes host integrity through Endorsement Key (EK) verification and Measured Boot (PCRs).</t>
@@ -443,6 +443,10 @@
 <section anchor="privacy-preserving-geolocation-verification-zkp"><name>Privacy-Preserving Geolocation Verification (ZKP)</name>
 <t>Mathematical transparency is achieved through non-interactive, hash-based ZKPs (e.g., STARKs/FRI) to prove residency without disclosing exact coordinates.</t>
 </section>
+</section>
+
+<section anchor="confidential-computing-considerations"><name>Confidential Computing Considerations</name>
+<t>Deployments in TEEs (e.g., Intel SGX, AMD SEV) MUST bind the V-GAP Evidence to the TEE quote via a shared nonce or public key hash in the TPM's PCRs.</t>
 </section>
 
 <section anchor="measured-boot-and-os-integrity-attestation"><name>Measured Boot and OS Integrity Attestation</name>
@@ -1084,69 +1088,16 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 </ol>
 </section>
 
-<section anchor="implementation-and-compliance-considerations"><name>Implementation and Compliance Considerations</name>
-<t>This section covers Confidential Computing, alignment with industry gaps, and policy implementer guidance.</t>
-
-<section anchor="confidential-computing-considerations"><name>Confidential Computing Considerations</name>
-<t>In confidential computing, the host operating system cannot be trusted. Instead, the platform owner must maintain and verify the relationships between three hardware identifiers:</t>
-
-<ul spacing="compact">
-<li><t>Hardware-rooted certification key -- Vendor-issued, CPU-bound asymmetric key pair used to either sign attestation evidence directly (AMD VCEK) or certify an attestation signing key (Intel PCK). Always anchored in the vendor's root CA.</t>
-
-<ul spacing="compact">
-<li>AMD SEV-SNP &quot;Versioned Chip Endorsement Key -- VCEK&quot; is defined in the AMD SEV-SNP ABI specification (Chapter 1, Glossary, Table 2).</li>
-<li>Intel TDX, &quot;Provisioning Certification Key -- PCK&quot; is defined in the Intel TDX DCAP Quoting Library API documentation (Page 6, Table 1-1: Terminology). Role: Certifies the Attestation Key inside the TDX Quoting Enclave, which signs the quote.</li>
-</ul></li>
-<li>TPM Endorsement Key (EK)</li>
-<li>Geolocation Sensor ID + public key</li>
-</ul>
-<t>Proof of Residency:</t>
-
-<ul spacing="compact">
-<li>The confidential workload generates a hardware attestation that includes its hardware-rooted certification key.</li>
-<li>The platform owner receives this attestation and binds the reported hardware-rooted certification key to the TPM EK.</li>
-<li>This binding produces a cryptographic proof that the workload is running on the expected physical CPU.</li>
-</ul>
-<t>Proof of Geolocation:</t>
-
-<ul spacing="compact">
-<li>The geolocation sensor creates a signed location report using its private key. This is supported in popular GNSS sensors such as u-blox.</li>
-<li>An agent on the bare-metal host periodically polls the sensor and collects these signed reports.</li>
-<li>The platform owner maps each sensor's ID and its signed geolocation to the corresponding CPU ID and TPM EK.</li>
-<li>This mapping yields a verifiable proof that the workload is executing at the claimed physical location.</li>
-</ul>
-<t>Note: The Intel SGX Attestation Service utilizing the Enhanced Privacy ID (EPID) group-signature mechanism is a legacy, privacy-preserving attestation path. Intel has announced that this service will reach end-of-life on April 2 2025, after which EPID-based attestation will no longer be supported. This discussion focuses on current attestation models (e.g., ECDSA-based DCAP for SGX and PCK-based attestation for TDX) and excludes EPID/DAA from scope. ECDSA-based DCAP for SGX and PCK-based attestation for TDX are closely related in structure and trust model -- both are part of Intel's Data Center Attestation Primitives (DCAP).</t>
-<t>Deployments in TEEs (e.g., Intel SGX, AMD SEV) MUST bind the V-GAP Evidence to the TEE quote via a shared nonce or public key hash in the TPM's PCRs.</t>
-</section>
+<section anchor="industry-alignment-and-policy-guidance"><name>Industry Alignment and Policy Guidance</name>
+<t>This section maps the solution to identified gaps and provides implementer guidance.</t>
 
 <section anchor="solution-mapping-to-industry-gaps"><name>Solution Mapping to Industry Gaps</name>
-<t>This section maps the layered attestation framework to the industry gaps identified in the Industry Gaps section.</t>
-
-<ul>
-<li><t><strong>Host TPMs for Signature</strong> challenges are addressed by Layer 2 (TPM Platform Attestation): The Workload Identity Agent private key is used for signing, and the Workload Identity Agent public key is signed by the Host TPM APP private key providing a cryptographically verifiable proof of residency of the Workload Identity Agent on the host. Workloads use the Workload Identity Agent to sign requests, avoiding the TPM performance bottleneck (approximately 5 signatures/second).</t>
-</li>
-<li><t><strong>Bearer Tokens</strong>, <strong>PoP Token</strong>, <strong>PoP via Mutual TLS</strong> challenges are addressed by the Workload Identity Agent's ability to provide a cryptographically verifiable proof of residency (Layer 2) which can be consumed by the protocol flows defined in [[I-D.mw-wimse-transitive-attestation]].</t>
-</li>
-<li><t><strong>IP Address-Based Location</strong> and <strong>Wi-Fi-Based Location</strong> challenges are addressed by Layer 3 (Geolocation HW-Based Attestation): Combination of host-local location sensors (e.g., GNSS) with direct hardware-based attestation and mobile network location services provides a more reliable and cryptographically verifiable location than IP address, Wi-Fi-based methods or existing Host OS location services.</t>
-</li>
-<li><t><strong>Trust in Transit</strong> challenges are addressed by the immutable, hardware-rooted attestation established by the Workload Identity Agent, which provides tamper-evident proof of origin across organizational boundaries.</t>
-</li>
-<li><t><strong>IPSEC</strong> challenges are addressed via the PoR mechanism described in [[I-D.mw-wimse-transitive-attestation]], which binds the IKEv2 exchange to the host-level attestation provided by the Workload Identity Agent.</t>
-</li>
-</ul>
-</section>
+<t>The V-GAP profile directly addresses the lack of high-assurance geolocation in transit and the vulnerability of bearer tokens in multi-tenant cloud environments.</t>
 </section>
 
 <section anchor="authorization-policy-implementers"><name>Authorization Policy Implementers</name>
-<t>Policy implementers use attested geographic boundary from Workload to make decisions. Example implementers:</t>
-
-<ul spacing="compact">
-<li>Intermediate proxies (e.g., API gateway, Firewall)</li>
-<li>SaaS application.</li>
-<li>K8s node agent.</li>
-<li>OS process scheduler.</li>
-</ul>
-<t>If the policy implementer is at the SaaS application level, things are simpler. However, if it is pushed down to, say, K8s or OS process scheduler or JVM class loader/deserializer, then malware can be prevented (similar to a code-signed application).</t>
+<t>Relying Parties SHOULD use the V-GAP results to enforce Attribute-Based Access Control (ABAC), where &quot;Residency&quot; is a mandatory claim for sensitive data access.</t>
+</section>
 </section>
 
 <section anchor="security-considerations"><name>Security Considerations</name>
