@@ -100,7 +100,7 @@
 <dt>N_fusion (Workload Fusion Nonce):</dt>
 <dd>A nonce provided by the Workload Identity Manager specifically for the Workload Identity Agent-to-Workload proof-of-residency / identity fusion flows. This nonce MAY traverse the Workload Host OS.</dd>
 <dt>N_platform vs. N_fusion Binding:</dt>
-<dd>To prevent &quot;mix-and-match&quot; attacks where an attacker combines a fresh workload identity with a stale platform quote, the Host Management Plane SHALL cryptographically bind the two nonces. This is typically achieved by the Host Management Plane signing an Attestation Result that includes both <tt>N_fusion</tt> (or its hash) and the hardware-attested platform claims verified via <tt>N_platform</tt>.</dd>
+<dd>To prevent &quot;mix-and-match&quot; attacks where an attacker combines a fresh workload identity with a stale platform quote, the Host Management Plane SHALL cryptographically bind the two nonces. The Attestation Result produced by the Verifier MUST contain a <strong>Joint Digital Signature</strong> over both <tt>N_fusion</tt> and the hardware-attested platform claims verified via <tt>N_platform</tt>. This ensures that the issued SVID is structurally tied to the specific hardware state observed during that exact attestation window.</dd>
 </dl>
 </section>
 
@@ -311,12 +311,12 @@
     1 => bstr,                      ; Workload Host AK
     2 => bstr,                      ; Hash of PTP logs or "SELF"
     3 => Inner-Evidence-Bundle,     ; The nested LAH bundle
-    4 => bstr                       ; Atomic Seal over [1, 2, 3]
+    4 => bstr                       ; Atomic Seal (TPM2_Quote)
 }
 
 Inner-Evidence-Bundle = {
     1 => bstr,                      ; Location Anchor Host AK
-    2 => bstr,                      ; ZKP/Residency Hash
+    2 => bstr,                      ; lah-geolocation-proof-hash (ZKP/Residency)
     3 => int,                       ; Privacy Technique (0=None, 1=ZKP, 2=TEE)
     4 => uint,                      ; Hardware-rooted epoch (Timestamp)
     ? 5 => bstr,                    ; Optional freshness-nonce
@@ -354,7 +354,7 @@ Inner-Evidence-Bundle = {
 <ul spacing="compact">
 <li><strong>Edge SPIRE Server:</strong> SVID issuance is distributed to Edge SPIRE Servers located within the same sovereign boundary as the workloads.</li>
 <li><strong>Regional Specificity:</strong> SVIDs issued by an Edge SPIRE server are cryptographically restricted to that specific deployment and cannot be used in other regions.</li>
-<li><strong>Unified Host Proximity Enforcement:</strong> In deployments where the Location Anchor Host (LAH) and Workload Host are the same physical machine (Unified Host), the proximity proof MUST be generated via an <strong>internal silicon measurement</strong> (e.g., measuring PCIe latency or local bus delay) rather than a network protocol. In this case, the <tt>host-proximity-proof-hash</tt> SHALL be set to the well-known hardware constant <strong>&quot;SELF&quot;</strong>. The Verifier SHALL validate that the reported bus latency is within the microsecond bounds of local silicon to prevent a remote attacker from spoofing a 1:1 residency status.</li>
+<li><strong>Unified Host Proximity Enforcement:</strong> In deployments where the Location Anchor Host (LAH) and Workload Host are the same physical machine (Unified Host), the proximity proof MUST be generated via an <strong>internal silicon measurement</strong> (e.g., measuring PCIe latency or local bus delay) rather than a network protocol. In this case, the <tt>host-proximity-proof-hash</tt> SHALL be set to the cryptographic constant <strong>&quot;SELF&quot;</strong>, formally defined as the 32-byte value <tt>SHA-256(&quot;Aegis-Self-Proximity&quot;)</tt>. The Verifier SHALL validate that the reported bus latency is within the microsecond bounds of local silicon to prevent a remote attacker from spoofing a 1:1 residency status.</li>
 </ul>
 
 <section anchor="end-user-location-anchor-host"><name>End user location anchor host</name>
@@ -483,7 +483,7 @@ Inner-Evidence-Bundle = {
 <li>The Workload Identity Agent decrypts the challenge's secret using its private key.</li>
 <li>The Workload Identity Agent sends back the decrypted secret.</li>
 <li>The Workload Identity Manager verifies that the decrypted secret matches the original secret used to build the challenge.</li>
-<li>The Workload Identity Manager issues the Workload Identity Agent ID (SVID). <strong>The V-GAP Evidence Bundle (CDDL profile) MUST be embedded as a CRITICAL X.509 extension within the Workload Identity Agent's SVID certificate.</strong></li>
+<li>The Workload Identity Manager issues the Workload Identity Agent ID (SVID). <strong>The V-GAP Evidence Bundle (CDDL profile) MUST be embedded as a CRITICAL X.509 extension within the Workload Identity Agent's SVID certificate.</strong> The <strong>Atomic Seal</strong> (Field 4 of the profile) MUST be a standard <strong>TPM2_Quote</strong> where the <tt>qualifyingData</tt> is the <tt>temporal-nonce</tt> and the <tt>message</tt> being signed is the SHA-256 hash of the preceding bytes in the bundle.</li>
 <li><strong>Criticality Enforcement:</strong> Any verifier that encounters a Sovereign SVID and does not support the V-GAP OID MUST reject the certificate. This ensures that a residency-constrained workload cannot accidentally be authorized by a gateway that doesn't understand the &quot;Residency Moat.&quot;</li>
 </ol>
 </section>
@@ -710,7 +710,7 @@ These monitoring functions are performed over dedicated, low-level hardware inte
 <section anchor="architecture-2"><name>Architecture</name>
 
 <ol spacing="compact">
-<li><strong>Virtual TPM (vTPM):</strong> Provided by the hypervisor to the guest VM. It supports standard TPM 2.0 commands, including PCR extension and Quote generation. For example, <strong>AWS NitroTPM</strong> conforms to the TPM 2.0 specification and provides a series of Nitro-specific PCR values that reflect the instance state. When used with <strong>Amazon EKS</strong>, each worker node in a Managed Node Group can be equipped with a NitroTPM manually (via AMI settings) to enable hardware-rooted Workload Host attestation.</li>
+<li><strong>Virtual TPM (vTPM):</strong> Provided by the hypervisor to the guest VM. It supports standard TPM 2.0 commands, including PCR extension and Quote generation. For example, <strong>AWS NitroTPM</strong> conforms to the TPM 2.0 specification and provides a series of Nitro-specific PCR values that reflect the instance state. When used with <strong>Amazon EKS</strong>, each worker node in a Managed Node Group can be equipped with a NitroTPM manually (via AMI settings) to enable hardware-rooted Workload Host attestation. The vTPM is rooted in the <strong>Cloud Provider's Hardware Root of Trust</strong> (e.g., Nitro Security Chip), ensuring that the virtualized environment is anchored to physical silicon.</li>
 <li><strong>Guest OS Agent (SPIRE Agent):</strong> Runs as a system daemon within the VM (or EKS node). It interacts with the vTPM to record boot measurements and workload identities. On AWS, the <strong><tt>nitro-tpm-attest</tt></strong> utility can be used at runtime to retrieve a signed Attestation Document for the instance.</li>
 <li><strong>Cloud Attestation Service / Host Management Plane:</strong> Most cloud providers offer an API or hypervisor-level service (<strong>Host Management Plane</strong>) that provides a signed document containing the vTPM measurements, VM identity, and potentially the Workload Host hardware status. The AWS Nitro Hypervisor generates these documents in <strong>CBOR/COSE</strong> format, signed by the AWS Nitro Attestation PKI.</li>
 </ol>
@@ -1082,7 +1082,7 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 <li><strong>Residency Validation</strong>: Compute the ZKP or boundary check on the geolocation payload.</li>
 <li><strong>Freshness and Clock Sync</strong>: Ensure the <tt>temporal-nonce</tt> is within the policy-defined window relative to the Verifier's clock.</li>
 <li><strong>Accuracy Validation</strong>: Verify that the <tt>accuracy-sub-claim</tt> meets the minimum residency confidence required by the workload's policy (e.g., &lt; 100ms drift).</li>
-<li><strong>Freshness Window Policy (Clock-Warp Guard)</strong>: The Verifier MUST reject any bundle where the <tt>temporal-nonce</tt> deviates from the Verifier's own hardware-anchored clock by more than a defined threshold (<strong>Maximum Skew: +/- 100ms</strong>). This ensures hardware remains synchronized via Attested PTP and prevents replay-by-clock-warp attacks.</li>
+<li><strong>Freshness Window Policy (Clock-Warp Guard)</strong>: The Verifier MUST reject any bundle where the <tt>temporal-nonce</tt> deviates from the Verifier's own hardware-anchored clock by more than a defined threshold (<strong>Maximum Skew: +/- 100ms</strong>). On rejection, the system SHOULD attempt a <strong>Sync Recovery</strong> (forcing a new <tt>N_platform</tt> challenge and PTP resynchronization). If Sync Recovery fails twice consecutively, the Verifier MUST trigger an <strong>Immediate Revocation</strong> of the Workload Identity Agent's keys.</li>
 </ol>
 </section>
 
@@ -1123,7 +1123,7 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 <section anchor="technical-security-considerations"><name>Technical Security Considerations</name>
 
 <section anchor="anti-tunneling-and-tee-enforced-proximity"><name>Anti-Tunneling and TEE-Enforced Proximity</name>
-<t>To prevent &quot;Proxy Attacks&quot; (where PTP packets are tunneled to a remote anchor to fake proximity), the <strong>Attested PTP daemon</strong> MUST execute within a <strong>Trusted Execution Environment (TEE)</strong> or a secure security processor (e.g., iLO 7). This ensures that the round-trip measurements (RTT) are signed in silicon at the point of origin, preventing a compromised Workload Host OS from manipulating results to mask geographic distance.</t>
+<t>To prevent &quot;Proxy Attacks&quot; (where PTP packets are tunneled to a remote anchor to fake proximity), the <strong>Attested PTP daemon</strong> MUST execute within a <strong>Trusted Execution Environment (TEE)</strong> or a secure security processor (e.g., iLO 7). This ensures that the round-trip measurements (RTT) are signed in silicon at the point of origin via <strong>Signed PTP Messages</strong> (e.g., signed <tt>Follow_Up</tt> or <tt>Delay_Resp</tt> packets), preventing a compromised Workload Host OS from manipulating results to mask geographic distance.</t>
 
 <ul>
 <li><t><strong>TPM and Hardware Trust</strong>: The security of the solution depends on the integrity of the TPM and other hardware roots of trust. Physical attacks, firmware vulnerabilities, or supply chain compromises could undermine attestation. Regular updates, secure provisioning, and monitoring are required.</t>
@@ -1138,7 +1138,7 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 </li>
 <li><t><strong>Policy Enforcement</strong>: The enforcement of geofence policies must be robust against attempts by malicious workloads or agents to bypass controls. Policy decisions should be based on verifiable, signed attestation evidence.</t>
 </li>
-<li><t><strong>Time Source Integrity &amp; Clock Warp</strong>: Trusted time sources are necessary to prevent replay attacks and ensure the freshness of attestation data. The Verifier MUST enforce the <strong>Freshness Window Policy (+/- 100ms)</strong> defined in Section 10 to guard against clock-drift or clock-warp attacks.</t>
+<li><t><strong>Time Source Integrity &amp; Clock Warp</strong>: Trusted time sources are necessary to prevent replay attacks and ensure the freshness of attestation data. The Verifier MUST enforce the <strong>Freshness Window Policy (+/- 100ms)</strong> defined in Section 10 to guard against clock-drift or clock-warp attacks. Failure to maintain synchronization within this window MUST trigger the <strong>Sync Recovery</strong> or <strong>Immediate Revocation</strong> protocols.</t>
 </li>
 <li><t><strong>Datastore Security</strong>: The Host hardware identity datastore containing trusted Workload Host compositions and location sensor details must be protected against unauthorized access and tampering, using encryption and access controls.</t>
 </li>
@@ -1207,7 +1207,7 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 
 Inner-Evidence-Bundle = {
     1 => lah-tpm-ak,                ; bstr (Anchor Host AK)
-    2 => geo-privacy-proof-hash,    ; bstr (ZKP/Residency Hash)
+    2 => lah-geolocation-proof-hash,    ; bstr (ZKP/Residency Hash)
     3 => privacy-technique,         ; int (0=None, 1=ZKP, 2=TEE)
     4 => lah-timestamp,             ; uint (Hardware-rooted epoch)
     ? 5 => freshness-nonce,         ; bstr (Optional if timestamp is attested)

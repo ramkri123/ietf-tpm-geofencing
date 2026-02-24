@@ -182,7 +182,7 @@ N_fusion (Workload Fusion Nonce):
 : A nonce provided by the Workload Identity Manager specifically for the Workload Identity Agent-to-Workload proof-of-residency / identity fusion flows. This nonce MAY traverse the Workload Host OS.
 
 N_platform vs. N_fusion Binding:
-: To prevent "mix-and-match" attacks where an attacker combines a fresh workload identity with a stale platform quote, the Host Management Plane SHALL cryptographically bind the two nonces. This is typically achieved by the Host Management Plane signing an Attestation Result that includes both `N_fusion` (or its hash) and the hardware-attested platform claims verified via `N_platform`.
+: To prevent "mix-and-match" attacks where an attacker combines a fresh workload identity with a stale platform quote, the Host Management Plane SHALL cryptographically bind the two nonces. The Attestation Result produced by the Verifier MUST contain a **Joint Digital Signature** over both `N_fusion` and the hardware-attested platform claims verified via `N_platform`. This ensures that the issued SVID is structurally tied to the specific hardware state observed during that exact attestation window.
 
 # Introduction
 
@@ -349,12 +349,12 @@ V-GAP-Profile = {
     1 => bstr,                      ; Workload Host AK
     2 => bstr,                      ; Hash of PTP logs or "SELF"
     3 => Inner-Evidence-Bundle,     ; The nested LAH bundle
-    4 => bstr                       ; Atomic Seal over [1, 2, 3]
+    4 => bstr                       ; Atomic Seal (TPM2_Quote)
 }
 
 Inner-Evidence-Bundle = {
     1 => bstr,                      ; Location Anchor Host AK
-    2 => bstr,                      ; ZKP/Residency Hash
+    2 => bstr,                      ; lah-geolocation-proof-hash (ZKP/Residency)
     3 => int,                       ; Privacy Technique (0=None, 1=ZKP, 2=TEE)
     4 => uint,                      ; Hardware-rooted epoch (Timestamp)
     ? 5 => bstr,                    ; Optional freshness-nonce
@@ -384,7 +384,7 @@ To maintain sub-microsecond determinism and regional sovereignty, identity issua
 
 * **Edge SPIRE Server:** SVID issuance is distributed to Edge SPIRE Servers located within the same sovereign boundary as the workloads.
 * **Regional Specificity:** SVIDs issued by an Edge SPIRE server are cryptographically restricted to that specific deployment and cannot be used in other regions.
-* **Unified Host Proximity Enforcement:** In deployments where the Location Anchor Host (LAH) and Workload Host are the same physical machine (Unified Host), the proximity proof MUST be generated via an **internal silicon measurement** (e.g., measuring PCIe latency or local bus delay) rather than a network protocol. In this case, the `host-proximity-proof-hash` SHALL be set to the well-known hardware constant **"SELF"**. The Verifier SHALL validate that the reported bus latency is within the microsecond bounds of local silicon to prevent a remote attacker from spoofing a 1:1 residency status.
+* **Unified Host Proximity Enforcement:** In deployments where the Location Anchor Host (LAH) and Workload Host are the same physical machine (Unified Host), the proximity proof MUST be generated via an **internal silicon measurement** (e.g., measuring PCIe latency or local bus delay) rather than a network protocol. In this case, the `host-proximity-proof-hash` SHALL be set to the cryptographic constant **"SELF"**, formally defined as the 32-byte value `SHA-256("Aegis-Self-Proximity")`. The Verifier SHALL validate that the reported bus latency is within the microsecond bounds of local silicon to prevent a remote attacker from spoofing a 1:1 residency status.
 
 ## End user location anchor host
 
@@ -479,7 +479,7 @@ Step 2 (Workload Identity Agent ID issuance):
 7. The Workload Identity Agent decrypts the challenge's secret using its private key.
 8. The Workload Identity Agent sends back the decrypted secret.
 9. The Workload Identity Manager verifies that the decrypted secret matches the original secret used to build the challenge.
-10. The Workload Identity Manager issues the Workload Identity Agent ID (SVID). **The V-GAP Evidence Bundle (CDDL profile) MUST be embedded as a CRITICAL X.509 extension within the Workload Identity Agent's SVID certificate.**
+10. The Workload Identity Manager issues the Workload Identity Agent ID (SVID). **The V-GAP Evidence Bundle (CDDL profile) MUST be embedded as a CRITICAL X.509 extension within the Workload Identity Agent's SVID certificate.** The **Atomic Seal** (Field 4 of the profile) MUST be a standard **TPM2_Quote** where the `qualifyingData` is the `temporal-nonce` and the `message` being signed is the SHA-256 hash of the preceding bytes in the bundle.
 11. **Criticality Enforcement:** Any verifier that encounters a Sovereign SVID and does not support the V-GAP OID MUST reject the certificate. This ensures that a residency-constrained workload cannot accidentally be authorized by a gateway that doesn't understand the "Residency Moat."
 
 ## Deployment Option A: Workload Host OS-Based (Keylime)
@@ -669,7 +669,7 @@ In cloud environments, physical TPM access is typically virtualized. Cloud provi
 
 ### Architecture
 
-1. **Virtual TPM (vTPM):** Provided by the hypervisor to the guest VM. It supports standard TPM 2.0 commands, including PCR extension and Quote generation. For example, **AWS NitroTPM** conforms to the TPM 2.0 specification and provides a series of Nitro-specific PCR values that reflect the instance state. When used with **Amazon EKS**, each worker node in a Managed Node Group can be equipped with a NitroTPM manually (via AMI settings) to enable hardware-rooted Workload Host attestation.
+1. **Virtual TPM (vTPM):** Provided by the hypervisor to the guest VM. It supports standard TPM 2.0 commands, including PCR extension and Quote generation. For example, **AWS NitroTPM** conforms to the TPM 2.0 specification and provides a series of Nitro-specific PCR values that reflect the instance state. When used with **Amazon EKS**, each worker node in a Managed Node Group can be equipped with a NitroTPM manually (via AMI settings) to enable hardware-rooted Workload Host attestation. The vTPM is rooted in the **Cloud Provider's Hardware Root of Trust** (e.g., Nitro Security Chip), ensuring that the virtualized environment is anchored to physical silicon.
 2. **Guest OS Agent (SPIRE Agent):** Runs as a system daemon within the VM (or EKS node). It interacts with the vTPM to record boot measurements and workload identities. On AWS, the **`nitro-tpm-attest`** utility can be used at runtime to retrieve a signed Attestation Document for the instance.
 3. **Cloud Attestation Service / Host Management Plane:** Most cloud providers offer an API or hypervisor-level service (**Host Management Plane**) that provides a signed document containing the vTPM measurements, VM identity, and potentially the Workload Host hardware status. The AWS Nitro Hypervisor generates these documents in **CBOR/COSE** format, signed by the AWS Nitro Attestation PKI.
 
@@ -949,7 +949,7 @@ The Sovereign Verifier executes a multi-stage validation sequence to confirm the
 5.  **Residency Validation**: Compute the ZKP or boundary check on the geolocation payload.
 6.  **Freshness and Clock Sync**: Ensure the `temporal-nonce` is within the policy-defined window relative to the Verifier's clock.
 7.  **Accuracy Validation**: Verify that the `accuracy-sub-claim` meets the minimum residency confidence required by the workload's policy (e.g., < 100ms drift).
-8.  **Freshness Window Policy (Clock-Warp Guard)**: The Verifier MUST reject any bundle where the `temporal-nonce` deviates from the Verifier's own hardware-anchored clock by more than a defined threshold (**Maximum Skew: +/- 100ms**). This ensures hardware remains synchronized via Attested PTP and prevents replay-by-clock-warp attacks.
+8.  **Freshness Window Policy (Clock-Warp Guard)**: The Verifier MUST reject any bundle where the `temporal-nonce` deviates from the Verifier's own hardware-anchored clock by more than a defined threshold (**Maximum Skew: +/- 100ms**). On rejection, the system SHOULD attempt a **Sync Recovery** (forcing a new `N_platform` challenge and PTP resynchronization). If Sync Recovery fails twice consecutively, the Verifier MUST trigger an **Immediate Revocation** of the Workload Identity Agent's keys.
 
 # Industry Alignment and Policy Guidance
 
@@ -987,7 +987,7 @@ This double-bind ensures that an identity is only valid when used by the authori
 
 ### Anti-Tunneling and TEE-Enforced Proximity
 
-To prevent "Proxy Attacks" (where PTP packets are tunneled to a remote anchor to fake proximity), the **Attested PTP daemon** MUST execute within a **Trusted Execution Environment (TEE)** or a secure security processor (e.g., iLO 7). This ensures that the round-trip measurements (RTT) are signed in silicon at the point of origin, preventing a compromised Workload Host OS from manipulating results to mask geographic distance.
+To prevent "Proxy Attacks" (where PTP packets are tunneled to a remote anchor to fake proximity), the **Attested PTP daemon** MUST execute within a **Trusted Execution Environment (TEE)** or a secure security processor (e.g., iLO 7). This ensures that the round-trip measurements (RTT) are signed in silicon at the point of origin via **Signed PTP Messages** (e.g., signed `Follow_Up` or `Delay_Resp` packets), preventing a compromised Workload Host OS from manipulating results to mask geographic distance.
 
 - **TPM and Hardware Trust**: The security of the solution depends on the integrity of the TPM and other hardware roots of trust. Physical attacks, firmware vulnerabilities, or supply chain compromises could undermine attestation. Regular updates, secure provisioning, and monitoring are required.
 
@@ -1001,7 +1001,7 @@ To prevent "Proxy Attacks" (where PTP packets are tunneled to a remote anchor to
 
 - **Policy Enforcement**: The enforcement of geofence policies must be robust against attempts by malicious workloads or agents to bypass controls. Policy decisions should be based on verifiable, signed attestation evidence.
 
-- **Time Source Integrity & Clock Warp**: Trusted time sources are necessary to prevent replay attacks and ensure the freshness of attestation data. The Verifier MUST enforce the **Freshness Window Policy (+/- 100ms)** defined in Section 10 to guard against clock-drift or clock-warp attacks.
+- **Time Source Integrity & Clock Warp**: Trusted time sources are necessary to prevent replay attacks and ensure the freshness of attestation data. The Verifier MUST enforce the **Freshness Window Policy (+/- 100ms)** defined in Section 10 to guard against clock-drift or clock-warp attacks. Failure to maintain synchronization within this window MUST trigger the **Sync Recovery** or **Immediate Revocation** protocols.
 
 - **Datastore Security**: The Host hardware identity datastore containing trusted Workload Host compositions and location sensor details must be protected against unauthorized access and tampering, using encryption and access controls.
 
@@ -1066,7 +1066,7 @@ V-GAP-Profile = {
 
 Inner-Evidence-Bundle = {
     1 => lah-tpm-ak,                ; bstr (Anchor Host AK)
-    2 => geo-privacy-proof-hash,    ; bstr (ZKP/Residency Hash)
+    2 => lah-geolocation-proof-hash,    ; bstr (ZKP/Residency Hash)
     3 => privacy-technique,         ; int (0=None, 1=ZKP, 2=TEE)
     4 => lah-timestamp,             ; uint (Hardware-rooted epoch)
     ? 5 => freshness-nonce,         ; bstr (Optional if timestamp is attested)
