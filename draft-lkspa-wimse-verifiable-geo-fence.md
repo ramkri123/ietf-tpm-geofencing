@@ -108,7 +108,7 @@ The architecture follows the **RATS Architecture [[RFC9334]]**, defining the int
 
 ## Strategic Narrative: Hardware-Enforced Sovereignty (The Symmetry of Trust)
 
-The Aegis framework establishes a "Silicon-to-Audit" chain of trust built on two parallel but federated pillars: the **Workload Identity Management Plane** and the **Host Identity Management Plane**. This symmetry allows for the binding of ephemeral software identities to persistent silicon identities, bridging the "Perception Gap" in modern distributed systems.
+This framework establishes a "Silicon-to-Audit" chain of trust built on two parallel but federated pillars: the **Workload Identity Management Plane** and the **Host Identity Management Plane**. This symmetry allows for the binding of ephemeral software identities to persistent silicon identities, bridging the "Perception Gap" in modern distributed systems.
 
 * **Workload Identity Management Plane**: Manages software entities (e.g., AI Models, Microservices) using the SPIFFE/SPIRE infrastructure to issue SVID credentials.
 * **Host Identity Management Plane**: Manages hardware entities (e.g., Compute Nodes, Location Anchor Hosts) using the Silicon Root of Trust (TPM/iLO 7) to verify physical platform integrity and residency.
