@@ -1378,7 +1378,10 @@ li > p:last-of-type:only-child {
                     <p id="section-toc.1-1.5.2.1.2.3.1"><a href="#section-5.1.3" class="auto internal xref">5.1.3</a>.  <a href="#name-federated-ai-decryption-gat" class="internal xref">Federated AI (Decryption Gatekeeper)</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.4">
-                    <p id="section-toc.1-1.5.2.1.2.4.1"><a href="#section-5.1.4" class="auto internal xref">5.1.4</a>.  <a href="#name-user-workload-to-server-wor" class="internal xref">User workload to Server workload</a></p>
+                    <p id="section-toc.1-1.5.2.1.2.4.1"><a href="#section-5.1.4" class="auto internal xref">5.1.4</a>.  <a href="#name-enterprise-edge-federated-m" class="internal xref">Enterprise Edge Federated Management (Oil &amp; Gas)</a></p>
+</li>
+                  <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.5">
+                    <p id="section-toc.1-1.5.2.1.2.5.1"><a href="#section-5.1.5" class="auto internal xref">5.1.5</a>.  <a href="#name-user-workload-to-server-wor" class="internal xref">User workload to Server workload</a></p>
 </li>
                 </ul>
 </li>
@@ -1404,6 +1407,9 @@ li > p:last-of-type:only-child {
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.2">
                 <p id="section-toc.1-1.6.2.2.1"><a href="#section-6.2" class="auto internal xref">6.2</a>.  <a href="#name-formal-data-structure-cddl" class="internal xref">Formal Data Structure (CDDL)</a></p>
+</li>
+              <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.6.2.3">
+                <p id="section-toc.1-1.6.2.3.1"><a href="#section-6.3" class="auto internal xref">6.3</a>.  <a href="#name-the-canonical-proximity-log" class="internal xref">The Canonical Proximity Log</a></p>
 </li>
             </ul>
 </li>
@@ -2068,12 +2074,20 @@ li > p:last-of-type:only-child {
           </table>
 </section>
 </div>
-<div id="user-workload-to-server-workload">
+<div id="enterprise-edge-federated-management-oil-gas">
 <section id="section-5.1.4">
-          <h4 id="name-user-workload-to-server-wor">
-<a href="#section-5.1.4" class="section-number selfRef">5.1.4. </a><a href="#name-user-workload-to-server-wor" class="section-name selfRef">User workload to Server workload</a>
+          <h4 id="name-enterprise-edge-federated-m">
+<a href="#section-5.1.4" class="section-number selfRef">5.1.4. </a><a href="#name-enterprise-edge-federated-m" class="section-name selfRef">Enterprise Edge Federated Management (Oil &amp; Gas)</a>
           </h4>
-<p id="section-5.1.4-1">Enterprises ensure that they are communicating with a server (e.g., cloud services) located within a specific geographic boundary.<a href="#section-5.1.4-1" class="pilcrow">¶</a></p>
+<p id="section-5.1.4-1">In remote industrial environments (e.g., offshore oil rigs), the "Dual Federation" model ensures resilient operations. An <strong>Edge Management Plane</strong> (e.g., HPE OneView) manages local hardware and TPM Attestation Keys (AKs) to support offline autonomy. Periodically, these AKs are synchronized with a <strong>Cloud Management Plane</strong> which acts as the global <strong>Sovereign Registry</strong>. This allows local SPIRE servers to issue SVIDs during satellite outages, while the cloud maintaining the ultimate "Silicon-to-Audit" verification capability required to release high-value enterprise keys once connectivity is restored.<a href="#section-5.1.4-1" class="pilcrow">¶</a></p>
+</section>
+</div>
+<div id="user-workload-to-server-workload">
+<section id="section-5.1.5">
+          <h4 id="name-user-workload-to-server-wor">
+<a href="#section-5.1.5" class="section-number selfRef">5.1.5. </a><a href="#name-user-workload-to-server-wor" class="section-name selfRef">User workload to Server workload</a>
+          </h4>
+<p id="section-5.1.5-1">Enterprises ensure that they are communicating with a server (e.g., cloud services) located within a specific geographic boundary.<a href="#section-5.1.5-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2199,7 +2213,7 @@ li > p:last-of-type:only-child {
 <div class="lang-cddl sourcecode" id="section-6.2-2">
 <pre>V-GAP-Profile = {
     1 =&gt; bstr,                      ; Workload Host AK
-    2 =&gt; bstr,                      ; Hash of PTP logs or "SELF"
+    2 =&gt; bstr,                      ; host-proximity-proof-hash (Log or "SELF")
     3 =&gt; Inner-Evidence-Bundle,     ; The nested LAH bundle
     4 =&gt; bstr                       ; Atomic Seal (TPM2_Quote)
 }
@@ -2209,12 +2223,20 @@ Inner-Evidence-Bundle = {
     2 =&gt; bstr,                      ; lah-geolocation-proof-hash
     3 =&gt; int,                       ; Privacy Technique (0=None, 1=ZKP, 2=TEE)
     4 =&gt; uint,                      ; Hardware-rooted epoch (Timestamp)
-    5 =&gt; uint,                      ; accuracy-sub-claim (Nanoseconds)
+    5 =&gt; uint,                      ; accuracy-sub-claim (Milliseconds)
     ? 6 =&gt; bstr,                    ; Optional freshness-nonce
     7 =&gt; bstr                       ; Inner Seal over [1..6]
 }
 </pre><a href="#section-6.2-2" class="pilcrow">¶</a>
 </div>
+</section>
+</div>
+<div id="the-canonical-proximity-log">
+<section id="section-6.3">
+        <h3 id="name-the-canonical-proximity-log">
+<a href="#section-6.3" class="section-number selfRef">6.3. </a><a href="#name-the-canonical-proximity-log" class="section-name selfRef">The Canonical Proximity Log</a>
+        </h3>
+<p id="section-6.3-1">The <code>host-proximity-proof-hash</code> MUST be generated from a <strong>Canonical Proximity Log</strong>, defined as the ordered concatenation of the hardware-signed PTP timing packets (specifically the <strong>Follow_Up</strong> and <strong>Delay_Resp</strong> messages) associated with the proximity handshake. This deterministic structure prevents the truncation or substitution of individual timing metadata.<a href="#section-6.3-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 </section>
@@ -2281,7 +2303,7 @@ Inner-Evidence-Bundle = {
           <strong>Regional Specificity:</strong> SVIDs issued by an Edge SPIRE server are cryptographically restricted to that specific deployment and cannot be used in other regions.<a href="#section-8-2.2" class="pilcrow">¶</a>
 </li>
         <li class="compact" id="section-8-2.3">
-          <strong>Unified Host Proximity Enforcement:</strong> In deployments where the Location Anchor Host (LAH) and Workload Host are the same physical machine (Unified Host), the proximity proof MUST be generated via an <strong>internal silicon measurement</strong> (e.g., measuring PCIe latency or local bus delay) rather than a network protocol. In this case, the <code>host-proximity-proof-hash</code> SHALL be set to the cryptographic constant <strong>"SELF"</strong>, formally defined as the 32-byte value <code>SHA-256("V-GAP-LOCAL-PROXIMITY")</code>. The Verifier SHALL validate that the reported bus latency is within the microsecond bounds of local silicon to prevent a remote attacker from spoofing a 1:1 residency status.<a href="#section-8-2.3" class="pilcrow">¶</a>
+          <strong>Unified Host Proximity Enforcement:</strong> In deployments where the Location Anchor Host (LAH) and Workload Host are the same physical machine (Unified Host), the proximity proof MUST be generated via an <strong>internal silicon measurement</strong> (e.g., measuring PCIe latency or local bus delay) rather than a network protocol. In this case, the <code>host-proximity-proof-hash</code> SHALL be set to the cryptographic constant <strong>"SELF"</strong>, formally defined as the 32-byte value <code>SHA-256("V-GAP-LOCAL-BUS-PROXIMITY")</code>. The Verifier SHALL validate that the reported bus latency is within the microsecond bounds of local silicon to prevent a remote attacker from spoofing a 1:1 residency status.<a href="#section-8-2.3" class="pilcrow">¶</a>
 </li>
       </ul>
 <div id="sovereign-handover-mobile-edge">
@@ -3464,10 +3486,10 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
           <strong>SVID Extraction</strong>: Retrieve the SVID and the attached V-GAP Evidence Bundle.<a href="#section-10-2.1" class="pilcrow">¶</a>
 </li>
         <li id="section-10-2.2">
-          <strong>Outer Quote Verification</strong>: Validate the <code>host-tpm-ak</code> signature against the authorized fleet registry and confirm PCR integrity.<a href="#section-10-2.2" class="pilcrow">¶</a>
+          <strong>Outer Quote Verification</strong>: Validate the <code>host-tpm-ak</code> signature against the authorized fleet registry and confirm PCR integrity. The Outer Quote <span class="bcp14">MUST</span> cover PCRs for software integrity (<strong>PCR 10 - IMA</strong>) and, if applicable, the hardware-rooted location state (<strong>PCR 15</strong>).<a href="#section-10-2.2" class="pilcrow">¶</a>
 </li>
         <li id="section-10-2.3">
-          <strong>Proximity Verification</strong>: Verify the <code>location-anchor-host-proximity-proof-hash</code> matches expected low-latency PTP bounds.<a href="#section-10-2.3" class="pilcrow">¶</a>
+          <strong>Proximity Verification</strong>: Verify the <code>host-proximity-proof-hash</code> matches expected low-latency bounds (or the "SELF" constant).<a href="#section-10-2.3" class="pilcrow">¶</a>
 </li>
         <li id="section-10-2.4">
           <strong>Inner Quote Verification</strong>: Validate the <code>location-anchor-host-tpm-ak</code> signature and ensure the LAH hardware is an approved location source.<a href="#section-10-2.4" class="pilcrow">¶</a>
@@ -3483,6 +3505,9 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 </li>
         <li id="section-10-2.8">
           <strong>Freshness Window Policy (Clock-Warp Guard)</strong>: The Verifier MUST reject any bundle where the <code>temporal-nonce</code> deviates from the Verifier's own hardware-anchored clock by more than a defined threshold (<strong>Maximum Skew: +/- 100ms</strong>). On rejection, the system SHOULD attempt a <strong>Sync Recovery</strong> (forcing a new <code>N_platform</code> challenge and PTP resynchronization). If Sync Recovery fails twice consecutively, the Verifier MUST trigger an <strong>Immediate Revocation</strong> of the Workload Identity Agent's keys.<a href="#section-10-2.8" class="pilcrow">¶</a>
+</li>
+        <li id="section-10-2.9">
+          <strong>Downstream Authorization (KMS Gatekeeping)</strong>: Successful verification of the V-GAP Evidence Bundle SHALL be a mandatory precondition for downstream Key Management Services (KMS) or Workload Identity Managers to release high-value assets (e.g., AI model decryption keys or secrets). The Verifier MUST propagate the "Sovereign-Verified" status to the authorization engine.<a href="#section-10-2.9" class="pilcrow">¶</a>
 </li>
       </ol>
 </section>
@@ -3716,7 +3741,7 @@ Inner-Evidence-Bundle = {
     2 =&gt; lah-geolocation-proof-hash,    ; bstr (ZKP/Residency Hash)
     3 =&gt; privacy-technique,         ; int (0=None, 1=ZKP, 2=TEE)
     4 =&gt; lah-timestamp,             ; uint (Hardware-rooted epoch)
-    5 =&gt; accuracy-sub-claim,        ; uint (Nanoseconds)
+    5 =&gt; accuracy-sub-claim,        ; uint (Milliseconds)
     ? 6 =&gt; freshness-nonce,         ; bstr (Optional if timestamp is attested)
     7 =&gt; lah-tpm-quote-hash         ; Inner Seal over [1..6]
 }

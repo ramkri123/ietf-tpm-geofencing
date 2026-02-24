@@ -292,6 +292,10 @@ The Cloud Workload Identity Manager acts as the **Decryption Gatekeeper**, ensur
 | **3. Cross-Check** | Cloud Verifier queries the Cloud Management Plane. | Verifies the `host-tpm-ak` is "In-Status" and "Silicon-Verified." |
 | **4. Key Release** | Cloud Verifier releases the **Decryption Key** via a secure OIDC/JWE flow. | Only occurs if **Hardware Integrity** and **Geofence** pass. |
 
+### Enterprise Edge Federated Management (Oil & Gas)
+
+In remote industrial environments (e.g., offshore oil rigs), the "Dual Federation" model ensures resilient operations. An **Edge Management Plane** (e.g., HPE OneView) manages local hardware and TPM Attestation Keys (AKs) to support offline autonomy. Periodically, these AKs are synchronized with a **Cloud Management Plane** which acts as the global **Sovereign Registry**. This allows local SPIRE servers to issue SVIDs during satellite outages, while the cloud maintaining the ultimate "Silicon-to-Audit" verification capability required to release high-value enterprise keys once connectivity is restored.
+
 ### User workload to Server workload
 
 Enterprises ensure that they are communicating with a server (e.g., cloud services) located within a specific geographic boundary.
@@ -361,7 +365,7 @@ The following CDDL defines the structure of the V-GAP Nested Evidence Bundle, fo
 ```cddl
 V-GAP-Profile = {
     1 => bstr,                      ; Workload Host AK
-    2 => bstr,                      ; Hash of PTP logs or "SELF"
+    2 => bstr,                      ; host-proximity-proof-hash (Log or "SELF")
     3 => Inner-Evidence-Bundle,     ; The nested LAH bundle
     4 => bstr                       ; Atomic Seal (TPM2_Quote)
 }
@@ -371,11 +375,15 @@ Inner-Evidence-Bundle = {
     2 => bstr,                      ; lah-geolocation-proof-hash
     3 => int,                       ; Privacy Technique (0=None, 1=ZKP, 2=TEE)
     4 => uint,                      ; Hardware-rooted epoch (Timestamp)
-    5 => uint,                      ; accuracy-sub-claim (Nanoseconds)
+    5 => uint,                      ; accuracy-sub-claim (Milliseconds)
     ? 6 => bstr,                    ; Optional freshness-nonce
     7 => bstr                       ; Inner Seal over [1..6]
 }
 ```
+
+## The Canonical Proximity Log
+
+The `host-proximity-proof-hash` MUST be generated from a **Canonical Proximity Log**, defined as the ordered concatenation of the hardware-signed PTP timing packets (specifically the **Follow_Up** and **Delay_Resp** messages) associated with the proximity handshake. This deterministic structure prevents the truncation or substitution of individual timing metadata.
 
 # Scalable Fleet Management
 
@@ -403,7 +411,7 @@ To maintain sub-microsecond determinism and regional sovereignty, identity issua
 
 * **Edge SPIRE Server:** SVID issuance is distributed to Edge SPIRE Servers located within the same sovereign boundary as the workloads.
 * **Regional Specificity:** SVIDs issued by an Edge SPIRE server are cryptographically restricted to that specific deployment and cannot be used in other regions.
-* **Unified Host Proximity Enforcement:** In deployments where the Location Anchor Host (LAH) and Workload Host are the same physical machine (Unified Host), the proximity proof MUST be generated via an **internal silicon measurement** (e.g., measuring PCIe latency or local bus delay) rather than a network protocol. In this case, the `host-proximity-proof-hash` SHALL be set to the cryptographic constant **"SELF"**, formally defined as the 32-byte value `SHA-256("V-GAP-LOCAL-PROXIMITY")`. The Verifier SHALL validate that the reported bus latency is within the microsecond bounds of local silicon to prevent a remote attacker from spoofing a 1:1 residency status.
+* **Unified Host Proximity Enforcement:** In deployments where the Location Anchor Host (LAH) and Workload Host are the same physical machine (Unified Host), the proximity proof MUST be generated via an **internal silicon measurement** (e.g., measuring PCIe latency or local bus delay) rather than a network protocol. In this case, the `host-proximity-proof-hash` SHALL be set to the cryptographic constant **"SELF"**, formally defined as the 32-byte value `SHA-256("V-GAP-LOCAL-BUS-PROXIMITY")`. The Verifier SHALL validate that the reported bus latency is within the microsecond bounds of local silicon to prevent a remote attacker from spoofing a 1:1 residency status.
 
 ## Sovereign Handover (Mobile Edge)
 
@@ -964,13 +972,14 @@ All geolocation information captured at this layer (Layer 3) is intended for con
 The Sovereign Verifier executes a multi-stage validation sequence to confirm the V-GAP Evidence Bundle's integrity and residency.
 
 1.  **SVID Extraction**: Retrieve the SVID and the attached V-GAP Evidence Bundle.
-2.  **Outer Quote Verification**: Validate the `host-tpm-ak` signature against the authorized fleet registry and confirm PCR integrity.
-3.  **Proximity Verification**: Verify the `location-anchor-host-proximity-proof-hash` matches expected low-latency PTP bounds.
+2.  **Outer Quote Verification**: Validate the `host-tpm-ak` signature against the authorized fleet registry and confirm PCR integrity. The Outer Quote **MUST** cover PCRs for software integrity (**PCR 10 - IMA**) and, if applicable, the hardware-rooted location state (**PCR 15**).
+3.  **Proximity Verification**: Verify the `host-proximity-proof-hash` matches expected low-latency bounds (or the "SELF" constant).
 4.  **Inner Quote Verification**: Validate the `location-anchor-host-tpm-ak` signature and ensure the LAH hardware is an approved location source.
 5.  **Residency Validation**: Compute the ZKP or boundary check on the geolocation payload.
 6.  **Freshness and Clock Sync**: Ensure the `temporal-nonce` is within the policy-defined window relative to the Verifier's clock.
 7.  **Accuracy Validation**: Verify that the `accuracy-sub-claim` meets the minimum residency confidence required by the workload's policy (e.g., < 100ms drift).
 8.  **Freshness Window Policy (Clock-Warp Guard)**: The Verifier MUST reject any bundle where the `temporal-nonce` deviates from the Verifier's own hardware-anchored clock by more than a defined threshold (**Maximum Skew: +/- 100ms**). On rejection, the system SHOULD attempt a **Sync Recovery** (forcing a new `N_platform` challenge and PTP resynchronization). If Sync Recovery fails twice consecutively, the Verifier MUST trigger an **Immediate Revocation** of the Workload Identity Agent's keys.
+9.  **Downstream Authorization (KMS Gatekeeping)**: Successful verification of the V-GAP Evidence Bundle SHALL be a mandatory precondition for downstream Key Management Services (KMS) or Workload Identity Managers to release high-value assets (e.g., AI model decryption keys or secrets). The Verifier MUST propagate the "Sovereign-Verified" status to the authorization engine.
 
 # Industry Alignment and Policy Guidance
 
@@ -1094,7 +1103,7 @@ Inner-Evidence-Bundle = {
     2 => lah-geolocation-proof-hash,    ; bstr (ZKP/Residency Hash)
     3 => privacy-technique,         ; int (0=None, 1=ZKP, 2=TEE)
     4 => lah-timestamp,             ; uint (Hardware-rooted epoch)
-    5 => accuracy-sub-claim,        ; uint (Nanoseconds)
+    5 => accuracy-sub-claim,        ; uint (Milliseconds)
     ? 6 => freshness-nonce,         ; bstr (Optional if timestamp is attested)
     7 => lah-tpm-quote-hash         ; Inner Seal over [1..6]
 }
