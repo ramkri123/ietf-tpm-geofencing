@@ -1370,7 +1370,7 @@ li > p:last-of-type:only-child {
                     <p id="section-toc.1-1.5.2.1.2.2.1"><a href="#section-5.1.2" class="auto internal xref">5.1.2</a>.  <a href="#name-server-workload-to-server-wo" class="internal xref">Server workload to Server workload - Agentic AI</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.3">
-                    <p id="section-toc.1-1.5.2.1.2.3.1"><a href="#section-5.1.3" class="auto internal xref">5.1.3</a>.  <a href="#name-server-workload-to-server-wor" class="internal xref">Server workload to Server workload - Federated AI</a></p>
+                    <p id="section-toc.1-1.5.2.1.2.3.1"><a href="#section-5.1.3" class="auto internal xref">5.1.3</a>.  <a href="#name-federated-ai-decryption-gat" class="internal xref">Federated AI (Decryption Gatekeeper)</a></p>
 </li>
                   <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.5.2.1.2.4">
                     <p id="section-toc.1-1.5.2.1.2.4.1"><a href="#section-5.1.4" class="auto internal xref">5.1.4</a>.  <a href="#name-user-workload-to-server-wor" class="internal xref">User workload to Server workload</a></p>
@@ -1414,7 +1414,7 @@ li > p:last-of-type:only-child {
             <p id="section-toc.1-1.8.1"><a href="#section-8" class="auto internal xref">8</a>.  <a href="#name-distributed-svid-issuance-a" class="internal xref">Distributed SVID Issuance and Scaling</a></p>
 <ul class="compact toc ulBare ulEmpty">
 <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.1">
-                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-end-user-location-anchor-ho" class="internal xref">End user location anchor host</a></p>
+                <p id="section-toc.1-1.8.2.1.1"><a href="#section-8.1" class="auto internal xref">8.1</a>.  <a href="#name-sovereign-handover-mobile-e" class="internal xref">Sovereign Handover (Mobile Edge)</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.8.2.2">
                 <p id="section-toc.1-1.8.2.2.1"><a href="#section-8.2" class="auto internal xref">8.2</a>.  <a href="#name-data-center-location-anchor" class="internal xref">Data center location anchor host</a></p>
@@ -1584,7 +1584,7 @@ li > p:last-of-type:only-child {
                 <p id="section-toc.1-1.9.2.16.1"><a href="#section-9.16" class="auto internal xref">9.16</a>. <a href="#name-scaling-the-solution-logic" class="internal xref">Scaling the Solution Logic</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.17">
-                <p id="section-toc.1-1.9.2.17.1"><a href="#section-9.17" class="auto internal xref">9.17</a>. <a href="#name-end-user-location-anchor-hos" class="internal xref">End user location anchor host</a></p>
+                <p id="section-toc.1-1.9.2.17.1"><a href="#section-9.17" class="auto internal xref">9.17</a>. <a href="#name-end-user-location-anchor-ho" class="internal xref">End user location anchor host</a></p>
 </li>
               <li class="compact toc ulBare ulEmpty" id="section-toc.1-1.9.2.18">
                 <p id="section-toc.1-1.9.2.18.1"><a href="#section-9.18" class="auto internal xref">9.18</a>. <a href="#name-data-center-location-anchor-" class="internal xref">Data center location anchor host</a></p>
@@ -2006,12 +2006,17 @@ li > p:last-of-type:only-child {
 <p id="section-5.1.2-1">Enterprises need to ensure that the AI agent is located within a specific geographic boundary when downloading sensitive data or performing other sensitive operations. A secure AI agent, running on a trusted Workload Host with TPM-backed attestation, interacts with geolocation and geofencing services to obtain verifiable proof of its geographic boundary. The agent periodically collects location data from trusted sensors, obtains attested composite location from a geolocation service, and enforces geofence policies via a geofencing service. The resulting attested geofence proof is used to bind workload identity to both the Workload Host and its geographic location, enabling secure, policy-driven execution of AI workloads and compliance with data residency requirements.<a href="#section-5.1.2-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="server-workload-to-server-workload-federated-ai">
+<div id="federated-ai-decryption-gatekeeper">
 <section id="section-5.1.3">
-          <h4 id="name-server-workload-to-server-wor">
-<a href="#section-5.1.3" class="section-number selfRef">5.1.3. </a><a href="#name-server-workload-to-server-wor" class="section-name selfRef">Server workload to Server workload - Federated AI</a>
+          <h4 id="name-federated-ai-decryption-gat">
+<a href="#section-5.1.3" class="section-number selfRef">5.1.3. </a><a href="#name-federated-ai-decryption-gat" class="section-name selfRef">Federated AI (Decryption Gatekeeper)</a>
           </h4>
-<p id="section-5.1.3-1">In federated learning scenarios, multiple organizations collaborate to train machine learning models without sharing raw data. Each organization needs to ensure that its training data remains within a specific geographic boundary. This requires cryptographic proof that the training process is occurring on trusted Workload Hosts within the defined boundaries.<a href="#section-5.1.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.1.3-1">In federated learning scenarios, multiple organizations collaborate to train machine learning models without sharing raw data. In regulated industries like Oil &amp; Gas, this often involves "Edge AI" processing on remote rigs where high-value model weights or decryption keys are only released if the edge environment is currently "Sovereign and Integral."<a href="#section-5.1.3-1" class="pilcrow">¶</a></p>
+<p id="section-5.1.3-2">The <strong>Decryption Gatekeeper Workflow</strong> enables this "Silicon-to-Key" chain:
+1. <strong>Edge Attestation</strong>: The Edge AI workload presents its <strong>Sovereign SVID</strong> (containing the V-GAP bundle) to the Cloud Verifier.
+2. <strong>ZKP Validation</strong>: The Cloud Verifier validates the <strong>lah-geolocation-proof-hash</strong> to ensure the rig is in approved waters.
+3. <strong>Hardware Cross-Check</strong>: The Cloud Verifier queries the <strong>Cloud Host Management Plane</strong> to confirm the <code>host-tpm-ak</code> is "In-Status" and silicon-verified.
+4. <strong>Decryption Key Release</strong>: Only upon successful geofence and integrity verification does the Cloud issue the model decryption keys to the Edge AI workload.<a href="#section-5.1.3-2" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="user-workload-to-server-workload">
@@ -2178,7 +2183,7 @@ Inner-Evidence-Bundle = {
         </h3>
 <ul class="compact">
 <li class="compact" id="section-7.1-1.1">
-            <strong>Rotation:</strong> The Edge Management Plane SHALL rotate both the <code>host-tpm-ak</code> and <code>lah-tpm-ak</code> periodically.<a href="#section-7.1-1.1" class="pilcrow">¶</a>
+            <strong>Rotation &amp; Sync:</strong> The Edge Management Plane SHALL rotate both the <code>host-tpm-ak</code> and <code>lah-tpm-ak</code> periodically. To maintain the chain of trust during rotation, the Cloud Host Management Plane MUST ONLY accept a newly synced AK if the Edge Management Plane provides a <strong>"Rotation Proof"</strong>—typically a signature from the <em>preceding</em> AK blessing the new AK, or a fresh Out-of-Band (OOB) quote from the hardware root of trust (i.e., iLO 7).<a href="#section-7.1-1.1" class="pilcrow">¶</a>
 </li>
           <li class="compact" id="section-7.1-1.2">
             <strong>Hardware-Rooted Registry:</strong> The Sovereign Verifier MUST maintain a registry mapping verified AKs to their manufacturer <strong>Endorsement Key (EK)</strong> certificates.<a href="#section-7.1-1.2" class="pilcrow">¶</a>
@@ -2202,6 +2207,9 @@ Inner-Evidence-Bundle = {
           <li class="compact" id="section-7.1-1.5">
             <strong>Continuous Validation:</strong> Between full handshakes, the Verifier accepts hardware-signed Quotes from the registered AK as proof of continued residency in approved silicon.<a href="#section-7.1-1.5" class="pilcrow">¶</a>
 </li>
+          <li class="compact" id="section-7.1-1.6">
+            <strong>Offline Survival &amp; Leased Identity:</strong> In environments with intermittent connectivity (e.g., offshore rigs), the Cloud Verifier MAY issue a <strong>"Leased Identity"</strong> with an extended validity period (e.g., 48 hours). This lease is contingent on the local hardware root of trust (iLO 7) performing continuous monitoring for physical tampering (chassis intrusion, signal jamming) and triggering a local "Self-Destruct" of the identity keys if a breach is detected while offline.<a href="#section-7.1-1.6" class="pilcrow">¶</a>
+</li>
         </ul>
 </section>
 </div>
@@ -2224,12 +2232,12 @@ Inner-Evidence-Bundle = {
           <strong>Unified Host Proximity Enforcement:</strong> In deployments where the Location Anchor Host (LAH) and Workload Host are the same physical machine (Unified Host), the proximity proof MUST be generated via an <strong>internal silicon measurement</strong> (e.g., measuring PCIe latency or local bus delay) rather than a network protocol. In this case, the <code>host-proximity-proof-hash</code> SHALL be set to the cryptographic constant <strong>"SELF"</strong>, formally defined as the 32-byte value <code>SHA-256("V-GAP-LOCAL-PROXIMITY")</code>. The Verifier SHALL validate that the reported bus latency is within the microsecond bounds of local silicon to prevent a remote attacker from spoofing a 1:1 residency status.<a href="#section-8-2.3" class="pilcrow">¶</a>
 </li>
       </ul>
-<div id="end-user-location-anchor-host">
+<div id="sovereign-handover-mobile-edge">
 <section id="section-8.1">
-        <h3 id="name-end-user-location-anchor-ho">
-<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-end-user-location-anchor-ho" class="section-name selfRef">End user location anchor host</a>
+        <h3 id="name-sovereign-handover-mobile-e">
+<a href="#section-8.1" class="section-number selfRef">8.1. </a><a href="#name-sovereign-handover-mobile-e" class="section-name selfRef">Sovereign Handover (Mobile Edge)</a>
         </h3>
-<p id="section-8.1-1">Enterprises ensure that they are communicating with a server (e.g., cloud services) located within a specific geographic boundary. The LAH ensures high-assurance residency.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
+<p id="section-8.1-1">In mobile edge environments (e.g., an AI agent moving from a "Rig-based" Edge to a "Ship-based" Edge), the system handles a <strong>Sovereign Handover</strong>. During this transition, the Workload Identity Agent MUST generate a new V-GAP Evidence Bundle that replaces the previous Location Anchor Host's identity with the new one. The Verifier acknowledges the handover by verifying the new <strong>Proximity Binding</strong> while maintaining the continuity of the Workload Host's platform integrity.<a href="#section-8.1-1" class="pilcrow">¶</a></p>
 </section>
 </div>
 <div id="data-center-location-anchor-host">
@@ -3355,10 +3363,10 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 <p id="section-9.16-1">Having a geolocation sensor on every host is not scalable from a deployment and management perspective and can be cost prohibitive. In the case of end user hosts, the geolocation sensor can be on a mobile host (e.g., smartphone with Mobile network capabilities and optionally GNSS capabilities) which can be leveraged by a laptop/desktop host which is proximal to the mobile host. The mobile host serves as the location anchor host. In the case of data center hosts, the geolocation sensor can be on a host with Mobile network and/or GNSS capabilities which can be leveraged by other data center hosts. This host serves as the location anchor host.<a href="#section-9.16-1" class="pilcrow">¶</a></p>
 </section>
 </div>
-<div id="end-user-location-anchor-host-1">
+<div id="end-user-location-anchor-host">
 <section id="section-9.17">
-        <h3 id="name-end-user-location-anchor-hos">
-<a href="#section-9.17" class="section-number selfRef">9.17. </a><a href="#name-end-user-location-anchor-hos" class="section-name selfRef">End user location anchor host</a>
+        <h3 id="name-end-user-location-anchor-ho">
+<a href="#section-9.17" class="section-number selfRef">9.17. </a><a href="#name-end-user-location-anchor-ho" class="section-name selfRef">End user location anchor host</a>
         </h3>
 <p id="section-9.17-1">The goal is to provide an easy-to-use wireless solution that can be used by end users without requiring them to install a geolocation sensor on their laptop/desktop host.<a href="#section-9.17-1" class="pilcrow">¶</a></p>
 <p id="section-9.17-2">The smartphone can be used as a location anchor host for the laptop/desktop host. The smartphone connects to the laptop/desktop host using Bluetooth Low Energy (BLE) or Ultra-Wideband (UWB) technology and continuously measures the following:<a href="#section-9.17-2" class="pilcrow">¶</a></p>

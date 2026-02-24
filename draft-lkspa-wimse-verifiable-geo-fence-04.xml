@@ -221,8 +221,13 @@
 <t>Enterprises need to ensure that the AI agent is located within a specific geographic boundary when downloading sensitive data or performing other sensitive operations. A secure AI agent, running on a trusted Workload Host with TPM-backed attestation, interacts with geolocation and geofencing services to obtain verifiable proof of its geographic boundary. The agent periodically collects location data from trusted sensors, obtains attested composite location from a geolocation service, and enforces geofence policies via a geofencing service. The resulting attested geofence proof is used to bind workload identity to both the Workload Host and its geographic location, enabling secure, policy-driven execution of AI workloads and compliance with data residency requirements.</t>
 </section>
 
-<section anchor="server-workload-to-server-workload-federated-ai"><name>Server workload to Server workload - Federated AI</name>
-<t>In federated learning scenarios, multiple organizations collaborate to train machine learning models without sharing raw data. Each organization needs to ensure that its training data remains within a specific geographic boundary. This requires cryptographic proof that the training process is occurring on trusted Workload Hosts within the defined boundaries.</t>
+<section anchor="federated-ai-decryption-gatekeeper"><name>Federated AI (Decryption Gatekeeper)</name>
+<t>In federated learning scenarios, multiple organizations collaborate to train machine learning models without sharing raw data. In regulated industries like Oil &amp; Gas, this often involves &quot;Edge AI&quot; processing on remote rigs where high-value model weights or decryption keys are only released if the edge environment is currently &quot;Sovereign and Integral.&quot;</t>
+<t>The <strong>Decryption Gatekeeper Workflow</strong> enables this &quot;Silicon-to-Key&quot; chain:
+1. <strong>Edge Attestation</strong>: The Edge AI workload presents its <strong>Sovereign SVID</strong> (containing the V-GAP bundle) to the Cloud Verifier.
+2. <strong>ZKP Validation</strong>: The Cloud Verifier validates the <strong>lah-geolocation-proof-hash</strong> to ensure the rig is in approved waters.
+3. <strong>Hardware Cross-Check</strong>: The Cloud Verifier queries the <strong>Cloud Host Management Plane</strong> to confirm the <tt>host-tpm-ak</tt> is &quot;In-Status&quot; and silicon-verified.
+4. <strong>Decryption Key Release</strong>: Only upon successful geofence and integrity verification does the Cloud issue the model decryption keys to the Edge AI workload.</t>
 </section>
 
 <section anchor="user-workload-to-server-workload"><name>User workload to Server workload</name>
@@ -333,7 +338,7 @@ Inner-Evidence-Bundle = {
 <section anchor="attestation-key-ak-management"><name>Attestation Key (AK) Management</name>
 
 <ul spacing="compact">
-<li><strong>Rotation:</strong> The Edge Management Plane SHALL rotate both the <tt>host-tpm-ak</tt> and <tt>lah-tpm-ak</tt> periodically.</li>
+<li><strong>Rotation &amp; Sync:</strong> The Edge Management Plane SHALL rotate both the <tt>host-tpm-ak</tt> and <tt>lah-tpm-ak</tt> periodically. To maintain the chain of trust during rotation, the Cloud Host Management Plane MUST ONLY accept a newly synced AK if the Edge Management Plane provides a <strong>&quot;Rotation Proof&quot;</strong>—typically a signature from the <em>preceding</em> AK blessing the new AK, or a fresh Out-of-Band (OOB) quote from the hardware root of trust (i.e., iLO 7).</li>
 <li><strong>Hardware-Rooted Registry:</strong> The Sovereign Verifier MUST maintain a registry mapping verified AKs to their manufacturer <strong>Endorsement Key (EK)</strong> certificates.</li>
 <li><t><strong>Credential Activation (Handshake):</strong> To avoid the &quot;MakeCredential tax&quot; (high-latency challenge/response) on every request, the Verifier SHALL perform the full <strong>TPM2_MakeCredential</strong> procedure only upon:</t>
 
@@ -345,6 +350,7 @@ Inner-Evidence-Bundle = {
 </ul></li>
 <li><strong>Revocation and Hardware Health Bit:</strong> The Edge Management Plane MUST maintain a <strong>&quot;Hardware Health Bit&quot;</strong> for each node. If the hardware root of trust (e.g., iLO 7) detects a security breach (e.g., chassis intrusion, unauthorized firmware update), it MUST trigger an immediate <strong>AK Revocation</strong> signal to the Sovereign Verifier. The Verifier SHALL instantly invalidate all active SVIDs associated with that AK, regardless of their freshness.</li>
 <li><strong>Continuous Validation:</strong> Between full handshakes, the Verifier accepts hardware-signed Quotes from the registered AK as proof of continued residency in approved silicon.</li>
+<li><strong>Offline Survival &amp; Leased Identity:</strong> In environments with intermittent connectivity (e.g., offshore rigs), the Cloud Verifier MAY issue a <strong>&quot;Leased Identity&quot;</strong> with an extended validity period (e.g., 48 hours). This lease is contingent on the local hardware root of trust (iLO 7) performing continuous monitoring for physical tampering (chassis intrusion, signal jamming) and triggering a local &quot;Self-Destruct&quot; of the identity keys if a breach is detected while offline.</li>
 </ul>
 </section>
 </section>
@@ -358,8 +364,8 @@ Inner-Evidence-Bundle = {
 <li><strong>Unified Host Proximity Enforcement:</strong> In deployments where the Location Anchor Host (LAH) and Workload Host are the same physical machine (Unified Host), the proximity proof MUST be generated via an <strong>internal silicon measurement</strong> (e.g., measuring PCIe latency or local bus delay) rather than a network protocol. In this case, the <tt>host-proximity-proof-hash</tt> SHALL be set to the cryptographic constant <strong>&quot;SELF&quot;</strong>, formally defined as the 32-byte value <tt>SHA-256(&quot;V-GAP-LOCAL-PROXIMITY&quot;)</tt>. The Verifier SHALL validate that the reported bus latency is within the microsecond bounds of local silicon to prevent a remote attacker from spoofing a 1:1 residency status.</li>
 </ul>
 
-<section anchor="end-user-location-anchor-host"><name>End user location anchor host</name>
-<t>Enterprises ensure that they are communicating with a server (e.g., cloud services) located within a specific geographic boundary. The LAH ensures high-assurance residency.</t>
+<section anchor="sovereign-handover-mobile-edge"><name>Sovereign Handover (Mobile Edge)</name>
+<t>In mobile edge environments (e.g., an AI agent moving from a &quot;Rig-based&quot; Edge to a &quot;Ship-based&quot; Edge), the system handles a <strong>Sovereign Handover</strong>. During this transition, the Workload Identity Agent MUST generate a new V-GAP Evidence Bundle that replaces the previous Location Anchor Host's identity with the new one. The Verifier acknowledges the handover by verifying the new <strong>Proximity Binding</strong> while maintaining the continuity of the Workload Host's platform integrity.</t>
 </section>
 
 <section anchor="data-center-location-anchor-host"><name>Data center location anchor host</name>
@@ -1046,7 +1052,7 @@ Location has a quality associated with it. For example, IP address-based or Wi-F
 <t>Having a geolocation sensor on every host is not scalable from a deployment and management perspective and can be cost prohibitive. In the case of end user hosts, the geolocation sensor can be on a mobile host (e.g., smartphone with Mobile network capabilities and optionally GNSS capabilities) which can be leveraged by a laptop/desktop host which is proximal to the mobile host. The mobile host serves as the location anchor host. In the case of data center hosts, the geolocation sensor can be on a host with Mobile network and/or GNSS capabilities which can be leveraged by other data center hosts. This host serves as the location anchor host.</t>
 </section>
 
-<section anchor="end-user-location-anchor-host-1"><name>End user location anchor host</name>
+<section anchor="end-user-location-anchor-host"><name>End user location anchor host</name>
 <t>The goal is to provide an easy-to-use wireless solution that can be used by end users without requiring them to install a geolocation sensor on their laptop/desktop host.</t>
 <t>The smartphone can be used as a location anchor host for the laptop/desktop host. The smartphone connects to the laptop/desktop host using Bluetooth Low Energy (BLE) or Ultra-Wideband (UWB) technology and continuously measures the following:</t>
 

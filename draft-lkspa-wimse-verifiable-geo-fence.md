@@ -275,9 +275,15 @@ Enterprises handling sensitive data rely on dedicated cloud Workload Hosts (e.g.
 
 Enterprises need to ensure that the AI agent is located within a specific geographic boundary when downloading sensitive data or performing other sensitive operations. A secure AI agent, running on a trusted Workload Host with TPM-backed attestation, interacts with geolocation and geofencing services to obtain verifiable proof of its geographic boundary. The agent periodically collects location data from trusted sensors, obtains attested composite location from a geolocation service, and enforces geofence policies via a geofencing service. The resulting attested geofence proof is used to bind workload identity to both the Workload Host and its geographic location, enabling secure, policy-driven execution of AI workloads and compliance with data residency requirements.
 
-### Server workload to Server workload - Federated AI
+### Federated AI (Decryption Gatekeeper)
 
-In federated learning scenarios, multiple organizations collaborate to train machine learning models without sharing raw data. Each organization needs to ensure that its training data remains within a specific geographic boundary. This requires cryptographic proof that the training process is occurring on trusted Workload Hosts within the defined boundaries.
+In federated learning scenarios, multiple organizations collaborate to train machine learning models without sharing raw data. In regulated industries like Oil & Gas, this often involves "Edge AI" processing on remote rigs where high-value model weights or decryption keys are only released if the edge environment is currently "Sovereign and Integral."
+
+The **Decryption Gatekeeper Workflow** enables this "Silicon-to-Key" chain:
+1. **Edge Attestation**: The Edge AI workload presents its **Sovereign SVID** (containing the V-GAP bundle) to the Cloud Verifier.
+2. **ZKP Validation**: The Cloud Verifier validates the **lah-geolocation-proof-hash** to ensure the rig is in approved waters.
+3. **Hardware Cross-Check**: The Cloud Verifier queries the **Cloud Host Management Plane** to confirm the `host-tpm-ak` is "In-Status" and silicon-verified.
+4. **Decryption Key Release**: Only upon successful geofence and integrity verification does the Cloud issue the model decryption keys to the Edge AI workload.
 
 ### User workload to Server workload
 
@@ -370,7 +376,7 @@ Managing hardware-rooted identities at scale requires automated lifecycle manage
 
 ## Attestation Key (AK) Management
 
-* **Rotation:** The Edge Management Plane SHALL rotate both the `host-tpm-ak` and `lah-tpm-ak` periodically.
+* **Rotation & Sync:** The Edge Management Plane SHALL rotate both the `host-tpm-ak` and `lah-tpm-ak` periodically. To maintain the chain of trust during rotation, the Cloud Host Management Plane MUST ONLY accept a newly synced AK if the Edge Management Plane provides a **"Rotation Proof"**—typically a signature from the *preceding* AK blessing the new AK, or a fresh Out-of-Band (OOB) quote from the hardware root of trust (i.e., iLO 7).
 * **Hardware-Rooted Registry:** The Sovereign Verifier MUST maintain a registry mapping verified AKs to their manufacturer **Endorsement Key (EK)** certificates.
 * **Credential Activation (Handshake):** To avoid the "MakeCredential tax" (high-latency challenge/response) on every request, the Verifier SHALL perform the full **TPM2_MakeCredential** procedure only upon:
     - Initial node onboarding.
@@ -379,6 +385,7 @@ Managing hardware-rooted identities at scale requires automated lifecycle manage
     - Escalation to a "Sovereign High-Trust" workload request.
 * **Revocation and Hardware Health Bit:** The Edge Management Plane MUST maintain a **"Hardware Health Bit"** for each node. If the hardware root of trust (e.g., iLO 7) detects a security breach (e.g., chassis intrusion, unauthorized firmware update), it MUST trigger an immediate **AK Revocation** signal to the Sovereign Verifier. The Verifier SHALL instantly invalidate all active SVIDs associated with that AK, regardless of their freshness.
 * **Continuous Validation:** Between full handshakes, the Verifier accepts hardware-signed Quotes from the registered AK as proof of continued residency in approved silicon.
+* **Offline Survival & Leased Identity:** In environments with intermittent connectivity (e.g., offshore rigs), the Cloud Verifier MAY issue a **"Leased Identity"** with an extended validity period (e.g., 48 hours). This lease is contingent on the local hardware root of trust (iLO 7) performing continuous monitoring for physical tampering (chassis intrusion, signal jamming) and triggering a local "Self-Destruct" of the identity keys if a breach is detected while offline.
 
 # Distributed SVID Issuance and Scaling
 
@@ -388,9 +395,9 @@ To maintain sub-microsecond determinism and regional sovereignty, identity issua
 * **Regional Specificity:** SVIDs issued by an Edge SPIRE server are cryptographically restricted to that specific deployment and cannot be used in other regions.
 * **Unified Host Proximity Enforcement:** In deployments where the Location Anchor Host (LAH) and Workload Host are the same physical machine (Unified Host), the proximity proof MUST be generated via an **internal silicon measurement** (e.g., measuring PCIe latency or local bus delay) rather than a network protocol. In this case, the `host-proximity-proof-hash` SHALL be set to the cryptographic constant **"SELF"**, formally defined as the 32-byte value `SHA-256("V-GAP-LOCAL-PROXIMITY")`. The Verifier SHALL validate that the reported bus latency is within the microsecond bounds of local silicon to prevent a remote attacker from spoofing a 1:1 residency status.
 
-## End user location anchor host
+## Sovereign Handover (Mobile Edge)
 
-Enterprises ensure that they are communicating with a server (e.g., cloud services) located within a specific geographic boundary. The LAH ensures high-assurance residency.
+In mobile edge environments (e.g., an AI agent moving from a "Rig-based" Edge to a "Ship-based" Edge), the system handles a **Sovereign Handover**. During this transition, the Workload Identity Agent MUST generate a new V-GAP Evidence Bundle that replaces the previous Location Anchor Host's identity with the new one. The Verifier acknowledges the handover by verifying the new **Proximity Binding** while maintaining the continuity of the Workload Host's platform integrity.
 
 ## Data center location anchor host
 

@@ -103,7 +103,7 @@ Table of Contents
      5.1.  Category 1: Server-centric Location . . . . . . . . . . .  11
        5.1.1.  Server workload to Server workload - General  . . . .  11
        5.1.2.  Server workload to Server workload - Agentic AI . . .  11
-       5.1.3.  Server workload to Server workload - Federated AI . .  12
+       5.1.3.  Federated AI (Decryption Gatekeeper)  . . . . . . . .  12
        5.1.4.  User workload to Server workload  . . . . . . . . . .  12
      5.2.  Category 2: User-centric Location . . . . . . . . . . . .  12
 
@@ -114,54 +114,54 @@ Krishnan, et al.         Expires 28 August 2026                 [Page 2]
 Internet-Draft                RATS-GEO-POR                 February 2026
 
 
-     5.3.  Category 3: Regulatory Compliance . . . . . . . . . . . .  12
+     5.3.  Category 3: Regulatory Compliance . . . . . . . . . . . .  13
      5.4.  Server Workload Hosts - Solution highlights . . . . . . .  13
-     5.5.  End user/IoT Workload Hosts - Solution highlights . . . .  13
+     5.5.  End user/IoT Workload Hosts - Solution highlights . . . .  14
    6.  Verifiable Geofencing Attestation Profile (V-GAP) . . . . . .  14
      6.1.  The Nested Evidence Structure . . . . . . . . . . . . . .  14
      6.2.  Formal Data Structure (CDDL)  . . . . . . . . . . . . . .  14
    7.  Scalable Fleet Management . . . . . . . . . . . . . . . . . .  15
      7.1.  Attestation Key (AK) Management . . . . . . . . . . . . .  15
-   8.  Distributed SVID Issuance and Scaling . . . . . . . . . . . .  15
-     8.1.  End user location anchor host . . . . . . . . . . . . . .  16
-     8.2.  Data center location anchor host  . . . . . . . . . . . .  16
-   9.  Hardware-Rooted Attestation Mechanics (Layer 2 and 3) . . . .  16
-     9.1.  TPM Platform Attestation (Layer 2)  . . . . . . . . . . .  16
-       9.1.1.  Overview  . . . . . . . . . . . . . . . . . . . . . .  16
-       9.1.2.  Comparison of Deployment Options  . . . . . . . . . .  17
-       9.1.3.  Geolocation HW-Based Attestation (Layer 3)  . . . . .  17
-       9.1.4.  Privacy-Preserving Geolocation Verification (ZKP) . .  17
-     9.2.  Confidential Computing Considerations . . . . . . . . . .  17
-     9.3.  Measured Boot and OS Integrity Attestation  . . . . . . .  18
+   8.  Distributed SVID Issuance and Scaling . . . . . . . . . . . .  16
+     8.1.  Sovereign Handover (Mobile Edge)  . . . . . . . . . . . .  17
+     8.2.  Data center location anchor host  . . . . . . . . . . . .  17
+   9.  Hardware-Rooted Attestation Mechanics (Layer 2 and 3) . . . .  17
+     9.1.  TPM Platform Attestation (Layer 2)  . . . . . . . . . . .  17
+       9.1.1.  Overview  . . . . . . . . . . . . . . . . . . . . . .  17
+       9.1.2.  Comparison of Deployment Options  . . . . . . . . . .  18
+       9.1.3.  Geolocation HW-Based Attestation (Layer 3)  . . . . .  18
+       9.1.4.  Privacy-Preserving Geolocation Verification (ZKP) . .  18
+     9.2.  Confidential Computing Considerations . . . . . . . . . .  18
+     9.3.  Measured Boot and OS Integrity Attestation  . . . . . . .  19
      9.4.  Workload Identity Agent Attestation and Identity
-            Issuance . . . . . . . . . . . . . . . . . . . . . . . .  19
-     9.5.  Deployment Option A: Workload Host OS-Based (Keylime) . .  20
-       9.5.1.  Architecture  . . . . . . . . . . . . . . . . . . . .  21
-       9.5.2.  Integration with SPIRE  . . . . . . . . . . . . . . .  21
-       9.5.3.  Advantages  . . . . . . . . . . . . . . . . . . . . .  21
-       9.5.4.  Limitations . . . . . . . . . . . . . . . . . . . . .  21
+            Issuance . . . . . . . . . . . . . . . . . . . . . . . .  20
+     9.5.  Deployment Option A: Workload Host OS-Based (Keylime) . .  21
+       9.5.1.  Architecture  . . . . . . . . . . . . . . . . . . . .  22
+       9.5.2.  Integration with SPIRE  . . . . . . . . . . . . . . .  22
+       9.5.3.  Advantages  . . . . . . . . . . . . . . . . . . . . .  22
+       9.5.4.  Limitations . . . . . . . . . . . . . . . . . . . . .  22
      9.6.  Deployment Option B: External Management Processor (e.g.,
-            HPE iLO) . . . . . . . . . . . . . . . . . . . . . . . .  22
-       9.6.1.  Dual TPM Access Paths . . . . . . . . . . . . . . . .  22
-       9.6.2.  Architecture  . . . . . . . . . . . . . . . . . . . .  23
-       9.6.3.  Hardware Inventory and Continuous Monitoring  . . . .  23
-       9.6.4.  Silicon Root of Trust and IMA Integrity Protection  .  24
-       9.6.5.  Root Adversary and IMA Tampering  . . . . . . . . . .  25
-       9.6.6.  TPM Swap Attack Protection  . . . . . . . . . . . . .  26
-       9.6.7.  Re-attestation Cadence: Tiered Schedule . . . . . . .  26
-       9.6.8.  Advantages  . . . . . . . . . . . . . . . . . . . . .  29
-       9.6.9.  Limitations . . . . . . . . . . . . . . . . . . . . .  29
-       9.6.10. Architecture  . . . . . . . . . . . . . . . . . . . .  30
-       9.6.11. Advantages  . . . . . . . . . . . . . . . . . . . . .  30
-       9.6.12. Limitations . . . . . . . . . . . . . . . . . . . . .  31
+            HPE iLO) . . . . . . . . . . . . . . . . . . . . . . . .  23
+       9.6.1.  Dual TPM Access Paths . . . . . . . . . . . . . . . .  23
+       9.6.2.  Architecture  . . . . . . . . . . . . . . . . . . . .  24
+       9.6.3.  Hardware Inventory and Continuous Monitoring  . . . .  24
+       9.6.4.  Silicon Root of Trust and IMA Integrity Protection  .  25
+       9.6.5.  Root Adversary and IMA Tampering  . . . . . . . . . .  26
+       9.6.6.  TPM Swap Attack Protection  . . . . . . . . . . . . .  27
+       9.6.7.  Re-attestation Cadence: Tiered Schedule . . . . . . .  27
+       9.6.8.  Advantages  . . . . . . . . . . . . . . . . . . . . .  30
+       9.6.9.  Limitations . . . . . . . . . . . . . . . . . . . . .  30
+       9.6.10. Architecture  . . . . . . . . . . . . . . . . . . . .  31
+       9.6.11. Advantages  . . . . . . . . . . . . . . . . . . . . .  31
+       9.6.12. Limitations . . . . . . . . . . . . . . . . . . . . .  32
      9.7.  Workload Identity Fusion: Periodic SPIRE
-            Re-Attestation . . . . . . . . . . . . . . . . . . . . .  31
-     9.8.  Privacy Options for TPM-Based Attestation . . . . . . . .  33
+            Re-Attestation . . . . . . . . . . . . . . . . . . . . .  32
+     9.8.  Privacy Options for TPM-Based Attestation . . . . . . . .  34
      9.9.  Detailed Geolocation HW-Based Attestation Mechanics (Layer
-            3) . . . . . . . . . . . . . . . . . . . . . . . . . . .  33
-     9.10. Overview  . . . . . . . . . . . . . . . . . . . . . . . .  33
-     9.11. Sensor Composition and Binding to TPM EK  . . . . . . . .  34
-     9.12. Geolocation Gathering Workflow  . . . . . . . . . . . . .  34
+            3) . . . . . . . . . . . . . . . . . . . . . . . . . . .  34
+     9.10. Overview  . . . . . . . . . . . . . . . . . . . . . . . .  34
+     9.11. Sensor Composition and Binding to TPM EK  . . . . . . . .  35
+     9.12. Geolocation Gathering Workflow  . . . . . . . . . . . . .  35
 
 
 
@@ -170,49 +170,49 @@ Krishnan, et al.         Expires 28 August 2026                 [Page 3]
 Internet-Draft                RATS-GEO-POR                 February 2026
 
 
-     9.13. Deployment Option A: Workload Host OS-Based (Keylime) . .  36
-       9.13.1.  Architecture . . . . . . . . . . . . . . . . . . . .  36
-       9.13.2.  Mobile Location Verification (OPTIONAL)  . . . . . .  37
-       9.13.3.  Advantages . . . . . . . . . . . . . . . . . . . . .  37
-       9.13.4.  Limitations  . . . . . . . . . . . . . . . . . . . .  37
+     9.13. Deployment Option A: Workload Host OS-Based (Keylime) . .  37
+       9.13.1.  Architecture . . . . . . . . . . . . . . . . . . . .  37
+       9.13.2.  Mobile Location Verification (OPTIONAL)  . . . . . .  38
+       9.13.3.  Advantages . . . . . . . . . . . . . . . . . . . . .  38
+       9.13.4.  Limitations  . . . . . . . . . . . . . . . . . . . .  38
      9.14. Deployment Option B: Out-of-Band Geolocation (Overlay on
-            Layer 2 Option B)  . . . . . . . . . . . . . . . . . . .  37
-       9.14.1.  Architecture . . . . . . . . . . . . . . . . . . . .  37
-       9.14.2.  Technical Implementation . . . . . . . . . . . . . .  38
-       9.14.3.  Advantages . . . . . . . . . . . . . . . . . . . . .  38
-       9.14.4.  Limitations  . . . . . . . . . . . . . . . . . . . .  39
-     9.15. Privacy-Preserving Geolocation Verification (ZKP) . . . .  40
-       9.15.1.  Architecture . . . . . . . . . . . . . . . . . . . .  40
-       9.15.2.  Verification Flow  . . . . . . . . . . . . . . . . .  40
-       9.15.3.  Integration with the Attestation Layers  . . . . . .  41
-       9.15.4.  Comparison: Precise Location vs. ZKP . . . . . . . .  42
+            Layer 2 Option B)  . . . . . . . . . . . . . . . . . . .  38
+       9.14.1.  Architecture . . . . . . . . . . . . . . . . . . . .  38
+       9.14.2.  Technical Implementation . . . . . . . . . . . . . .  39
+       9.14.3.  Advantages . . . . . . . . . . . . . . . . . . . . .  39
+       9.14.4.  Limitations  . . . . . . . . . . . . . . . . . . . .  40
+     9.15. Privacy-Preserving Geolocation Verification (ZKP) . . . .  41
+       9.15.1.  Architecture . . . . . . . . . . . . . . . . . . . .  41
+       9.15.2.  Verification Flow  . . . . . . . . . . . . . . . . .  41
+       9.15.3.  Integration with the Attestation Layers  . . . . . .  42
+       9.15.4.  Comparison: Precise Location vs. ZKP . . . . . . . .  43
        9.15.5.  Mathematical Transparency and Post-Quantum
-               Foundation  . . . . . . . . . . . . . . . . . . . . .  42
-     9.16. Scaling the Solution Logic  . . . . . . . . . . . . . . .  43
-     9.17. End user location anchor host . . . . . . . . . . . . . .  43
-     9.18. Data center location anchor host  . . . . . . . . . . . .  44
-   10. RATS/WIMSE Verification Logic . . . . . . . . . . . . . . . .  45
-   11. Industry Alignment and Policy Guidance  . . . . . . . . . . .  45
-     11.1.  Solution Mapping to Industry Gaps  . . . . . . . . . . .  45
-     11.2.  Authorization Policy Implementers  . . . . . . . . . . .  46
-   12. Security Considerations . . . . . . . . . . . . . . . . . . .  46
-     12.1.  Mapping to WIMSE Threat Model  . . . . . . . . . . . . .  46
-     12.2.  Identity Hijacking Prevention  . . . . . . . . . . . . .  46
-     12.3.  Technical Security Considerations  . . . . . . . . . . .  47
-       12.3.1.  Anti-Tunneling and TEE-Enforced Proximity  . . . . .  47
-     12.4.  Proximity and Anchor Displacement (Layer 4)  . . . . . .  48
-   13. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  49
-   14. Appendix - Items to follow up . . . . . . . . . . . . . . . .  49
+               Foundation  . . . . . . . . . . . . . . . . . . . . .  43
+     9.16. Scaling the Solution Logic  . . . . . . . . . . . . . . .  44
+     9.17. End user location anchor host . . . . . . . . . . . . . .  44
+     9.18. Data center location anchor host  . . . . . . . . . . . .  45
+   10. RATS/WIMSE Verification Logic . . . . . . . . . . . . . . . .  46
+   11. Industry Alignment and Policy Guidance  . . . . . . . . . . .  46
+     11.1.  Solution Mapping to Industry Gaps  . . . . . . . . . . .  46
+     11.2.  Authorization Policy Implementers  . . . . . . . . . . .  47
+   12. Security Considerations . . . . . . . . . . . . . . . . . . .  47
+     12.1.  Mapping to WIMSE Threat Model  . . . . . . . . . . . . .  47
+     12.2.  Identity Hijacking Prevention  . . . . . . . . . . . . .  47
+     12.3.  Technical Security Considerations  . . . . . . . . . . .  48
+       12.3.1.  Anti-Tunneling and TEE-Enforced Proximity  . . . . .  48
+     12.4.  Proximity and Anchor Displacement (Layer 4)  . . . . . .  49
+   13. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  50
+   14. Appendix - Items to follow up . . . . . . . . . . . . . . . .  50
      14.1.  OPEN ISSUES 1: Native IMA re-triggering (Partially
-            Addressed) . . . . . . . . . . . . . . . . . . . . . . .  49
-     14.2.  OPEN ISSUES 2: Location privacy options  . . . . . . . .  49
-     14.3.  OPEN ISSUES 3: Attested PTP (Partially Addressed)  . . .  49
-     14.4.  OPEN ISSUES 4: Geotagging textual data . . . . . . . . .  49
-     14.5.  OPEN ISSUES 5: Attesting Geotags . . . . . . . . . . . .  49
+            Addressed) . . . . . . . . . . . . . . . . . . . . . . .  50
+     14.2.  OPEN ISSUES 2: Location privacy options  . . . . . . . .  50
+     14.3.  OPEN ISSUES 3: Attested PTP (Partially Addressed)  . . .  50
+     14.4.  OPEN ISSUES 4: Geotagging textual data . . . . . . . . .  50
+     14.5.  OPEN ISSUES 5: Attesting Geotags . . . . . . . . . . . .  50
    15. Appendix - Public References for Strict Data Residency
-           Rules . . . . . . . . . . . . . . . . . . . . . . . . . .  50
-   16. Appendix - CDDL for V-GAP Profile . . . . . . . . . . . . . .  50
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  50
+           Rules . . . . . . . . . . . . . . . . . . . . . . . . . .  51
+   16. Appendix - CDDL for V-GAP Profile . . . . . . . . . . . . . .  51
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  51
 
 
 
@@ -618,14 +618,25 @@ Krishnan, et al.         Expires 28 August 2026                [Page 11]
 Internet-Draft                RATS-GEO-POR                 February 2026
 
 
-5.1.3.  Server workload to Server workload - Federated AI
+5.1.3.  Federated AI (Decryption Gatekeeper)
 
    In federated learning scenarios, multiple organizations collaborate
-   to train machine learning models without sharing raw data.  Each
-   organization needs to ensure that its training data remains within a
-   specific geographic boundary.  This requires cryptographic proof that
-   the training process is occurring on trusted Workload Hosts within
-   the defined boundaries.
+   to train machine learning models without sharing raw data.  In
+   regulated industries like Oil & Gas, this often involves "Edge AI"
+   processing on remote rigs where high-value model weights or
+   decryption keys are only released if the edge environment is
+   currently "Sovereign and Integral."
+
+   The *Decryption Gatekeeper Workflow* enables this "Silicon-to-Key"
+   chain: 1. *Edge Attestation*: The Edge AI workload presents its
+   *Sovereign SVID* (containing the V-GAP bundle) to the Cloud Verifier.
+   2. *ZKP Validation*: The Cloud Verifier validates the *lah-
+   geolocation-proof-hash* to ensure the rig is in approved waters. 3.
+   *Hardware Cross-Check*: The Cloud Verifier queries the *Cloud Host
+   Management Plane* to confirm the host-tpm-ak is "In-Status" and
+   silicon-verified. 4. *Decryption Key Release*: Only upon successful
+   geofence and integrity verification does the Cloud issue the model
+   decryption keys to the Edge AI workload.
 
 5.1.4.  User workload to Server workload
 
@@ -655,6 +666,14 @@ Internet-Draft                RATS-GEO-POR                 February 2026
       located in a specific geographic boundary when downloading patient
       data or performing other sensitive operations.
 
+
+
+
+Krishnan, et al.         Expires 28 August 2026                [Page 12]
+
+Internet-Draft                RATS-GEO-POR                 February 2026
+
+
    *  U.S.  Presidential Executive Order compliance directs Cloud
       Service Provider (CSP) support personnel be located in restricted
       geographies (e.g., Venezuela, Iran, China, North Korea).  However,
@@ -665,14 +684,6 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
    Geographic boundary attestation helps satisfy data residency and data
    sovereignty requirements for regulatory compliance.
-
-
-
-
-Krishnan, et al.         Expires 28 August 2026                [Page 12]
-
-Internet-Draft                RATS-GEO-POR                 February 2026
-
 
 5.4.  Server Workload Hosts - Solution highlights
 
@@ -710,6 +721,15 @@ Internet-Draft                RATS-GEO-POR                 February 2026
       -  HW-based Attested PTP - Relevant for sub microsecond precision
          timing solutions.
 
+
+
+
+
+Krishnan, et al.         Expires 28 August 2026                [Page 13]
+
+Internet-Draft                RATS-GEO-POR                 February 2026
+
+
    *  Workload identity agent provides proof that workloads run only on
       workload/location anchor hosts.
 
@@ -720,15 +740,6 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
    Browser solution -- new browser extension for proof residency and
    geofencing:
-
-
-
-
-
-Krishnan, et al.         Expires 28 August 2026                [Page 13]
-
-Internet-Draft                RATS-GEO-POR                 February 2026
-
 
    *  Application proxy which intercepts every HTTP request; connects to
       workload identity agent to add geolocation; signs request using
@@ -759,6 +770,22 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    The following CDDL defines the structure of the V-GAP Nested Evidence
    Bundle, formatted as an Entity Attestation Token (EAT) profile.
 
+
+
+
+
+
+
+
+
+
+
+
+Krishnan, et al.         Expires 28 August 2026                [Page 14]
+
+Internet-Draft                RATS-GEO-POR                 February 2026
+
+
    V-GAP-Profile = {
        1 => bstr,                      ; Workload Host AK
        2 => bstr,                      ; Hash of PTP logs or "SELF"
@@ -776,16 +803,6 @@ Internet-Draft                RATS-GEO-POR                 February 2026
        7 => bstr                       ; Inner Seal over [1..6]
    }
 
-
-
-
-
-
-Krishnan, et al.         Expires 28 August 2026                [Page 14]
-
-Internet-Draft                RATS-GEO-POR                 February 2026
-
-
 7.  Scalable Fleet Management
 
    Managing hardware-rooted identities at scale requires automated
@@ -793,8 +810,13 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 7.1.  Attestation Key (AK) Management
 
-   *  *Rotation:* The Edge Management Plane SHALL rotate both the host-
-      tpm-ak and lah-tpm-ak periodically.
+   *  *Rotation & Sync:* The Edge Management Plane SHALL rotate both the
+      host-tpm-ak and lah-tpm-ak periodically.  To maintain the chain of
+      trust during rotation, the Cloud Host Management Plane MUST ONLY
+      accept a newly synced AK if the Edge Management Plane provides a
+      *"Rotation Proof"*—typically a signature from the _preceding_ AK
+      blessing the new AK, or a fresh Out-of-Band (OOB) quote from the
+      hardware root of trust (i.e., iLO 7).
    *  *Hardware-Rooted Registry:* The Sovereign Verifier MUST maintain a
       registry mapping verified AKs to their manufacturer *Endorsement
       Key (EK)* certificates.
@@ -806,6 +828,20 @@ Internet-Draft                RATS-GEO-POR                 February 2026
       -  Node reboot (detected via TPM Clock/ResetCount reset).
       -  Policy violation or audit failure.
       -  Escalation to a "Sovereign High-Trust" workload request.
+
+
+
+
+
+
+
+
+
+Krishnan, et al.         Expires 28 August 2026                [Page 15]
+
+Internet-Draft                RATS-GEO-POR                 February 2026
+
+
    *  *Revocation and Hardware Health Bit:* The Edge Management Plane
       MUST maintain a *"Hardware Health Bit"* for each node.  If the
       hardware root of trust (e.g., iLO 7) detects a security breach
@@ -816,6 +852,14 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    *  *Continuous Validation:* Between full handshakes, the Verifier
       accepts hardware-signed Quotes from the registered AK as proof of
       continued residency in approved silicon.
+   *  *Offline Survival & Leased Identity:* In environments with
+      intermittent connectivity (e.g., offshore rigs), the Cloud
+      Verifier MAY issue a *"Leased Identity"* with an extended validity
+      period (e.g., 48 hours).  This lease is contingent on the local
+      hardware root of trust (iLO 7) performing continuous monitoring
+      for physical tampering (chassis intrusion, signal jamming) and
+      triggering a local "Self-Destruct" of the identity keys if a
+      breach is detected while offline.
 
 8.  Distributed SVID Issuance and Scaling
 
@@ -834,25 +878,36 @@ Internet-Draft                RATS-GEO-POR                 February 2026
       an *internal silicon measurement* (e.g., measuring PCIe latency or
       local bus delay) rather than a network protocol.  In this case,
       the host-proximity-proof-hash SHALL be set to the cryptographic
-
-
-
-Krishnan, et al.         Expires 28 August 2026                [Page 15]
-
-Internet-Draft                RATS-GEO-POR                 February 2026
-
-
       constant *"SELF"*, formally defined as the 32-byte value SHA-
       256("V-GAP-LOCAL-PROXIMITY").  The Verifier SHALL validate that
       the reported bus latency is within the microsecond bounds of local
       silicon to prevent a remote attacker from spoofing a 1:1 residency
       status.
 
-8.1.  End user location anchor host
 
-   Enterprises ensure that they are communicating with a server (e.g.,
-   cloud services) located within a specific geographic boundary.  The
-   LAH ensures high-assurance residency.
+
+
+
+
+
+
+
+
+Krishnan, et al.         Expires 28 August 2026                [Page 16]
+
+Internet-Draft                RATS-GEO-POR                 February 2026
+
+
+8.1.  Sovereign Handover (Mobile Edge)
+
+   In mobile edge environments (e.g., an AI agent moving from a "Rig-
+   based" Edge to a "Ship-based" Edge), the system handles a *Sovereign
+   Handover*. During this transition, the Workload Identity Agent MUST
+   generate a new V-GAP Evidence Bundle that replaces the previous
+   Location Anchor Host's identity with the new one.  The Verifier
+   acknowledges the handover by verifying the new *Proximity Binding*
+   while maintaining the continuity of the Workload Host's platform
+   integrity.
 
 8.2.  Data center location anchor host
 
@@ -893,7 +948,8 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 16]
+
+Krishnan, et al.         Expires 28 August 2026                [Page 17]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -949,7 +1005,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 17]
+Krishnan, et al.         Expires 28 August 2026                [Page 18]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1005,7 +1061,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 18]
+Krishnan, et al.         Expires 28 August 2026                [Page 19]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1061,7 +1117,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 19]
+Krishnan, et al.         Expires 28 August 2026                [Page 20]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1117,7 +1173,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 20]
+Krishnan, et al.         Expires 28 August 2026                [Page 21]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1173,7 +1229,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 21]
+Krishnan, et al.         Expires 28 August 2026                [Page 22]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1229,7 +1285,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 22]
+Krishnan, et al.         Expires 28 August 2026                [Page 23]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1285,7 +1341,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 23]
+Krishnan, et al.         Expires 28 August 2026                [Page 24]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1341,7 +1397,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 24]
+Krishnan, et al.         Expires 28 August 2026                [Page 25]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1397,7 +1453,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 25]
+Krishnan, et al.         Expires 28 August 2026                [Page 26]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1453,7 +1509,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 26]
+Krishnan, et al.         Expires 28 August 2026                [Page 27]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1509,7 +1565,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 27]
+Krishnan, et al.         Expires 28 August 2026                [Page 28]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1565,7 +1621,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 28]
+Krishnan, et al.         Expires 28 August 2026                [Page 29]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1621,7 +1677,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 29]
+Krishnan, et al.         Expires 28 August 2026                [Page 30]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1677,7 +1733,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 30]
+Krishnan, et al.         Expires 28 August 2026                [Page 31]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1733,7 +1789,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 31]
+Krishnan, et al.         Expires 28 August 2026                [Page 32]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1789,7 +1845,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 32]
+Krishnan, et al.         Expires 28 August 2026                [Page 33]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1845,7 +1901,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 33]
+Krishnan, et al.         Expires 28 August 2026                [Page 34]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1901,7 +1957,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 34]
+Krishnan, et al.         Expires 28 August 2026                [Page 35]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -1957,7 +2013,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 35]
+Krishnan, et al.         Expires 28 August 2026                [Page 36]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2013,7 +2069,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 36]
+Krishnan, et al.         Expires 28 August 2026                [Page 37]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2069,7 +2125,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 37]
+Krishnan, et al.         Expires 28 August 2026                [Page 38]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2125,7 +2181,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 38]
+Krishnan, et al.         Expires 28 August 2026                [Page 39]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2181,7 +2237,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 39]
+Krishnan, et al.         Expires 28 August 2026                [Page 40]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2237,7 +2293,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 40]
+Krishnan, et al.         Expires 28 August 2026                [Page 41]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2293,7 +2349,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 41]
+Krishnan, et al.         Expires 28 August 2026                [Page 42]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2349,7 +2405,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 42]
+Krishnan, et al.         Expires 28 August 2026                [Page 43]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2405,7 +2461,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 43]
+Krishnan, et al.         Expires 28 August 2026                [Page 44]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2461,7 +2517,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 44]
+Krishnan, et al.         Expires 28 August 2026                [Page 45]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2517,7 +2573,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 45]
+Krishnan, et al.         Expires 28 August 2026                [Page 46]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2573,7 +2629,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 46]
+Krishnan, et al.         Expires 28 August 2026                [Page 47]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2629,7 +2685,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 47]
+Krishnan, et al.         Expires 28 August 2026                [Page 48]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2685,7 +2741,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 48]
+Krishnan, et al.         Expires 28 August 2026                [Page 49]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2741,7 +2797,7 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 49]
+Krishnan, et al.         Expires 28 August 2026                [Page 50]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2797,7 +2853,7 @@ Authors' Addresses
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 50]
+Krishnan, et al.         Expires 28 August 2026                [Page 51]
 
 Internet-Draft                RATS-GEO-POR                 February 2026
 
@@ -2853,4 +2909,4 @@ Internet-Draft                RATS-GEO-POR                 February 2026
 
 
 
-Krishnan, et al.         Expires 28 August 2026                [Page 51]
+Krishnan, et al.         Expires 28 August 2026                [Page 52]
