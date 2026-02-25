@@ -239,10 +239,10 @@ Internet-Draft                RATS-GEO-POR                 February 2026
    to workloads.  It serves as a "vetting" mechanism, ensuring that a
    workload's execution environment meets required security and
    residency policies before granting it the cryptographic credentials
-   necessary for network communication.  This high assurance profile,
-   RATS Profile, provides the technical mechanics to cryptographically
-   bind this agent to the underlying hardware-verified platform and its
-   privacy preserving physical location.
+   necessary for network communication.  This *High-Assurance Profile*
+   (a specialized RATS Profile) provides the technical mechanics to
+   cryptographically bind this agent to the underlying hardware-verified
+   platform and its privacy preserving physical location.
 
    The architecture follows the *RATS Architecture [[RFC9334]]*,
    defining the interactions between *Provers*, *Verifiers*, and
