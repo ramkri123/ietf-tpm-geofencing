@@ -466,9 +466,18 @@ Managing hardware-rooted identities at scale requires automated lifecycle manage
 Managing hardware-rooted identities at scale requires a **Dual Federation** model where local operational autonomy is balanced with centralized governance.
 
 * **Edge-to-Cloud Handshake:** The Edge Host Identity Management Plane SHALL maintain local Attestation Keys (AKs) for the `host-tpm-ak` and `lah-tpm-ak` to support offline SVID issuance. Periodically, these AKs MUST be synchronized with the Cloud-based **Sovereign Registry**.
-* **Rotation Proofs:** The Cloud Host Identity Management Plane MUST ONLY accept a newly synced AK if the Edge Host Identity Management Plane provides a **"Rotation Proof"**. This cryptographic baseline ensures that even if the Edge Management Plane is compromised, an attacker cannot register rogue, software-emulated keys in the Cloud-based Sovereign Registry. This proof SHALL be a JCS-canonicalized JSON object containing the new AK public key, the AK serial number, and a monotonic timestamp, signed by one of the following hardware-rooted sources:
-    - The **preceding verified AK** associated with that hardware UUID (creating a verifiable hash chain).
-    - A fresh **hardware-rooted Out-of-Band (OOB) quote** (e.g., HPE iLO 7) verifying that the new AK was generated within the secure enclave of the approved silicon.
+* **Rotation Proofs:** The Cloud Host Identity Management Plane MUST ONLY accept a newly synced AK if the Edge Host Identity Management Plane provides a **"Rotation Proof"**. This cryptographic baseline ensures that even if the Edge Management Plane is compromised, an attacker cannot register rogue, software-emulated keys in the Cloud-based Sovereign Registry. This proof SHALL be a JCS-canonicalized JSON object signed by the **preceding verified AK** (creating a verifiable hash chain), effectively "blessing" the new key.
+    
+    ```json
+    {
+      "new-ak-pub": "Base64URL_Encoded_Public_Key",
+      "serial-number": "AK_Serial_XYZ",
+      "timestamp": 1708845600,
+      "hardware-uuid": "Host_Hardware_UUID",
+      "signature": "Base64URL_Signature_from_Previous_AK"
+    }
+    ```
+    Alternatively, a fresh **hardware-rooted Out-of-Band (OOB) quote** (e.g., HPE iLO 7) MAY be used to verify that the new AK was generated within the secure enclave of the approved silicon.
 * **Hardware-Rooted Registry:** The Sovereign Verifier MUST maintain a registry mapping verified AKs to their manufacturer **Endorsement Key (EK)** certificates.
 * **Credential Activation (Handshake) & The On-Demand Kill-Switch:** To avoid the "MakeCredential tax" (high-latency challenge/response) on every request, the Verifier SHALL perform the full **TPM2_MakeCredential** procedure (linked to the manufacturer EK and HPE Root CA) only upon:
     - Initial node onboarding.
@@ -1064,7 +1073,7 @@ The Sovereign Verifier executes a multi-stage validation sequence to confirm the
 5.  **Residency Validation**: Compute the ZKP or boundary check on the geolocation payload within the **lah-bundle**.
 6.  **Freshness and Clock Sync**: Ensure the `timestamp` (or `nonce` if provided in the bundle) is within the policy-defined window relative to the Verifier's clock.
 7.  **Freshness Window Policy (Clock-Warp Guard & Recovery)**: The Verifier MUST reject any bundle where the `timestamp`/`nonce` deviates from the Verifier's own hardware-anchored clock by more than a defined threshold (**Maximum Skew: +/- 100ms**).
-    - **Sync Recovery Protocol (Slow Path)**: Upon rejection due to clock-warp (temporal drift), the system SHOULD trigger an immediate **Sync Recovery**. The Verifier initiates a full hardware-rooted challenge (**TPM2_MakeCredential**) back to the **HPE Root of Trust** of the host. This "Slow Path" re-attestation resets the hardware-anchored temporal baseline, cryptographically re-verifying the host's identity and session freshness to re-establish trust.
+    - **Sync Recovery Protocol (Slow Path)**: If a Verifier rejects a bundle due to clock-warp (temporal drift exceeds +/- 100ms), it SHOULD force a **"Slow Path" re-attestation**. The Verifier initiates a full hardware-rooted challenge (**TPM2_MakeCredential**) back to the **HPE Root of Trust** of the host. This process resets the hardware-anchored temporal baseline and re-establishes the "Baseline of Trust" for the session.
 8.  **Revocation**: If Sync Recovery fails twice consecutively or if the drift significantly exceeds a "Critical Threshold" (e.g., > 1000ms), the Verifier MUST trigger an **Immediate Revocation** of all active SVIDs for that host.
 9.  **Downstream Authorization (KMS Gatekeeping)**: Successful verification of the V-GAP Evidence Bundle SHALL be a mandatory precondition for a downstream **Key Management Service (KMS)** or Workload Identity Management Plane to release high-value assets (e.g., AI model decryption keys). The Verifier MUST propagate the "Sovereign-Verified" status to the KMS along with the residency timestamp for freshness binding.
 
