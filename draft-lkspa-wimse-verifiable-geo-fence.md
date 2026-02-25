@@ -466,10 +466,9 @@ Managing hardware-rooted identities at scale requires automated lifecycle manage
 Managing hardware-rooted identities at scale requires a **Dual Federation** model where local operational autonomy is balanced with centralized governance.
 
 * **Edge-to-Cloud Handshake:** The Edge Host Identity Management Plane SHALL maintain local Attestation Keys (AKs) for the `host-tpm-ak` and `lah-tpm-ak` to support offline SVID issuance. Periodically, these AKs MUST be synchronized with the Cloud-based **Sovereign Registry**.
-* **Rotation Proofs:** The Cloud Host Identity Management Plane MUST ONLY accept a newly synced AK if the Edge Host Identity Management Plane provides a **"Rotation Proof"**. This proof SHALL be a JSON object containing the new AK public key, the AK serial number, and a timestamp, signed by either:
-    - The **preceding verified AK** (creating a verifiable hash chain).
-    - A fresh **hardware-rooted OOB quote** (e.g., iLO 7) verifying that the new AK was generated within the secure enclave of the approved silicon.
-    This prevents a compromised Edge Management Plane from registering rogue, software-emulated keys in the Sovereign Registry.
+* **Rotation Proofs:** The Cloud Host Identity Management Plane MUST ONLY accept a newly synced AK if the Edge Host Identity Management Plane provides a **"Rotation Proof"**. This cryptographic baseline ensures that even if the Edge Management Plane is compromised, an attacker cannot register rogue, software-emulated keys in the Cloud-based Sovereign Registry. This proof SHALL be a JCS-canonicalized JSON object containing the new AK public key, the AK serial number, and a monotonic timestamp, signed by one of the following hardware-rooted sources:
+    - The **preceding verified AK** associated with that hardware UUID (creating a verifiable hash chain).
+    - A fresh **hardware-rooted Out-of-Band (OOB) quote** (e.g., HPE iLO 7) verifying that the new AK was generated within the secure enclave of the approved silicon.
 * **Hardware-Rooted Registry:** The Sovereign Verifier MUST maintain a registry mapping verified AKs to their manufacturer **Endorsement Key (EK)** certificates.
 * **Credential Activation (Handshake) & The On-Demand Kill-Switch:** To avoid the "MakeCredential tax" (high-latency challenge/response) on every request, the Verifier SHALL perform the full **TPM2_MakeCredential** procedure (linked to the manufacturer EK and HPE Root CA) only upon:
     - Initial node onboarding.
