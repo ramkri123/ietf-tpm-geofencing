@@ -1037,7 +1037,7 @@ The goal is to provide an easy-to-use solution that can be used by data center o
 
 PTP is a network protocol that enables precise synchronization of clocks across a computer network and can be used to measure the round-trip time (RTT) between the location anchor host and other data center hosts with sub-microsecond accuracy. To provide cryptographically verifiable proof of residency on the Workload Host -- referred to as "attested PTP" -- the PTP software/hardware can be enhanced so that all PTP messages are signed with a private key.
 
-The **Canonical PTP Log** for hashing MUST include the signed **Follow_Up** and **Delay_Resp** messages from the PTP exchange. This ensures that the proximity proof is bound to the actual cryptographic evidence of the physical handshake.
+The **Canonical PTP Log** for hashing MUST be the ordered concatenation: **PTP Sequence ID** (4 bytes, big-endian) + **Follow_Up** message + **Delay_Resp** message. This ensures that the proximity proof is bound to the actual cryptographic evidence of the physical handshake with sub-microsecond determinism.
 
 This signing can be done in two ways:
 
