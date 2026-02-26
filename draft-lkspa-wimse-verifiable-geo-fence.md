@@ -90,9 +90,9 @@ organization = "Independent"
 
 .# Abstract
 
-Modern cloud and distributed computing rely heavily on software-only identities and bearer tokens that are easily stolen, replayed, or used from unauthorized locations. Furthermore, traditional methods of location verification—such as IP-address-based geolocation—are both easily spoofed via VPNs or proxies and significantly compromise user and infrastructure privacy. For **Sovereign Workloads** and high-assurance environments, these vulnerabilities represent a fundamental failure of the security boundary.
+Modern cloud and distributed computing rely heavily on software-only identities and bearer tokens that are easily stolen, replayed, or used from unauthorized locations. Furthermore, traditional methods of location verification - such as IP-address-based geolocation - are easily spoofed via VPNs or proxies and significantly compromises infrastructure security and privacy for **Sovereign Workloads** and high-assurance environments. This document defines a **High-Assurance Profile** designed to solve these challenges through hardware-rooted cryptographic verfiability. 
 
-This document defines a **High-Assurance Profile** designed to solve these challenges through hardware-rooted cryptographic certainty. It replaces implicit trust and spoofable indicators with verifiable evidence of both the **Workload Identity Agent's** integrity (via TPM-based platform attestation) and its physical location. Critically, this framework prioritizes **Location Privacy** by utilizing Zero-Knowledge Proofs (ZKP), allowing a workload to prove it is within a compliant "Sovereign Zone" without disclosing precise coordinates that could be used for tracking or exploitation.
+A host machine runs a workload identity agent for managing the workload identities on that platform. This proposal replaces implicit trust and spoofable indicators with cryptographically verifiable hardware-rooted evidence of integrity and location for this agent. Critically, this framework prioritizes **Location Privacy** by utilizing Zero-Knowledge Proofs (ZKP), allowing a workload to prove it is within a compliant "Sovereign Zone" without disclosing precise coordinates that could be used for tracking or exploitation.
 
 By binding software identities to persistent silicon identities and verified physical residency, this solution establishes a "Silicon-to-Workload" chain of trust. It ensures that sensitive operations are only performed by authorized workloads running on untampered hardware in cryptographically verified, privacy-preserving geographic boundaries, fulfilling the high-assurance requirements of the **WIMSE Architecture** [[I-D.ietf-wimse-architecture]].
 
@@ -104,7 +104,7 @@ The **Workload Identity Agent** (e.g., SPIRE Agent) acts as the local-on-host in
 
 The architecture follows the **RATS Architecture [[RFC9334]]**, defining the interactions between **Provers**, **Verifiers**, and **Relying Parties** to generate and validate **High-Confidence Evidence** regarding the **Workload Identity Agent's** status. It provides the hardware-rooted "Evidence Layer" required by the high-level **WIMSE Architecture [[I-D.ietf-wimse-architecture]]**, establishing a **"Silicon-to-Workload"** chain of trust that ensures sensitive data is only processed by authorized workloads in approved, integral environments.
 
-To maintain **Location Privacy** while providing cryptographic certainty, this profile leverages **Transparent Zero-Knowledge Proofs (ZKPs)**. Unlike traditional ZKP systems, transparent ZKPs require no "Trusted Third Party" or complex "Trusted Setup" phase. They achieved mathematical transparency through non-interactive, hash-based protocols, allowing a platform to prove it is resident within an approved geographic boundary without disclosing the exact coordinates of the underlying hardware.
+To maintain **Location Privacy** while providing cryptographic verifiability, this profile leverages **Transparent Zero-Knowledge Proofs (ZKPs)**. Unlike traditional ZKP systems, transparent ZKPs require no "Trusted Third Party" or complex "Trusted Setup" phase. They achieved mathematical transparency through non-interactive, hash-based protocols, allowing a platform to prove it is resident within an approved geographic boundary without disclosing the exact coordinates of the underlying hardware.
 
 ## Strategic Narrative: Hardware-Enforced Sovereignty (The Symmetry of Trust)
 
@@ -205,7 +205,6 @@ N_fusion (Workload Fusion Nonce):
 
 N_platform vs. N_fusion Binding:
 : To prevent "mix-and-match" attacks where an attacker combines a fresh workload identity with a stale platform quote, the Host Identity Management Plane SHALL cryptographically bind the two nonces. The Attestation Result produced by the Verifier MUST contain a **Joint Digital Signature** over both `N_fusion` and the hardware-attested platform claims verified via `N_platform`. This ensures that the issued SVID is structurally tied to the specific hardware state observed during that exact attestation window.
-
 
 ## Industry Gaps and Problem Statements
 
