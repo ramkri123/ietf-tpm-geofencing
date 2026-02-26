@@ -25,8 +25,8 @@
 <keyword>GNSS</keyword>
 
 <abstract>
-<t>Modern cloud and distributed computing rely heavily on software-only identities and bearer tokens that are easily stolen, replayed, or used from unauthorized locations. Furthermore, traditional methods of location verification—such as IP-address-based geolocation—are both easily spoofed via VPNs or proxies and significantly compromise user and infrastructure privacy. For <strong>Sovereign Workloads</strong> and high-assurance environments, these vulnerabilities represent a fundamental failure of the security boundary.</t>
-<t>This document defines a <strong>High-Assurance Profile</strong> designed to solve these challenges through hardware-rooted cryptographic certainty. It replaces implicit trust and spoofable indicators with verifiable evidence of both the <strong>Workload Identity Agent's</strong> integrity (via TPM-based platform attestation) and its physical location. Critically, this framework prioritizes <strong>Location Privacy</strong> by utilizing Zero-Knowledge Proofs (ZKP), allowing a workload to prove it is within a compliant &quot;Sovereign Zone&quot; without disclosing precise coordinates that could be used for tracking or exploitation.</t>
+<t>Modern cloud and distributed computing rely heavily on software-only identities and bearer tokens that are easily stolen, replayed, or used from unauthorized locations. Furthermore, traditional methods of location verification - such as IP-address-based geolocation - are easily spoofed via VPNs or proxies and significantly compromises infrastructure security and privacy for <strong>Sovereign Workloads</strong> and high-assurance environments. This document defines a <strong>High-Assurance Profile</strong> designed to solve these challenges through hardware-rooted cryptographic verfiability.</t>
+<t>A host machine runs a workload identity agent for managing the workload identities on that platform. This proposal replaces implicit trust and spoofable indicators with cryptographically verifiable hardware-rooted evidence of integrity and location for this agent. Critically, this framework prioritizes <strong>Location Privacy</strong> by utilizing Zero-Knowledge Proofs (ZKP), allowing a workload to prove it is within a compliant &quot;Sovereign Zone&quot; without disclosing precise coordinates that could be used for tracking or exploitation.</t>
 <t>By binding software identities to persistent silicon identities and verified physical residency, this solution establishes a &quot;Silicon-to-Workload&quot; chain of trust. It ensures that sensitive operations are only performed by authorized workloads running on untampered hardware in cryptographically verified, privacy-preserving geographic boundaries, fulfilling the high-assurance requirements of the <strong>WIMSE Architecture</strong> [[I-D.ietf-wimse-architecture]].</t>
 </abstract>
 
@@ -37,22 +37,7 @@
 <section anchor="introduction"><name>Introduction</name>
 <t>The <strong>Workload Identity Agent</strong> (e.g., SPIRE Agent) acts as the local-on-host intermediary responsible for managing and issuing identities to workloads. It serves as a &quot;vetting&quot; mechanism, ensuring that a workload's execution environment meets required security and residency policies before granting it the cryptographic credentials necessary for network communication. This <strong>High-Assurance Profile</strong> (a specialized RATS Profile) provides the technical mechanics to cryptographically bind this agent to the underlying hardware-verified platform and its privacy preserving physical location.</t>
 <t>The architecture follows the <strong>RATS Architecture [[RFC9334]]</strong>, defining the interactions between <strong>Provers</strong>, <strong>Verifiers</strong>, and <strong>Relying Parties</strong> to generate and validate <strong>High-Confidence Evidence</strong> regarding the <strong>Workload Identity Agent's</strong> status. It provides the hardware-rooted &quot;Evidence Layer&quot; required by the high-level <strong>WIMSE Architecture [[I-D.ietf-wimse-architecture]]</strong>, establishing a <strong>&quot;Silicon-to-Workload&quot;</strong> chain of trust that ensures sensitive data is only processed by authorized workloads in approved, integral environments.</t>
-<t>To maintain <strong>Location Privacy</strong> while providing cryptographic certainty, this profile leverages <strong>Transparent Zero-Knowledge Proofs (ZKPs)</strong>. Unlike traditional ZKP systems, transparent ZKPs require no &quot;Trusted Third Party&quot; or complex &quot;Trusted Setup&quot; phase. They achieved mathematical transparency through non-interactive, hash-based protocols, allowing a platform to prove it is resident within an approved geographic boundary without disclosing the exact coordinates of the underlying hardware.</t>
-
-<section anchor="strategic-narrative-hardware-enforced-sovereignty-the-symmetry-of-trust"><name>Strategic Narrative: Hardware-Enforced Sovereignty (The Symmetry of Trust)</name>
-
-<section anchor="the-compliance-bridge-the-symmetry-of-trust"><name>The Compliance Bridge (The Symmetry of Trust)</name>
-<t>This framework establishes a <strong>&quot;Silicon-to-Workload&quot;</strong> chain of trust built on two parallel but federated pillars: the <strong>Workload Identity Management Plane</strong> and the <strong>Host Identity Management Plane</strong>. This symmetry allows for the binding of ephemeral software identities to persistent silicon identities, bridging the &quot;Perception Gap&quot; in modern distributed systems.</t>
-<t>The <strong>Compliance Bridge</strong> serves as the normative link between these two planes. It ensures that the <strong>Workload Identity Management Plane</strong> only issues identities (SVIDs) for workloads running on platforms that have been verified integral by the <strong>Host Identity Management Plane</strong>.</t>
-
-<ul spacing="compact">
-<li><strong>Workload Identity Management Plane</strong>: Manages software entities (e.g., AI Models, Microservices) and issues SVID credentials.</li>
-<li><strong>Host Identity Management Plane</strong>: Manages and attests to the physical/virtual silicon integrity (e.g., Compute Nodes, Location Anchor Hosts) using the Silicon Root of Trust (TPM/iLO 7).</li>
-<li><strong>Compliance Bridge</strong>: The cryptographic and policy-driven interface that binds platform-level attestation results to workload-level identity issuance, ensuring a &quot;Fail-Closed&quot; security posture.</li>
-</ul>
-<t>In regulated industries like Oil &amp; Gas, this provides <strong>Edge Autonomy</strong> (local execution during satcom outages) with <strong>Cloud Control</strong> (centralized governance). An issued SVID is effectively &quot;locked&quot; until the Host Identity Management Plane confirms the hardware is untampered and physically resident within the geofence. By binding the <strong>Workload Identity Agent Image Digest</strong> directly to the hardware-rooted <strong>Outer Seal</strong>, we solve the <strong>&quot;Rogue Agent&quot;</strong> problem—ensuring that only authorized software in authorized locations can access high-value enterprise assets, even under local root compromise.</t>
-</section>
-</section>
+<t>To maintain <strong>Location Privacy</strong> while providing cryptographic verifiability, this profile leverages <strong>Transparent Zero-Knowledge Proofs (ZKPs)</strong>. Unlike traditional ZKP systems, transparent ZKPs require no &quot;Trusted Third Party&quot; or complex &quot;Trusted Setup&quot; phase. They achieved mathematical transparency through non-interactive, hash-based protocols, allowing a platform to prove it is resident within an approved geographic boundary without disclosing the exact coordinates of the underlying hardware.</t>
 </section>
 
 <section anchor="conventions-and-definitions"><name>Conventions and Definitions</name>
@@ -81,7 +66,9 @@
 <li><strong>STARK</strong>: Scalable Transparent ARguments of Knowledge</li>
 <li><strong>ZKP</strong>: Zero-Knowledge Proof</li>
 </ul>
-<t><strong>Key Terms:</strong></t>
+</section>
+
+<section anchor="key-terms"><name>Key Terms</name>
 
 <dl spacing="compact">
 <dt>Data Residency:</dt>
@@ -123,6 +110,56 @@
 <dt>N_platform vs. N_fusion Binding:</dt>
 <dd>To prevent &quot;mix-and-match&quot; attacks where an attacker combines a fresh workload identity with a stale platform quote, the Host Identity Management Plane SHALL cryptographically bind the two nonces. The Attestation Result produced by the Verifier MUST contain a <strong>Joint Digital Signature</strong> over both <tt>N_fusion</tt> and the hardware-attested platform claims verified via <tt>N_platform</tt>. This ensures that the issued SVID is structurally tied to the specific hardware state observed during that exact attestation window.</dd>
 </dl>
+</section>
+
+<section anchor="use-cases"><name>Use Cases</name>
+<t>Data residency use cases can be divided into three categories: (1) server-centric location, (2) user-centric location, and (3) regulatory compliance.</t>
+
+<section anchor="category-1-server-centric-location"><name>Category 1: Server-centric Location</name>
+<t>Enterprises (e.g., healthcare, banking) need cryptographic proof of a trustworthy geographic boundary (i.e., region, zone, country, state, etc.) for cloud-facing workloads.</t>
+
+<section anchor="server-workload-to-server-workload-general"><name>Server workload to Server workload - General</name>
+<t>Enterprises handling sensitive data rely on dedicated cloud Workload Hosts (e.g., EU sovereign cloud providers) that ensure compliance with data residency laws, while also ensuring appropriate levels of service (e.g., high availability). To meet data residency legal requirements, enterprises need to verify that workload data is processed by Workload Hosts within a geographic boundary and that workload data is only transmitted between specified geographic boundaries.</t>
+</section>
+
+<section anchor="server-workload-to-server-workload-agentic-ai"><name>Server workload to Server workload - Agentic AI</name>
+<t>Enterprises need to ensure that the AI agent is located within a specific geographic boundary when downloading sensitive data or performing other sensitive operations. A secure AI agent, running on a trusted Workload Host with TPM-backed attestation, interacts with geolocation and geofencing services to obtain verifiable proof of its geographic boundary. The agent periodically collects location data from trusted sensors, obtains attested composite location from a geolocation service, and enforces geofence policies via a geofencing service. The resulting attested geofence proof is used to bind workload identity to both the Workload Host and its geographic location, enabling secure, policy-driven execution of AI workloads and compliance with data residency requirements.</t>
+</section>
+
+<section anchor="federated-ai-cloud-gated-decryption"><name>Federated AI (Cloud-Gated Decryption)</name>
+<t>In federated learning scenarios, multiple organizations collaborate to train machine learning models without sharing raw data. In regulated industries like Oil &amp; Gas, this often involves &quot;Edge AI&quot; processing on remote rigs where high-value model weights or decryption keys are only released if the edge environment is currently &quot;Sovereign and Integral.&quot;</t>
+</section>
+
+<section anchor="enterprise-edge-federated-management-oil-gas"><name>Enterprise Edge Federated Management (Oil &amp; Gas)</name>
+<t>In remote industrial environments (e.g., offshore oil rigs), the &quot;Dual Federation&quot; model ensures resilient operations. An <strong>Edge Host Identity Management Plane</strong> (e.g., HPE OneView) manages local hardware and TPM Attestation Keys (AKs) to support offline autonomy. Periodically, these AKs are synchronized with a <strong>Cloud Host Identity Management Plane</strong> which acts as the global <strong>Sovereign Registry</strong>. This allows local SPIRE servers to issue SVIDs during satellite outages, while the cloud maintains the ultimate &quot;Silicon-to-Workload&quot; verification capability required to release high-value enterprise keys once connectivity is restored.</t>
+</section>
+
+<section anchor="user-workload-to-server-workload"><name>User workload to Server workload</name>
+<t>Enterprises ensure that they are communicating with a server (e.g., cloud services) located within a specific geographic boundary.</t>
+</section>
+</section>
+
+<section anchor="category-2-user-centric-location"><name>Category 2: User-centric Location</name>
+<t>Enterprises need cryptographic proof of trustworthy geographic boundary for user-facing workloads.</t>
+
+<ul>
+<li><t>A server (or proxy) authenticates to clients using different TLS certificates, each signed by a different Certificate Authority (CA), based on the geographic boundaries of user workloads.</t>
+</li>
+<li><t>Enterprise Customer Premise Equipment (CPE) provides on-premises computing that is a basis for defining geolocation boundaries. A telco network provides a means for communication between premises.</t>
+</li>
+<li><t>Construction and Engineering of SaaS workloads can benefit from attested geographic boundary data from end-user devices to restrict access within specific geopolitical regions (e.g., California). Enabling per-user or group-level geofencing helps prevent fraudulent access originating outside the authorized area.</t>
+</li>
+<li><t>Healthcare providers need to ensure that the Workload Host is located in a specific geographic boundary when downloading patient data or performing other sensitive operations.</t>
+</li>
+<li><t>U.S. Presidential Executive Order compliance directs Cloud Service Provider (CSP) support personnel be located in restricted geographies (e.g., Venezuela, Iran, China, North Korea). However, those personnel should not be allowed to support U.S. customers. Geolocation enforcement can ensure policy compliance.</t>
+</li>
+</ul>
+</section>
+
+<section anchor="category-3-regulatory-compliance"><name>Category 3: Regulatory Compliance</name>
+<t>Geographic boundary attestation helps satisfy data residency and data sovereignty requirements for regulatory compliance.</t>
+</section>
+</section>
 
 <section anchor="industry-gaps-and-problem-statements"><name>Industry Gaps and Problem Statements</name>
 <t>Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. Current geofencing and location verification solutions face significant challenges across different data states, location sources, and authentication mechanisms. This section outlines the key gaps and problems that this specification aims to address.</t>
@@ -160,8 +197,6 @@
 - <strong>Option A -- Workload Host OS-Based (e.g., Keylime)</strong>
 - <strong>Option B -- Out-of-Band Management (e.g., HPE iLO)</strong>
 - <strong>Option C -- Cloud-Based Virtual TPM (e.g., AWS Nitro)</strong></t>
-</section>
-</section>
 
 <section anchor="relationship-to-transitive-attestation"><name>Relationship to Transitive Attestation</name>
 <t>This document is part of a layered attestation architecture that, together with the companion document [[I-D.mw-wimse-transitive-attestation]], provides an end-to-end chain of trust from hardware through to workload identity.</t>
@@ -222,132 +257,10 @@
 <t>This document focuses exclusively on Layers 2 and 3: the hardware-dependent attestation of the Identity Agent itself. For how workloads prove they are co-located with an attested Identity Agent, and for the data-plane protocol flows (mTLS PoR, DPoR), see [[I-D.mw-wimse-transitive-attestation]].</t>
 </section>
 
-<section anchor="use-cases"><name>Use Cases</name>
-<t>Data residency use cases can be divided into three categories: (1) server-centric location, (2) user-centric location, and (3) regulatory compliance.</t>
-
-<section anchor="category-1-server-centric-location"><name>Category 1: Server-centric Location</name>
-<t>Enterprises (e.g., healthcare, banking) need cryptographic proof of a trustworthy geographic boundary (i.e., region, zone, country, state, etc.) for cloud-facing workloads.</t>
-
-<section anchor="server-workload-to-server-workload-general"><name>Server workload to Server workload - General</name>
-<t>Enterprises handling sensitive data rely on dedicated cloud Workload Hosts (e.g., EU sovereign cloud providers) that ensure compliance with data residency laws, while also ensuring appropriate levels of service (e.g., high availability). To meet data residency legal requirements, enterprises need to verify that workload data is processed by Workload Hosts within a geographic boundary and that workload data is only transmitted between specified geographic boundaries.</t>
-</section>
-
-<section anchor="server-workload-to-server-workload-agentic-ai"><name>Server workload to Server workload - Agentic AI</name>
-<t>Enterprises need to ensure that the AI agent is located within a specific geographic boundary when downloading sensitive data or performing other sensitive operations. A secure AI agent, running on a trusted Workload Host with TPM-backed attestation, interacts with geolocation and geofencing services to obtain verifiable proof of its geographic boundary. The agent periodically collects location data from trusted sensors, obtains attested composite location from a geolocation service, and enforces geofence policies via a geofencing service. The resulting attested geofence proof is used to bind workload identity to both the Workload Host and its geographic location, enabling secure, policy-driven execution of AI workloads and compliance with data residency requirements.</t>
-</section>
-
-<section anchor="federated-ai-cloud-gated-decryption"><name>Federated AI (Cloud-Gated Decryption)</name>
-<t>In federated learning scenarios, multiple organizations collaborate to train machine learning models without sharing raw data. In regulated industries like Oil &amp; Gas, this often involves &quot;Edge AI&quot; processing on remote rigs where high-value model weights or decryption keys are only released if the edge environment is currently &quot;Sovereign and Integral.&quot;</t>
-<t>The <strong>Cloud Workload Identity Management Plane</strong> acts as the final verifier and <strong>Decryption Gatekeeper</strong>, ensuring the AI model remains &quot;locked&quot; (e.g., via JWE/OIDC) until the environment is proven integral. The AI model on the edge rig remains encrypted until the Cloud Verifier confirms that the V-GAP bundle presented by the workload matches the verified silicon state maintained in the <strong>Cloud Host Identity Management Plane</strong> registry.</t>
-<table>
-<thead>
-<tr>
-<th align="left">Step</th>
-<th align="left">Action</th>
-<th align="left">Logic</th>
-</tr>
-</thead>
-
-<tbody>
-<tr>
-<td align="left"><strong>1. Edge Attestation</strong></td>
-<td align="left">Edge AI workload presents its <strong>Sovereign SVID</strong> (with V-GAP bundle) to the Cloud Verifier.</td>
-<td align="left">Requesting the model decryption key.</td>
-</tr>
-
-<tr>
-<td align="left"><strong>2. ZKP Validation</strong></td>
-<td align="left">Cloud Verifier validates the <strong>lah-geolocation-proof-hash</strong>.</td>
-<td align="left">Ensures the rig is in a compliant offshore zone.</td>
-</tr>
-
-<tr>
-<td align="left"><strong>3. Cross-Check</strong></td>
-<td align="left">Cloud Verifier queries the Cloud Host Identity Management Plane.</td>
-<td align="left">Verifies the <tt>host-tpm-ak</tt> is &quot;In-Status&quot; and &quot;Silicon-Verified.&quot;</td>
-</tr>
-
-<tr>
-<td align="left"><strong>4. Key Release</strong></td>
-<td align="left">Cloud Verifier releases the <strong>Decryption Key</strong> via a secure OIDC/JWE flow.</td>
-<td align="left">Only occurs if <strong>Hardware Integrity</strong> and <strong>Geofence</strong> pass.</td>
-</tr>
-</tbody>
-</table></section>
-
-<section anchor="enterprise-edge-federated-management-oil-gas"><name>Enterprise Edge Federated Management (Oil &amp; Gas)</name>
-<t>In remote industrial environments (e.g., offshore oil rigs), the &quot;Dual Federation&quot; model ensures resilient operations. An <strong>Edge Host Identity Management Plane</strong> (e.g., HPE OneView) manages local hardware and TPM Attestation Keys (AKs) to support offline autonomy. Periodically, these AKs are synchronized with a <strong>Cloud Host Identity Management Plane</strong> which acts as the global <strong>Sovereign Registry</strong>. This allows local SPIRE servers to issue SVIDs during satellite outages, while the cloud maintains the ultimate &quot;Silicon-to-Workload&quot; verification capability required to release high-value enterprise keys once connectivity is restored.</t>
-</section>
-
-<section anchor="user-workload-to-server-workload"><name>User workload to Server workload</name>
-<t>Enterprises ensure that they are communicating with a server (e.g., cloud services) located within a specific geographic boundary.</t>
-</section>
-</section>
-
-<section anchor="category-2-user-centric-location"><name>Category 2: User-centric Location</name>
-<t>Enterprises need cryptographic proof of trustworthy geographic boundary for user-facing workloads.</t>
-
-<ul>
-<li><t>A server (or proxy) authenticates to clients using different TLS certificates, each signed by a different Certificate Authority (CA), based on the geographic boundaries of user workloads.</t>
-</li>
-<li><t>Enterprise Customer Premise Equipment (CPE) provides on-premises computing that is a basis for defining geolocation boundaries. A telco network provides a means for communication between premises.</t>
-</li>
-<li><t>Construction and Engineering of SaaS workloads can benefit from attested geographic boundary data from end-user devices to restrict access within specific geopolitical regions (e.g., California). Enabling per-user or group-level geofencing helps prevent fraudulent access originating outside the authorized area.</t>
-</li>
-<li><t>Healthcare providers need to ensure that the Workload Host is located in a specific geographic boundary when downloading patient data or performing other sensitive operations.</t>
-</li>
-<li><t>U.S. Presidential Executive Order compliance directs Cloud Service Provider (CSP) support personnel be located in restricted geographies (e.g., Venezuela, Iran, China, North Korea). However, those personnel should not be allowed to support U.S. customers. Geolocation enforcement can ensure policy compliance.</t>
-</li>
-</ul>
-</section>
-
-<section anchor="category-3-regulatory-compliance"><name>Category 3: Regulatory Compliance</name>
-<t>Geographic boundary attestation helps satisfy data residency and data sovereignty requirements for regulatory compliance.</t>
-</section>
-
-<section anchor="server-workload-hosts-solution-highlights"><name>Server Workload Hosts - Solution highlights</name>
-<t>This section assumes that the maximum round-trip delay within a data center typically ranges from 500-1000 microseconds.</t>
-<t>Scalable hierarchical approach -- enhancements to Workload Identity (SPIFFE/SPIRE) solution:</t>
-
-<ul>
-<li><t>Each of the Workload Hosts runs a identity agent (SPIFFE/SPIRE agent) with TPM plugin which connects to a workload identity management plane (SPIFFE/SPIRE server).</t>
-</li>
-<li><t>Location anchor hosts are directly attached to trusted location source - Mobile modem, GNSS Galileo receiver etc.</t>
-
-<ul spacing="compact">
-<li>Use of multiple location anchor hosts can enhance security and trust.</li>
-<li>For mobile sensors, the location can be tracked outside of the Workload Host using a GSMA standards based mobile service provider API.</li>
-</ul></li>
-<li><t>Workload Host geolocation sensor composition manager periodically verifies location anchor hosts device composition (primarily location sensors).</t>
-
-<ul spacing="compact">
-<li>Use SPIFFE/SPIRE agent host geolocation plugin (new).</li>
-</ul></li>
-<li><t>Workload Host proximity manager periodically verifies that location anchor hosts provide proof that Workload Hosts are within the maximum data center round-trip delay from them.</t>
-
-<ul spacing="compact">
-<li>SW-based Attested PTP - Modified Linux PTP daemon (SPIFFE/SPIRE workload) will sign PTP messages.</li>
-<li>HW-based Attested PTP - Relevant for sub microsecond precision timing solutions.</li>
-</ul></li>
-<li><t>Workload identity agent provides proof that workloads run only on workload/location anchor hosts.</t>
-
-<ul spacing="compact">
-<li>This is done using enhancements to existing SPIFFE/SPIRE agent and TPM plugin and addresses bearer token issue.</li>
-</ul></li>
-</ul>
-</section>
-
-<section anchor="end-user-iot-workload-hosts-solution-highlights"><name>End user/IoT Workload Hosts - Solution highlights</name>
-<t>Browser solution -- new browser extension for proof residency and geofencing:</t>
-
-<ul spacing="compact">
-<li>Application proxy which intercepts every HTTP request; connects to identity agent to add geolocation; signs request using identity agent key which is attested by TPM attestation key.</li>
-</ul>
-<t>Similar to the server Workload Hosts solution:</t>
-
-<ul spacing="compact">
-<li>Each of the Workload Hosts runs a identity agent (SPIFFE/SPIRE agent) which connects to a workload identity management plane (SPIFFE/SPIRE server).</li>
-</ul>
+<section anchor="the-compliance-bridge-the-symmetry-of-trust"><name>The Compliance Bridge - The Symmetry of Trust</name>
+<t>This framework establishes a <strong>&quot;Silicon-to-Workload&quot;</strong> chain of trust built on two parallel but federated pillars: the <strong>Workload Identity Management Plane</strong> and the <strong>Host Identity Management Plane</strong>. This symmetry allows for the binding of ephemeral software identities to persistent silicon identities, bridging the &quot;Perception Gap&quot; in modern distributed systems.</t>
+<t>The <strong>Compliance Bridge</strong> serves as the normative link between these two planes. It ensures that the <strong>Workload Identity Management Plane</strong> only issues identities (SVIDs) for workloads running on platforms that have been verified integral by the <strong>Host Identity Management Plane</strong>.</t>
+<t>In regulated industries like Oil &amp; Gas, this provides <strong>Edge Autonomy</strong> (local execution during satcom outages) with <strong>Cloud Control</strong> (centralized governance). An issued SVID is effectively &quot;locked&quot; until the Host Identity Management Plane confirms the hardware is untampered and physically resident within the geofence. By binding the <strong>Workload Identity Agent Image Digest</strong> directly to the hardware-rooted <strong>Outer Seal</strong>, we solve the <strong>&quot;Rogue Agent&quot;</strong> problem—ensuring that only authorized software in authorized locations can access high-value enterprise assets, even under local root compromise.</t>
 </section>
 </section>
 

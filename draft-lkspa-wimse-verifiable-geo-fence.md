@@ -106,20 +106,6 @@ The architecture follows the **RATS Architecture [[RFC9334]]**, defining the int
 
 To maintain **Location Privacy** while providing cryptographic verifiability, this profile leverages **Transparent Zero-Knowledge Proofs (ZKPs)**. Unlike traditional ZKP systems, transparent ZKPs require no "Trusted Third Party" or complex "Trusted Setup" phase. They achieved mathematical transparency through non-interactive, hash-based protocols, allowing a platform to prove it is resident within an approved geographic boundary without disclosing the exact coordinates of the underlying hardware.
 
-## Strategic Narrative: Hardware-Enforced Sovereignty (The Symmetry of Trust)
-
-### The Compliance Bridge (The Symmetry of Trust)
-
-This framework establishes a **"Silicon-to-Workload"** chain of trust built on two parallel but federated pillars: the **Workload Identity Management Plane** and the **Host Identity Management Plane**. This symmetry allows for the binding of ephemeral software identities to persistent silicon identities, bridging the "Perception Gap" in modern distributed systems. 
-
-The **Compliance Bridge** serves as the normative link between these two planes. It ensures that the **Workload Identity Management Plane** only issues identities (SVIDs) for workloads running on platforms that have been verified integral by the **Host Identity Management Plane**.
-
-* **Workload Identity Management Plane**: Manages software entities (e.g., AI Models, Microservices) and issues SVID credentials.
-* **Host Identity Management Plane**: Manages and attests to the physical/virtual silicon integrity (e.g., Compute Nodes, Location Anchor Hosts) using the Silicon Root of Trust (TPM/iLO 7).
-* **Compliance Bridge**: The cryptographic and policy-driven interface that binds platform-level attestation results to workload-level identity issuance, ensuring a "Fail-Closed" security posture.
-
-In regulated industries like Oil & Gas, this provides **Edge Autonomy** (local execution during satcom outages) with **Cloud Control** (centralized governance). An issued SVID is effectively "locked" until the Host Identity Management Plane confirms the hardware is untampered and physically resident within the geofence. By binding the **Workload Identity Agent Image Digest** directly to the hardware-rooted **Outer Seal**, we solve the **"Rogue Agent"** problem—ensuring that only authorized software in authorized locations can access high-value enterprise assets, even under local root compromise.
-
 # Conventions and Definitions
 
 The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [[RFC2119]] [[RFC8174]] when, and only when, they appear in all capitals, as shown here.
@@ -147,7 +133,7 @@ The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "S
 - **STARK**: Scalable Transparent ARguments of Knowledge
 - **ZKP**: Zero-Knowledge Proof
 
-**Key Terms:**
+# Key Terms
 
 Data Residency:
 : Technical and Legal Challenges Ensuring compliance with global and local data protection regulations and mandates (e.g., EU GDPR, US HIPAA, PCI DSS). Strict residency rules require that data must be stored and processed exclusively within designated geographic boundaries, enforced via trusted computing and geofencing.
@@ -206,72 +192,6 @@ N_fusion (Workload Fusion Nonce):
 N_platform vs. N_fusion Binding:
 : To prevent "mix-and-match" attacks where an attacker combines a fresh workload identity with a stale platform quote, the Host Identity Management Plane SHALL cryptographically bind the two nonces. The Attestation Result produced by the Verifier MUST contain a **Joint Digital Signature** over both `N_fusion` and the hardware-attested platform claims verified via `N_platform`. This ensures that the issued SVID is structurally tied to the specific hardware state observed during that exact attestation window.
 
-## Industry Gaps and Problem Statements
-
-Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. Current geofencing and location verification solutions face significant challenges across different data states, location sources, and authentication mechanisms. This section outlines the key gaps and problems that this specification aims to address.
-
-### Data Generation/at-Rest Challenges
-
-Textual Geotags:
-: No standard for textual geotags (EXIF covers media only).
-
-Attesting Geotags:
-: Existing geotag formats are unsigned and forgeable via VPN/MITM attacks.
-
-### Data-in-Use Challenges
-
-Bearer Token Vulnerabilities:
-: Bearer tokens are typically generated via user MFA and used to establish HTTP sessions. A malicious actor can steal a bearer token (as seen in the Okta attack) and present it to a server workload. Current solution options like PoP tokens face scalability challenges (e.g., TPMs supporting only ~5 signatures per second).
-
-Implicit Trust Challenges:
-: Implicit trust in cloud region assignment with no cryptographic proof of physical locality. HTTP requests can be intercepted by compromised intermediate proxies.
-
-## Approach Overview
-
-This specification establishes a "Silicon-to-SVID" chain of accountability through three layers:
-
-- **Layer 1 -- Workload Identity Attestation (Hardware-Independent):** Covered by [[I-D.mw-wimse-transitive-attestation]]. Binds identity to the local agent.
-- **Layer 2 -- Identity Agent Platform Attestation via TPM (Hardware-Dependent):** Covered by this document. Verifies Workload Host integrity.
-- **Layer 3 -- Identity Agent Geolocation Attestation (Hardware-Dependent):** Covered by this document. Verifies physical geography.
-
-These layers support three primary deployment options:
-- **Option A -- Workload Host OS-Based (e.g., Keylime)**
-- **Option B -- Out-of-Band Management (e.g., HPE iLO)**
-- **Option C -- Cloud-Based Virtual TPM (e.g., AWS Nitro)**
-
-# Relationship to Transitive Attestation
-
-This document is part of a layered attestation architecture that, together with the companion document [[I-D.mw-wimse-transitive-attestation]], provides an end-to-end chain of trust from hardware through to workload identity.
-
-The three layers are:
-
-- **Layer 1 -- Workload Identity Attestation (Hardware-Independent):** Covered by [[I-D.mw-wimse-transitive-attestation]]. Proves that a workload is co-located with a verified Identity Agent via a local mechanism such as a Unix Domain Socket. Defines the mTLS-based Proof of Residency (PoR) and DPoR protocol flows. This layer does NOT concern itself with how the Identity Agent itself was verified—it treats the Identity Agent as an already-attested trust anchor.
-
-- **Layer 2 -- Identity Agent Platform Attestation via TPM (Hardware-Dependent):** Covered by this document. Proves the Identity Agent is running on an approved Workload Host via TPM-based measured boot, hardware inventory verification, and credential activation. This establishes the hardware root of trust that Layer 1 relies upon.
-
-- **Layer 3 -- Identity Agent Geolocation Attestation (Hardware-Dependent):** Covered by this document. Proves the attested Workload Host (from Layer 2) is within an approved geographic boundary using cryptographically bound sensors (GNSS, mobile modems).
-
-The following table maps these layers to the broader IETF ecosystem, forming a cohesive "Silicon-to-SVID" chain of accountability:
-
-| Layer | Component | WG | Core Responsibility |
-| :--- | :--- | :--- | :--- |
-| **Layer 1** | **Transitive Attestation** | **WIMSE** | **Conveyance**: Binds identity to the local agent (Co-location/Residency). |
-| **Layer 2** | **Verifiable Geofencing** | **RATS** | **Platform Evidence**: Verifies Workload Host integrity and Identity Agent hardware residency (TPM). |
-| **Layer 3** | **Verifiable Geofencing** | **RATS** | **Location Evidence**: Verifies physical geography (GNSS/ZKP). |
-
-Together, the complete chain is:
-
-  * TPM Hardware -> Identity Agent (this draft, Layer 2) -> Workload (transitive attestation draft, Layer 1)
-  * TPM/Geolocation Hardware -> Identity Agent (this draft, Layers 2 and 3) -> Workload (transitive attestation draft, Layer 1)
-
-# Addressing WIMSE Architecture Gaps
-
-The high-level **WIMSE Architecture** [[I-D.ietf-wimse-architecture]] establishes the requirement for a trustworthy Identity Agent but delegates the technical mechanics of agent verification to specific profiles. This document fills that technical gap by providing a normative specification for hardware-rooted agent verification.
-
-Without the hardware-rooted "Silicon-to-Workload" proof established in this specification, the WIMSE identity model would rely on implicit trust in the Workload Host OS or infrastructure provider. This draft hardens the WIMSE model against advanced threats by ensuring the Identity Agent itself—and consequently the identities it issues—are anchored to verifiable hardware configuration and physical location.
-
-This document focuses exclusively on Layers 2 and 3: the hardware-dependent attestation of the Identity Agent itself. For how workloads prove they are co-located with an attested Identity Agent, and for the data-plane protocol flows (mTLS PoR, DPoR), see [[I-D.mw-wimse-transitive-attestation]].
-
 # Use Cases
 
 Data residency use cases can be divided into three categories: (1) server-centric location, (2) user-centric location, and (3) regulatory compliance.
@@ -291,15 +211,6 @@ Enterprises need to ensure that the AI agent is located within a specific geogra
 ### Federated AI (Cloud-Gated Decryption)
 
 In federated learning scenarios, multiple organizations collaborate to train machine learning models without sharing raw data. In regulated industries like Oil & Gas, this often involves "Edge AI" processing on remote rigs where high-value model weights or decryption keys are only released if the edge environment is currently "Sovereign and Integral."
-
-The **Cloud Workload Identity Management Plane** acts as the final verifier and **Decryption Gatekeeper**, ensuring the AI model remains "locked" (e.g., via JWE/OIDC) until the environment is proven integral. The AI model on the edge rig remains encrypted until the Cloud Verifier confirms that the V-GAP bundle presented by the workload matches the verified silicon state maintained in the **Cloud Host Identity Management Plane** registry.
-
-| Step | Action | Logic |
-| :--- | :--- | :--- |
-| **1. Edge Attestation** | Edge AI workload presents its **Sovereign SVID** (with V-GAP bundle) to the Cloud Verifier. | Requesting the model decryption key. |
-| **2. ZKP Validation** | Cloud Verifier validates the **lah-geolocation-proof-hash**. | Ensures the rig is in a compliant offshore zone. |
-| **3. Cross-Check** | Cloud Verifier queries the Cloud Host Identity Management Plane. | Verifies the `host-tpm-ak` is "In-Status" and "Silicon-Verified." |
-| **4. Key Release** | Cloud Verifier releases the **Decryption Key** via a secure OIDC/JWE flow. | Only occurs if **Hardware Integrity** and **Geofence** pass. |
 
 ### Enterprise Edge Federated Management (Oil & Gas)
 
@@ -327,37 +238,79 @@ Enterprises need cryptographic proof of trustworthy geographic boundary for user
 
 Geographic boundary attestation helps satisfy data residency and data sovereignty requirements for regulatory compliance.
 
-## Server Workload Hosts - Solution highlights
+# Industry Gaps and Problem Statements
 
-This section assumes that the maximum round-trip delay within a data center typically ranges from 500-1000 microseconds.
+Modern cloud and distributed environments face significant risks from stolen bearer tokens, protocol replay, and trust gaps in transit. Current geofencing and location verification solutions face significant challenges across different data states, location sources, and authentication mechanisms. This section outlines the key gaps and problems that this specification aims to address.
 
-Scalable hierarchical approach -- enhancements to Workload Identity (SPIFFE/SPIRE) solution:
+## Data Generation/at-Rest Challenges
 
-* Each of the Workload Hosts runs a identity agent (SPIFFE/SPIRE agent) with TPM plugin which connects to a workload identity management plane (SPIFFE/SPIRE server).
+Textual Geotags:
+: No standard for textual geotags (EXIF covers media only).
 
-* Location anchor hosts are directly attached to trusted location source - Mobile modem, GNSS Galileo receiver etc.
-    * Use of multiple location anchor hosts can enhance security and trust.
-    * For mobile sensors, the location can be tracked outside of the Workload Host using a GSMA standards based mobile service provider API.
+Attesting Geotags:
+: Existing geotag formats are unsigned and forgeable via VPN/MITM attacks.
 
-* Workload Host geolocation sensor composition manager periodically verifies location anchor hosts device composition (primarily location sensors).
-    * Use SPIFFE/SPIRE agent host geolocation plugin (new).
+## Data-in-Use Challenges
 
-* Workload Host proximity manager periodically verifies that location anchor hosts provide proof that Workload Hosts are within the maximum data center round-trip delay from them.
-    * SW-based Attested PTP - Modified Linux PTP daemon (SPIFFE/SPIRE workload) will sign PTP messages.
-    * HW-based Attested PTP - Relevant for sub microsecond precision timing solutions.
+Bearer Token Vulnerabilities:
+: Bearer tokens are typically generated via user MFA and used to establish HTTP sessions. A malicious actor can steal a bearer token (as seen in the Okta attack) and present it to a server workload. Current solution options like PoP tokens face scalability challenges (e.g., TPMs supporting only ~5 signatures per second).
 
-* Workload identity agent provides proof that workloads run only on workload/location anchor hosts.
-    * This is done using enhancements to existing SPIFFE/SPIRE agent and TPM plugin and addresses bearer token issue.
+Implicit Trust Challenges:
+: Implicit trust in cloud region assignment with no cryptographic proof of physical locality. HTTP requests can be intercepted by compromised intermediate proxies.
 
-## End user/IoT Workload Hosts - Solution highlights
+# Approach Overview
 
-Browser solution -- new browser extension for proof residency and geofencing:
+This specification establishes a "Silicon-to-SVID" chain of accountability through three layers:
 
-* Application proxy which intercepts every HTTP request; connects to identity agent to add geolocation; signs request using identity agent key which is attested by TPM attestation key.
+- **Layer 1 -- Workload Identity Attestation (Hardware-Independent):** Covered by [[I-D.mw-wimse-transitive-attestation]]. Binds identity to the local agent.
+- **Layer 2 -- Identity Agent Platform Attestation via TPM (Hardware-Dependent):** Covered by this document. Verifies Workload Host integrity.
+- **Layer 3 -- Identity Agent Geolocation Attestation (Hardware-Dependent):** Covered by this document. Verifies physical geography.
 
-Similar to the server Workload Hosts solution:
+These layers support three primary deployment options:
+- **Option A -- Workload Host OS-Based (e.g., Keylime)**
+- **Option B -- Out-of-Band Management (e.g., HPE iLO)**
+- **Option C -- Cloud-Based Virtual TPM (e.g., AWS Nitro)**
 
-* Each of the Workload Hosts runs a identity agent (SPIFFE/SPIRE agent) which connects to a workload identity management plane (SPIFFE/SPIRE server).
+## Relationship to Transitive Attestation
+
+This document is part of a layered attestation architecture that, together with the companion document [[I-D.mw-wimse-transitive-attestation]], provides an end-to-end chain of trust from hardware through to workload identity.
+
+The three layers are:
+
+- **Layer 1 -- Workload Identity Attestation (Hardware-Independent):** Covered by [[I-D.mw-wimse-transitive-attestation]]. Proves that a workload is co-located with a verified Identity Agent via a local mechanism such as a Unix Domain Socket. Defines the mTLS-based Proof of Residency (PoR) and DPoR protocol flows. This layer does NOT concern itself with how the Identity Agent itself was verified—it treats the Identity Agent as an already-attested trust anchor.
+
+- **Layer 2 -- Identity Agent Platform Attestation via TPM (Hardware-Dependent):** Covered by this document. Proves the Identity Agent is running on an approved Workload Host via TPM-based measured boot, hardware inventory verification, and credential activation. This establishes the hardware root of trust that Layer 1 relies upon.
+
+- **Layer 3 -- Identity Agent Geolocation Attestation (Hardware-Dependent):** Covered by this document. Proves the attested Workload Host (from Layer 2) is within an approved geographic boundary using cryptographically bound sensors (GNSS, mobile modems).
+
+The following table maps these layers to the broader IETF ecosystem, forming a cohesive "Silicon-to-SVID" chain of accountability:
+
+| Layer | Component | WG | Core Responsibility |
+| :--- | :--- | :--- | :--- |
+| **Layer 1** | **Transitive Attestation** | **WIMSE** | **Conveyance**: Binds identity to the local agent (Co-location/Residency). |
+| **Layer 2** | **Verifiable Geofencing** | **RATS** | **Platform Evidence**: Verifies Workload Host integrity and Identity Agent hardware residency (TPM). |
+| **Layer 3** | **Verifiable Geofencing** | **RATS** | **Location Evidence**: Verifies physical geography (GNSS/ZKP). |
+
+Together, the complete chain is:
+
+  * TPM Hardware -> Identity Agent (this draft, Layer 2) -> Workload (transitive attestation draft, Layer 1)
+  * TPM/Geolocation Hardware -> Identity Agent (this draft, Layers 2 and 3) -> Workload (transitive attestation draft, Layer 1)
+
+## Addressing WIMSE Architecture Gaps
+
+The high-level **WIMSE Architecture** [[I-D.ietf-wimse-architecture]] establishes the requirement for a trustworthy Identity Agent but delegates the technical mechanics of agent verification to specific profiles. This document fills that technical gap by providing a normative specification for hardware-rooted agent verification.
+
+Without the hardware-rooted "Silicon-to-Workload" proof established in this specification, the WIMSE identity model would rely on implicit trust in the Workload Host OS or infrastructure provider. This draft hardens the WIMSE model against advanced threats by ensuring the Identity Agent itself—and consequently the identities it issues—are anchored to verifiable hardware configuration and physical location.
+
+This document focuses exclusively on Layers 2 and 3: the hardware-dependent attestation of the Identity Agent itself. For how workloads prove they are co-located with an attested Identity Agent, and for the data-plane protocol flows (mTLS PoR, DPoR), see [[I-D.mw-wimse-transitive-attestation]].
+
+## The Compliance Bridge - The Symmetry of Trust
+
+This framework establishes a **"Silicon-to-Workload"** chain of trust built on two parallel but federated pillars: the **Workload Identity Management Plane** and the **Host Identity Management Plane**. This symmetry allows for the binding of ephemeral software identities to persistent silicon identities, bridging the "Perception Gap" in modern distributed systems. 
+
+The **Compliance Bridge** serves as the normative link between these two planes. It ensures that the **Workload Identity Management Plane** only issues identities (SVIDs) for workloads running on platforms that have been verified integral by the **Host Identity Management Plane**.
+
+In regulated industries like Oil & Gas, this provides **Edge Autonomy** (local execution during satcom outages) with **Cloud Control** (centralized governance). An issued SVID is effectively "locked" until the Host Identity Management Plane confirms the hardware is untampered and physically resident within the geofence. By binding the **Workload Identity Agent Image Digest** directly to the hardware-rooted **Outer Seal**, we solve the **"Rogue Agent"** problem—ensuring that only authorized software in authorized locations can access high-value enterprise assets, even under local root compromise.
 
 # Verifiable Geofencing Attestation Profile (V-GAP)
 
