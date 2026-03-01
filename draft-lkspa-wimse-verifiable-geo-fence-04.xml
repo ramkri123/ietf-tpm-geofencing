@@ -210,116 +210,307 @@ Geofenced access control: User access is permitted only when the user (or user d
 </section>
 
 <section anchor="high-assurance-profile-verifiable-geofencing-attestation-profile-v-gap"><name>High-Assurance Profile - Verifiable Geofencing Attestation Profile (V-GAP)</name>
-<t>V-GAP is a RATS/WIMSE attestation profile that binds a <strong>Workload Identity Agent</strong> to (1) hardware-rooted host integrity and (2) verified residency within a configured geofence. It does this with a <strong>evidence bundle</strong>  from a <strong>Location Anchor Host (LAH)</strong>.</t>
+<t>V-GAP is a RATS/WIMSE attestation profile that binds a <strong>Workload Identity Agent</strong> to (1) hardware-rooted host integrity and (2) verified residency within a configured geofence. It does this with an evidence bundle from a <strong>Location Anchor Host (LAH)</strong>.</t>
 
-<section anchor="evidence-model"><name>Evidence Model</name>
-<t>V-GAP evidence is a cryptographic bundle:</t>
+<section anchor="lah-bundle-location-anchor-host-evidence-structure"><name>LAH-Bundle: Location Anchor Host Evidence Structure</name>
+<t>The <tt>lah-bundle</tt> is a hardware-sealed evidence structure embedded as an X.509 extension (OID <tt>1.3.6.1.4.1.55744.1.1</tt>) in a SPIRE SVID. It binds a workload identity to physically verifiable claims — TPM hardware identity, privacy-preserving geolocation, and agent binary integrity — without exposing PII.</t>
 
-<ul spacing="compact">
-<li><strong>Location Anchor Host (LAH) bundle (<tt>lah-bundle</tt>)</strong>: LAH identity, location proof (or hash), freshness, and an LAH seal.</li>
-</ul>
-</section>
-
-<section anchor="encoding-and-canonicalization"><name>Encoding and Canonicalization</name>
-
-<ul spacing="compact">
-<li>All binary values (hashes, public keys, signatures) <bcp14>MUST</bcp14> be Base64URL encoded.</li>
-<li>When hashing JSON objects, implementations <bcp14>MUST</bcp14> use the JSON Canonicalization Scheme (JCS) [[RFC8785]].</li>
-<li><t>The seals are TPM quotes:</t>
-
-<ul spacing="compact">
-<li><tt>inner-seal</tt> MUST be a TPM quote whose signed <tt>qualifyingData</tt> includes <tt>SHA-256(JCS(lah-bundle-without-inner-seal))</tt>.</li>
-<li><tt>outer-seal</tt> MUST be a TPM quote whose signed <tt>qualifyingData</tt> includes <tt>SHA-256(JCS(v-gap-profile-without-outer-seal))</tt>.</li>
-<li>The Workload Host quote MUST cover the PCRs needed to validate the agent measurement claim (e.g., PCRs that include the agent image digest measurement).</li>
-</ul></li>
-</ul>
-<t>The seals bind the canonicalized bundle contents to the TPM quote via qualifyingData, so any modification or swapping of fields is detectable by the verifier.</t>
-</section>
-
-<section anchor="field-summary"><name>Field Summary</name>
-
-<ul spacing="compact">
-<li><tt>host-tpm-ak</tt>: Workload Host AK public key.</li>
-<li><tt>agent-image-digest</tt>: Digest of the Workload Identity Agent image/config being asserted.</li>
-<li><tt>host-proximity-proof-hash</tt>: Hash of deployment-specific proximity evidence showing the Workload Host is co-located with the LAH. For Unified Hosts (LAH == Workload Host), set to <tt>SHA-256(&quot;V-GAP-LOCAL-BUS-PROXIMITY&quot;)</tt>.</li>
-<li><tt>lah-bundle</tt>: LAH evidence and seal.</li>
-<li><tt>n_platform</tt>: Freshness value from the Host Identity Management Plane (for the LAH evidence).</li>
-<li><tt>n_fusion</tt>: Freshness value from the Workload Identity Management Plane (to bind evidence to identity issuance/renewal).</li>
-<li><tt>timestamp</tt>: Unix timestamp (informative; freshness is primarily provided by nonces).</li>
-</ul>
-</section>
-
-<section anchor="formal-data-structure-json-schema"><name>Formal Data Structure (JSON Schema)</name>
-<t>The schema below is informative; the normative requirements are in the text above.</t>
+<section anchor="top-level-structure"><name>Top-Level Structure</name>
 
 <sourcecode type="json"><![CDATA[{
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "V-GAP Nested Evidence Bundle",
-  "type": "object",
-  "properties": {
-    "host-tpm-ak": { "type": "string" },
-    "host-proximity-proof-hash": { "type": "string" },
-    "agent-image-digest": { "type": "string" },
-    "lah-bundle": {
-      "type": "object",
-      "properties": {
-        "lah-tpm-ak": { "type": "string" },
-        "lah-geolocation-proof-hash": { "type": "string" },
-        "privacy-technique": { "type": "integer", "enum": [0, 1] },
-        "n_platform": { "type": "string" },
-        "timestamp": { "type": "integer" },
-        "inner-seal": { "type": "string" }
-      },
-      "required": [
-        "lah-tpm-ak",
-        "lah-geolocation-proof-hash",
-        "privacy-technique",
-        "n_platform",
-        "timestamp",
-        "inner-seal"
-      ]
-    },
-    "n_fusion": { "type": "string" },
-    "timestamp": { "type": "integer" },
-    "outer-seal": { "type": "string" }
-  },
-  "required": [
-    "host-tpm-ak",
-    "host-proximity-proof-hash",
-    "agent-image-digest",
-    "lah-bundle",
-    "n_fusion",
-    "timestamp",
-    "outer-seal"
-  ]
+  "lah-bundle": { },
+  "mno-endorsement": { },
+  "workload": { }
 }
 ]]></sourcecode>
 </section>
 
-<section anchor="evidence-production-informative"><name>Evidence Production (Informative)</name>
+<section anchor="lah-bundle-fields"><name>lah-bundle Fields</name>
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="left">Type</th>
+<th align="center">Required</th>
+<th align="left">Description</th>
+</tr>
+</thead>
 
-<ul spacing="compact">
-<li>The Host Identity Management Plane provides <tt>n_platform</tt> to the LAH (directly or via an OOB path).</li>
-<li>The LAH produces <tt>lah-bundle</tt> and <tt>inner-seal</tt>.</li>
-<li>The Workload Host assembles the outer bundle, including the full <tt>lah-bundle</tt>, and produces <tt>outer-seal</tt>.</li>
-<li>The Workload Identity Management Plane provides <tt>n_fusion</tt> and evaluates the verifier result before issuing or renewing identities.</li>
-</ul>
+<tbody>
+<tr>
+<td align="left"><tt>tpm-ak</tt></td>
+<td align="left">string (Base64URL)</td>
+<td align="center">Yes</td>
+<td align="left">TPM Attestation Key public key (PEM-encoded). Hardware identity anchor. The TPM enforces that only this key can produce <tt>tpm-quote-seal</tt> — proving co-residency.</td>
+</tr>
+
+<tr>
+<td align="left"><tt>geolocation-id-hash</tt></td>
+<td align="left">string (Base64URL)</td>
+<td align="center">Yes</td>
+<td align="left"><tt>SHA-256(tpm-ak-bytes \|\| sensor-unique-id-bytes)</tt>. Binds TPM identity to sensor identity without exposing IMEI/IMSI/serial. Input recipe is an agent implementation detail (see Sensor Types below).</td>
+</tr>
+
+<tr>
+<td align="left"><tt>geolocation-proof-hash</tt></td>
+<td align="left">string (Base64URL)</td>
+<td align="center">Yes</td>
+<td align="left">SHA-256 commitment over <tt>geolocation-payload</tt>. Required in both privacy modes. When <tt>privacy-technique=zkp</tt>: <tt>SHA-256(zkp-proof-bytes)</tt>. When <tt>privacy-technique=none</tt>: <tt>SHA-256(JCS({lat, lon, accuracy}))</tt>.</td>
+</tr>
+
+<tr>
+<td align="left"><tt>privacy-technique</tt></td>
+<td align="left">string enum</td>
+<td align="center">Yes</td>
+<td align="left"><tt>&quot;none&quot;</tt> = raw lat/lon/accuracy in payload. <tt>&quot;zkp&quot;</tt> = zero-knowledge proof URI in payload. Controls location privacy only; device identity privacy is always protected via <tt>geolocation-id-hash</tt>.</td>
+</tr>
+
+<tr>
+<td align="left"><tt>geolocation-payload</tt></td>
+<td align="left">object</td>
+<td align="center">Yes</td>
+<td align="left">Inner location data. Structure depends on <tt>privacy-technique</tt> (see Payload Variants below). Committed to by <tt>geolocation-proof-hash</tt> and optionally signed by <tt>mno-endorsement.mno-sig</tt>.</td>
+</tr>
+
+<tr>
+<td align="left"><tt>nonce</tt></td>
+<td align="left">string (Base64URL)</td>
+<td align="center">Yes</td>
+<td align="left">Freshness nonce issued by the management plane. Chained: <tt>HMAC(secret, n \|\| chain[n-1])</tt>. Detects skipped/reordered attestations.</td>
+</tr>
+
+<tr>
+<td align="left"><tt>timestamp</tt></td>
+<td align="left">integer (int64)</td>
+<td align="center">Yes</td>
+<td align="left">Unix epoch seconds. Set by the LAH agent at bundle construction time.</td>
+</tr>
+
+<tr>
+<td align="left"><tt>tpm-quote-seal</tt></td>
+<td align="left">string (Base64URL)</td>
+<td align="center">Yes</td>
+<td align="left"><tt>TPM2_Quote</tt> produced by the AK in <tt>tpm-ak</tt>. Qualifying data = <tt>SHA-256(JCS({tpm-ak, geolocation-id-hash, geolocation-proof-hash, privacy-technique, nonce, timestamp}))</tt>. Binds all fields into a single hardware-sealed statement.</td>
+</tr>
+
+<tr>
+<td align="left"><tt>workload-identity-agent-image-digest</tt></td>
+<td align="left">string (hex SHA-256)</td>
+<td align="center">Yes</td>
+<td align="left">SHA-256 digest of the Workload Identity Agent (SPIRE agent) binary, measured at attestation time by the Host Identity Manager (Keylime). Detects agent binary compromise on every renewal cycle.</td>
+</tr>
+</tbody>
+</table></section>
+
+<section anchor="geolocation-payload-variants"><name>geolocation-payload Variants</name>
+<t><strong>When <tt>privacy-technique = &quot;none&quot;</tt> (raw coordinates):</strong></t>
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="left">Type</th>
+<th align="center">Required</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="left"><tt>lat</tt></td>
+<td align="left">number (float64)</td>
+<td align="center">Yes</td>
+<td align="left">Latitude, WGS-84 decimal degrees</td>
+</tr>
+
+<tr>
+<td align="left"><tt>lon</tt></td>
+<td align="left">number (float64)</td>
+<td align="center">Yes</td>
+<td align="left">Longitude, WGS-84 decimal degrees</td>
+</tr>
+
+<tr>
+<td align="left"><tt>accuracy</tt></td>
+<td align="left">number (float64)</td>
+<td align="center">Yes</td>
+<td align="left">Accuracy radius in metres</td>
+</tr>
+</tbody>
+</table><t><tt>geolocation-proof-hash = Base64URL(SHA-256(JCS({lat, lon, accuracy})))</tt></t>
+<t><strong>When <tt>privacy-technique = &quot;zkp&quot;</tt> (zero-knowledge proof):</strong></t>
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="left">Type</th>
+<th align="center">Required</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="left"><tt>zkp-proof-uri</tt></td>
+<td align="left">string (URI)</td>
+<td align="center">Yes</td>
+<td align="left">URI to fetch full ZKP proof bytes from the proof depository. Verifier fetches bytes, computes <tt>SHA-256(bytes)</tt>, checks against <tt>geolocation-proof-hash</tt>.</td>
+</tr>
+
+<tr>
+<td align="left"><tt>zkp-format</tt></td>
+<td align="left">string enum</td>
+<td align="center">Yes</td>
+<td align="left">ZKP proof system. Currently: <tt>&quot;plonky2&quot;</tt>.</td>
+</tr>
+</tbody>
+</table><t><tt>geolocation-proof-hash = Base64URL(SHA-256(zkp-proof-bytes))</tt></t>
 </section>
 
-<section anchor="verification-informative"><name>Verification (Informative)</name>
-<t>A verifier (or relying party) validates:</t>
+<section anchor="mno-endorsement-optional-top-level-sibling"><name>mno-endorsement (Optional, Top-Level Sibling)</name>
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="left">Type</th>
+<th align="center">Required</th>
+<th align="left">Description</th>
+</tr>
+</thead>
 
-<ul spacing="compact">
-<li><tt>inner-seal</tt> against <tt>lah-tpm-ak</tt> and freshness (<tt>n_platform</tt>, timestamp policy).</li>
-<li><tt>outer-seal</tt> against <tt>host-tpm-ak</tt> and freshness (<tt>n_fusion</tt>, timestamp policy).</li>
-<li>That the Workload Host quote covers the PCRs needed to support the asserted <tt>agent-image-digest</tt>.</li>
-<li>That <tt>host-proximity-proof-hash</tt> and <tt>lah-geolocation-proof-hash</tt> satisfy domain policy (e.g., allowlist, thresholding, or other policy mechanisms).</li>
-<li>That the outer seal staples the inner bundle (by verifying the <tt>qualifyingData</tt> binding to the canonicalized outer bundle).</li>
-</ul>
+<tbody>
+<tr>
+<td align="left"><tt>mno-key-cert</tt></td>
+<td align="left">string (Base64URL DER)</td>
+<td align="center">Yes</td>
+<td align="left">MNO signing certificate.</td>
+</tr>
+
+<tr>
+<td align="left"><tt>mno-sig</tt></td>
+<td align="left">string (Base64URL)</td>
+<td align="center">Yes</td>
+<td align="left">ECDSA/EdDSA signature over <tt>JCS(geolocation-payload)</tt> only. The MNO attests location within carrier visibility — does not sign host fields (<tt>tpm-ak</tt>, <tt>nonce</tt>, <tt>tpm-quote-seal</tt>).</td>
+</tr>
+</tbody>
+</table></section>
+
+<section anchor="workload-top-level-sibling"><name>workload (Top-Level Sibling)</name>
+<table>
+<thead>
+<tr>
+<th align="left">Field</th>
+<th align="left">Type</th>
+<th align="center">Required</th>
+<th align="left">Description</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="left"><tt>workload-id</tt></td>
+<td align="left">string (SPIFFE ID)</td>
+<td align="center">Yes</td>
+<td align="left">The workload's SPIFFE identity URI (e.g., <tt>spiffe://example.org/python-app</tt>).</td>
+</tr>
+
+<tr>
+<td align="left"><tt>key-source</tt></td>
+<td align="left">string</td>
+<td align="center">Yes</td>
+<td align="left">Origin of the workload's key material (e.g., <tt>tpm-app-key</tt>).</td>
+</tr>
+</tbody>
+</table></section>
+
+<section anchor="sensor-type-input-recipes-opaque-to-verifier"><name>Sensor Type Input Recipes (Opaque to Verifier)</name>
+<table>
+<thead>
+<tr>
+<th align="left">Sensor Type</th>
+<th align="left">geolocation-id-hash Input</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="left">Mobile (CAMARA)</td>
+<td align="left"><tt>SHA-256(tpm-ak-bytes \|\| IMEI-bytes \|\| IMSI-bytes)</tt></td>
+</tr>
+
+<tr>
+<td align="left">GNSS receiver</td>
+<td align="left"><tt>SHA-256(tpm-ak-bytes \|\| sensor-serial-bytes \|\| sensor-class-id-bytes)</tt></td>
+</tr>
+</tbody>
+</table><t>The verifier sees only the opaque hash — never the raw identifiers.</t>
 </section>
 
-<section anchor="scalable-fleet-management"><name>Scalable Fleet Management</name>
-<t>Large deployments need lifecycle management for the attestation keys referenced by V-GAP (e.g., <tt>host-tpm-ak</tt> and <tt>lah-tpm-ak</tt>) and for the policies that authorize them.</t>
+<section anchor="tpm-quote-verification-procedure"><name>TPM Quote Verification Procedure</name>
+
+<ol spacing="compact">
+<li>Decode <tt>tpm-quote-seal</tt> (Base64URL → bytes)</li>
+<li>Parse <tt>TPMS_ATTEST</tt> structure</li>
+<li>Assert <tt>TPMS_ATTEST.type == TPM_ST_ATTEST_QUOTE</tt></li>
+<li>Compute <tt>expected_qd = SHA-256(JCS({tpm-ak, geolocation-id-hash, geolocation-proof-hash, privacy-technique, nonce, timestamp}))</tt></li>
+<li>Assert <tt>TPMS_ATTEST.qualifyingData == expected_qd</tt></li>
+<li>Verify signature over <tt>TPMS_ATTEST</tt> bytes using <tt>tpm-ak</tt> public key (RSASSA-PKCS1-v1_5 or ECDSA)</li>
+</ol>
+</section>
+
+<section anchor="example-instance-privacy-technique-zkp"><name>Example Instance (privacy-technique = &quot;zkp&quot;)</name>
+
+<sourcecode type="json"><![CDATA[{
+  "lah-bundle": {
+    "tpm-ak": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG...\n-----END PUBLIC KEY-----",
+    "geolocation-id-hash": "7f4a2c1b9e3d8f0a6b5c4d2e1f0a9b8c...",
+    "geolocation-proof-hash": "c8bc2ed62a7a650d99e0884197cdf345...",
+    "privacy-technique": "zkp",
+    "geolocation-payload": {
+      "zkp-proof-uri": "https://verifier.example/v1/proof/c8bc2ed6...",
+      "zkp-format": "plonky2"
+    },
+    "nonce": "ZmUyZjdmMzlmZGVlZWQxOTM1YjY0Mjk0...",
+    "timestamp": 1740693456,
+    "tpm-quote-seal": "ARoAAQALAAUACwEA...",
+    "workload-identity-agent-image-digest": "a1b2c3d4e5f6...64-char-hex-sha256"
+  },
+  "mno-endorsement": {
+    "mno-key-cert": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...",
+    "mno-sig": "MEYCIQDx9z2k..."
+  },
+  "workload": {
+    "workload-id": "spiffe://example.org/python-app",
+    "key-source": "tpm-app-key"
+  }
+}
+]]></sourcecode>
+</section>
+
+<section anchor="nonce-chain-and-merkle-audit-log"><name>Nonce Chain and Merkle Audit Log</name>
+
+<artwork><![CDATA[chain[n] = SHA-256(chain[n-1] || SHA-256(JCS(bundle[n])))
+nonce[n]  = HMAC(secret, n || chain[n-1])
+]]></artwork>
+<table>
+<thead>
+<tr>
+<th align="left">Mechanism</th>
+<th align="left">Role</th>
+</tr>
+</thead>
+
+<tbody>
+<tr>
+<td align="left">Chained nonce</td>
+<td align="left">Input control — agent cannot submit without responding to the management plane's current state</td>
+</tr>
+
+<tr>
+<td align="left">Merkle chain</td>
+<td align="left">Audit output — proves inclusion of past bundles, detects gaps, enables regulatory audit</td>
+</tr>
+</tbody>
+</table></section>
 </section>
 
 <section anchor="key-registry-and-synchronization"><name>Key Registry and Synchronization</name>
@@ -383,68 +574,6 @@ Geofenced access control: User access is permitted only when the user (or user d
 <ul spacing="compact">
 <li>The edge plane <bcp14>MUST</bcp14> revoke or refuse renewal locally on tamper/drift signals.</li>
 <li>The workload <bcp14>MUST</bcp14> re-attest and satisfy current policy on reconnection before renewal or release of high-value secrets.</li>
-</ul>
-</section>
-</section>
-
-<section anchor="verification-procedure"><name>Verification Procedure</name>
-<t>This section defines the required verification checks for a V-GAP evidence bundle.</t>
-<t>A verifier (or a relying party acting on verifier output) MUST:</t>
-
-<ol spacing="compact">
-<li><strong>Parse evidence</strong>: Extract the V-GAP bundle (embedded or referenced) and identify the <tt>host-tpm-ak</tt>, <tt>lah-tpm-ak</tt>, <tt>outer-seal</tt>, <tt>inner-seal</tt>, and associated nonces/timestamps.</li>
-<li><strong>Verify LAH seal</strong>: Verify <tt>inner-seal</tt> using <tt>lah-tpm-ak</tt> and confirm freshness per verifier policy (for example, <tt>n_platform</tt> and/or timestamp window).</li>
-<li><strong>Verify Workload Host seal</strong>: Verify <tt>outer-seal</tt> using <tt>host-tpm-ak</tt> and confirm freshness per verifier policy (for example, <tt>n_fusion</tt> and/or timestamp window).</li>
-<li><strong>Verify stapling</strong>: Confirm the outer seal cryptographically binds (staples) the exact <tt>lah-bundle</tt> included in the evidence so that location evidence cannot be swapped.</li>
-<li><strong>Verify agent measurement</strong>: Confirm the <tt>agent-image-digest</tt> is consistent with the PCR(s) quoted by the Workload Host, per the platform profile (for example, PCRs populated by measured boot and/or IMA). If this check fails, the verifier MUST reject the bundle.</li>
-<li><t><strong>Verify proximity binding</strong>: Evaluate <tt>host-proximity-proof-hash</tt> according to the deployment policy:</t>
-
-<ul spacing="compact">
-<li>For <strong>Unified Host</strong> deployments (LAH == Workload Host), <tt>host-proximity-proof-hash</tt> MUST equal <tt>SHA-256(&quot;V-GAP-LOCAL-BUS-PROXIMITY&quot;)</tt>.</li>
-<li>For non-unified deployments, the verifier MUST validate the hash against policy (for example, allowlist membership, expected peer pairing, and freshness binding).</li>
-</ul></li>
-<li><t><strong>Verify residency</strong>: Validate <tt>lah-geolocation-proof-hash</tt> according to policy:</t>
-
-<ul spacing="compact">
-<li>If <tt>privacy-technique == 1</tt>, the verifier MUST validate the ZKP (or a verifier-approved proof result) and confirm it is bound to the current attestation session (freshness values and the geolocation hash).</li>
-<li>If <tt>privacy-technique == 0</tt>, the verifier MUST validate the location evidence (or its hash) and confirm the host is inside the configured boundary.</li>
-</ul></li>
-<li><strong>Produce an attestation result</strong>: Output a signed result containing the decision (pass/fail), the verified claims (integrity, residency, and relevant identifiers), and the freshness window used. This result is the input to identity issuance and downstream authorization.</li>
-</ol>
-<t>Freshness: Verifiers MUST use nonces and MUST enforce a bounded acceptance window. If freshness checks fail, the verifier SHOULD require a re-attestation and MAY revoke previously accepted results according to policy.</t>
-</section>
-
-<section anchor="evidence-sources-and-attestation-mechanics"><name>Evidence Sources and Attestation Mechanics</name>
-<t>This section summarizes how platforms produce integrity and residency evidence. It is primarily informative; normative requirements are stated where needed for interoperability.</t>
-
-<section anchor="platform-integrity-evidence-layer-2"><name>Platform Integrity Evidence (Layer 2)</name>
-<t>Platform integrity evidence binds the Workload Identity Agent to an approved host state.</t>
-<t>At minimum, a conforming implementation MUST support:</t>
-
-<ul spacing="compact">
-<li><strong>Hardware-rooted attestation</strong>: Evidence anchored in a hardware root of trust (for example, TPM-based attestation keys and quotes).</li>
-<li><strong>Measured state</strong>: A verifier policy that checks measurements for the boot chain and for the Workload Identity Agent (for example, IMA measurements or equivalent).</li>
-<li><strong>Agent binding</strong>: The <tt>outer-seal</tt> MUST quote PCRs sufficient to evaluate the asserted <tt>agent-image-digest</tt> claim.</li>
-</ul>
-</section>
-
-<section anchor="residency-evidence-layer-3"><name>Residency Evidence (Layer 3)</name>
-<t>Residency evidence asserts that the attested host is within an approved geographic boundary.</t>
-
-<ul spacing="compact">
-<li>The LAH provides <tt>lah-bundle</tt> containing a geolocation proof (or hash), freshness, and <tt>inner-seal</tt>.</li>
-<li>Location sources and corroboration are deployment-specific (for example, GNSS, modem/network-assisted location, or other trusted sources). This document standardizes the evidence interface and verification checks, not the sensor protocol details.</li>
-</ul>
-</section>
-
-<section anchor="privacy-preserving-residency-zkp"><name>Privacy-Preserving Residency (ZKP)</name>
-<t>Where supported, V-GAP MAY use <tt>privacy-technique == 1</tt> and carry a ZKP-derived hash.</t>
-<t>A ZKP-based design MUST ensure:</t>
-
-<ul spacing="compact">
-<li>The verifier learns only the compliance outcome (inside/outside the boundary), not coordinates.</li>
-<li>The proof is <strong>session-bound</strong> (freshness values and the geolocation hash).</li>
-<li>The proof is conveyed efficiently (for example, referenced by hash/URI rather than embedded in size-constrained credentials).</li>
 </ul>
 </section>
 

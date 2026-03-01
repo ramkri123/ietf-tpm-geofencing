@@ -114,42 +114,40 @@ Krishnan, et al.        Expires 2 September 2026                [Page 2]
 Internet-Draft                RATS-GEO-POR                    March 2026
 
 
-     10.1.  Evidence Model . . . . . . . . . . . . . . . . . . . . .  10
-     10.2.  Encoding and Canonicalization  . . . . . . . . . . . . .  10
-     10.3.  Field Summary  . . . . . . . . . . . . . . . . . . . . .  10
-     10.4.  Formal Data Structure (JSON Schema)  . . . . . . . . . .  10
-     10.5.  Evidence Production (Informative)  . . . . . . . . . . .  11
-     10.6.  Verification (Informative) . . . . . . . . . . . . . . .  12
-     10.7.  Scalable Fleet Management  . . . . . . . . . . . . . . .  12
-     10.8.  Key Registry and Synchronization . . . . . . . . . . . .  12
-     10.9.  Key Rotation . . . . . . . . . . . . . . . . . . . . . .  12
-       10.9.1.  Example Rotation Proof (Informative) . . . . . . . .  13
-     10.10. Credential Activation and Re-Verification  . . . . . . .  13
-     10.11. Revocation and Health Signals  . . . . . . . . . . . . .  13
-     10.12. Disconnected Operation (Leased Identity) . . . . . . . .  13
-   11. Verification Procedure  . . . . . . . . . . . . . . . . . . .  13
-   12. Evidence Sources and Attestation Mechanics  . . . . . . . . .  15
-     12.1.  Platform Integrity Evidence (Layer 2)  . . . . . . . . .  15
-     12.2.  Residency Evidence (Layer 3) . . . . . . . . . . . . . .  15
-     12.3.  Privacy-Preserving Residency (ZKP) . . . . . . . . . . .  15
-     12.4.  Deployment Patterns (Informative)  . . . . . . . . . . .  16
-   13. Operational Considerations  . . . . . . . . . . . . . . . . .  16
-     13.1.  Distributed Identity Issuance and Scaling  . . . . . . .  16
-     13.2.  Mobility and Sovereign Handover (Informative)  . . . . .  16
-     13.3.  Location Anchor Hosts (Informative)  . . . . . . . . . .  16
-   14. Policy Use (Informative)  . . . . . . . . . . . . . . . . . .  17
-   15. Security Considerations . . . . . . . . . . . . . . . . . . .  17
-     15.1.  Proximity and Anchor Displacement (Informative)  . . . .  18
-   16. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  18
-   17. Appendix - Items to Follow Up . . . . . . . . . . . . . . . .  18
-     17.1.  OPEN ISSUE: IMA restart behavior . . . . . . . . . . . .  18
-     17.2.  OPEN ISSUE: Location privacy options . . . . . . . . . .  18
-     17.3.  OPEN ISSUE: Proximity profiles . . . . . . . . . . . . .  18
-     17.4.  OPEN ISSUE: Geotagging textual data  . . . . . . . . . .  19
-     17.5.  OPEN ISSUE: Attesting geotags  . . . . . . . . . . . . .  19
-   18. Appendix - Public References for Strict Data Residency
-           Rules . . . . . . . . . . . . . . . . . . . . . . . . . .  19
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  19
+     10.1.  LAH-Bundle: Location Anchor Host Evidence Structure  . .  10
+       10.1.1.  Top-Level Structure  . . . . . . . . . . . . . . . .  10
+       10.1.2.  lah-bundle Fields  . . . . . . . . . . . . . . . . .  10
+       10.1.3.  geolocation-payload Variants . . . . . . . . . . . .  12
+       10.1.4.  mno-endorsement (Optional, Top-Level Sibling)  . . .  13
+       10.1.5.  workload (Top-Level Sibling) . . . . . . . . . . . .  13
+       10.1.6.  Sensor Type Input Recipes (Opaque to Verifier) . . .  14
+       10.1.7.  TPM Quote Verification Procedure . . . . . . . . . .  14
+       10.1.8.  Example Instance (privacy-technique = "zkp") . . . .  14
+       10.1.9.  Nonce Chain and Merkle Audit Log . . . . . . . . . .  15
+     10.2.  Key Registry and Synchronization . . . . . . . . . . . .  15
+     10.3.  Key Rotation . . . . . . . . . . . . . . . . . . . . . .  16
+       10.3.1.  Example Rotation Proof (Informative) . . . . . . . .  16
+     10.4.  Credential Activation and Re-Verification  . . . . . . .  16
+     10.5.  Revocation and Health Signals  . . . . . . . . . . . . .  16
+     10.6.  Disconnected Operation (Leased Identity) . . . . . . . .  17
+     10.7.  Deployment Patterns (Informative)  . . . . . . . . . . .  17
+   11. Operational Considerations  . . . . . . . . . . . . . . . . .  17
+     11.1.  Distributed Identity Issuance and Scaling  . . . . . . .  17
+     11.2.  Mobility and Sovereign Handover (Informative)  . . . . .  17
+     11.3.  Location Anchor Hosts (Informative)  . . . . . . . . . .  18
+   12. Policy Use (Informative)  . . . . . . . . . . . . . . . . . .  18
+   13. Security Considerations . . . . . . . . . . . . . . . . . . .  18
+     13.1.  Proximity and Anchor Displacement (Informative)  . . . .  19
+   14. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  19
+   15. Appendix - Items to Follow Up . . . . . . . . . . . . . . . .  19
+     15.1.  OPEN ISSUE: IMA restart behavior . . . . . . . . . . . .  19
+     15.2.  OPEN ISSUE: Location privacy options . . . . . . . . . .  20
+     15.3.  OPEN ISSUE: Proximity profiles . . . . . . . . . . . . .  20
+     15.4.  OPEN ISSUE: Geotagging textual data  . . . . . . . . . .  20
+     15.5.  OPEN ISSUE: Attesting geotags  . . . . . . . . . . . . .  20
+   16. Appendix - Public References for Strict Data Residency
+           Rules . . . . . . . . . . . . . . . . . . . . . . . . . .  20
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  20
 
 1.  Introduction
 
@@ -162,6 +160,8 @@ Internet-Draft                RATS-GEO-POR                    March 2026
    (a specialized RATS Profile) provides the technical mechanics to
    cryptographically bind this agent to the underlying hardware-verified
    platform and its privacy preserving physical location.
+
+
 
 
 
@@ -493,8 +493,8 @@ Internet-Draft                RATS-GEO-POR                    March 2026
 
    V-GAP is a RATS/WIMSE attestation profile that binds a *Workload
    Identity Agent* to (1) hardware-rooted host integrity and (2)
-   verified residency within a configured geofence.  It does this with a
-   *evidence bundle* from a *Location Anchor Host (LAH)*.
+   verified residency within a configured geofence.  It does this with
+   an evidence bundle from a *Location Anchor Host (LAH)*.
 
 
 
@@ -506,54 +506,54 @@ Krishnan, et al.        Expires 2 September 2026                [Page 9]
 Internet-Draft                RATS-GEO-POR                    March 2026
 
 
-10.1.  Evidence Model
+10.1.  LAH-Bundle: Location Anchor Host Evidence Structure
 
-   V-GAP evidence is a cryptographic bundle:
+   The lah-bundle is a hardware-sealed evidence structure embedded as an
+   X.509 extension (OID 1.3.6.1.4.1.55744.1.1) in a SPIRE SVID.  It
+   binds a workload identity to physically verifiable claims — TPM
+   hardware identity, privacy-preserving geolocation, and agent binary
+   integrity — without exposing PII.
 
-   *  *Location Anchor Host (LAH) bundle (lah-bundle)*: LAH identity,
-      location proof (or hash), freshness, and an LAH seal.
+10.1.1.  Top-Level Structure
 
-10.2.  Encoding and Canonicalization
+   {
+     "lah-bundle": { },
+     "mno-endorsement": { },
+     "workload": { }
+   }
 
-   *  All binary values (hashes, public keys, signatures) MUST be
-      Base64URL encoded.
-   *  When hashing JSON objects, implementations MUST use the JSON
-      Canonicalization Scheme (JCS) [[RFC8785]].
-   *  The seals are TPM quotes:
-      -  inner-seal MUST be a TPM quote whose signed qualifyingData
-         includes SHA-256(JCS(lah-bundle-without-inner-seal)).
-      -  outer-seal MUST be a TPM quote whose signed qualifyingData
-         includes SHA-256(JCS(v-gap-profile-without-outer-seal)).
-      -  The Workload Host quote MUST cover the PCRs needed to validate
-         the agent measurement claim (e.g., PCRs that include the agent
-         image digest measurement).
+10.1.2.  lah-bundle Fields
 
-   The seals bind the canonicalized bundle contents to the TPM quote via
-   qualifyingData, so any modification or swapping of fields is
-   detectable by the verifier.
-
-10.3.  Field Summary
-
-   *  host-tpm-ak: Workload Host AK public key.
-   *  agent-image-digest: Digest of the Workload Identity Agent image/
-      config being asserted.
-   *  host-proximity-proof-hash: Hash of deployment-specific proximity
-      evidence showing the Workload Host is co-located with the LAH.
-      For Unified Hosts (LAH == Workload Host), set to SHA-256("V-GAP-
-      LOCAL-BUS-PROXIMITY").
-   *  lah-bundle: LAH evidence and seal.
-   *  n_platform: Freshness value from the Host Identity Management
-      Plane (for the LAH evidence).
-   *  n_fusion: Freshness value from the Workload Identity Management
-      Plane (to bind evidence to identity issuance/renewal).
-   *  timestamp: Unix timestamp (informative; freshness is primarily
-      provided by nonces).
-
-10.4.  Formal Data Structure (JSON Schema)
-
-   The schema below is informative; the normative requirements are in
-   the text above.
-
+   +==============+=============+==========+==========================+
+   | Field        | Type        | Required | Description              |
+   +==============+=============+==========+==========================+
+   | tpm-ak       | string      |   Yes    | TPM Attestation Key      |
+   |              | (Base64URL) |          | public key (PEM-         |
+   |              |             |          | encoded).  Hardware      |
+   |              |             |          | identity anchor.  The    |
+   |              |             |          | TPM enforces that only   |
+   |              |             |          | this key can produce     |
+   |              |             |          | tpm-quote-seal — proving |
+   |              |             |          | co-residency.            |
+   +--------------+-------------+----------+--------------------------+
+   | geolocation- | string      |   Yes    | SHA-256(tpm-ak-bytes     |
+   | id-hash      | (Base64URL) |          | \|\| sensor-unique-id-   |
+   |              |             |          | bytes).  Binds TPM       |
+   |              |             |          | identity to sensor       |
+   |              |             |          | identity without         |
+   |              |             |          | exposing IMEI/IMSI/      |
+   |              |             |          | serial.  Input recipe is |
+   |              |             |          | an agent implementation  |
+   |              |             |          | detail (see Sensor Types |
+   |              |             |          | below).                  |
+   +--------------+-------------+----------+--------------------------+
+   | geolocation- | string      |   Yes    | SHA-256 commitment over  |
+   | proof-hash   | (Base64URL) |          | geolocation-payload.     |
+   |              |             |          | Required in both privacy |
+   |              |             |          | modes.  When privacy-    |
+   |              |             |          | technique=zkp: SHA-      |
+   |              |             |          | 256(zkp-proof-bytes).    |
+   |              |             |          | When privacy-            |
 
 
 
@@ -562,54 +562,54 @@ Krishnan, et al.        Expires 2 September 2026               [Page 10]
 Internet-Draft                RATS-GEO-POR                    March 2026
 
 
-   {
-     "$schema": "http://json-schema.org/draft-07/schema#",
-     "title": "V-GAP Nested Evidence Bundle",
-     "type": "object",
-     "properties": {
-       "host-tpm-ak": { "type": "string" },
-       "host-proximity-proof-hash": { "type": "string" },
-       "agent-image-digest": { "type": "string" },
-       "lah-bundle": {
-         "type": "object",
-         "properties": {
-           "lah-tpm-ak": { "type": "string" },
-           "lah-geolocation-proof-hash": { "type": "string" },
-           "privacy-technique": { "type": "integer", "enum": [0, 1] },
-           "n_platform": { "type": "string" },
-           "timestamp": { "type": "integer" },
-           "inner-seal": { "type": "string" }
-         },
-         "required": [
-           "lah-tpm-ak",
-           "lah-geolocation-proof-hash",
-           "privacy-technique",
-           "n_platform",
-           "timestamp",
-           "inner-seal"
-         ]
-       },
-       "n_fusion": { "type": "string" },
-       "timestamp": { "type": "integer" },
-       "outer-seal": { "type": "string" }
-     },
-     "required": [
-       "host-tpm-ak",
-       "host-proximity-proof-hash",
-       "agent-image-digest",
-       "lah-bundle",
-       "n_fusion",
-       "timestamp",
-       "outer-seal"
-     ]
-   }
-
-10.5.  Evidence Production (Informative)
-
-   *  The Host Identity Management Plane provides n_platform to the LAH
-      (directly or via an OOB path).
-   *  The LAH produces lah-bundle and inner-seal.
-
+   |              |             |          | technique=none: SHA-     |
+   |              |             |          | 256(JCS({lat, lon,       |
+   |              |             |          | accuracy})).             |
+   +--------------+-------------+----------+--------------------------+
+   | privacy-     | string enum |   Yes    | "none" = raw lat/lon/    |
+   | technique    |             |          | accuracy in payload.     |
+   |              |             |          | "zkp" = zero-knowledge   |
+   |              |             |          | proof URI in payload.    |
+   |              |             |          | Controls location        |
+   |              |             |          | privacy only; device     |
+   |              |             |          | identity privacy is      |
+   |              |             |          | always protected via     |
+   |              |             |          | geolocation-id-hash.     |
+   +--------------+-------------+----------+--------------------------+
+   | geolocation- | object      |   Yes    | Inner location data.     |
+   | payload      |             |          | Structure depends on     |
+   |              |             |          | privacy-technique (see   |
+   |              |             |          | Payload Variants below). |
+   |              |             |          | Committed to by          |
+   |              |             |          | geolocation-proof-hash   |
+   |              |             |          | and optionally signed by |
+   |              |             |          | mno-endorsement.mno-sig. |
+   +--------------+-------------+----------+--------------------------+
+   | nonce        | string      |   Yes    | Freshness nonce issued   |
+   |              | (Base64URL) |          | by the management plane. |
+   |              |             |          | Chained: HMAC(secret, n  |
+   |              |             |          | \|\| chain[n-1]).        |
+   |              |             |          | Detects skipped/         |
+   |              |             |          | reordered attestations.  |
+   +--------------+-------------+----------+--------------------------+
+   | timestamp    | integer     |   Yes    | Unix epoch seconds.  Set |
+   |              | (int64)     |          | by the LAH agent at      |
+   |              |             |          | bundle construction      |
+   |              |             |          | time.                    |
+   +--------------+-------------+----------+--------------------------+
+   | tpm-quote-   | string      |   Yes    | TPM2_Quote produced by   |
+   | seal         | (Base64URL) |          | the AK in tpm-ak.        |
+   |              |             |          | Qualifying data = SHA-   |
+   |              |             |          | 256(JCS({tpm-ak,         |
+   |              |             |          | geolocation-id-hash,     |
+   |              |             |          | geolocation-proof-hash,  |
+   |              |             |          | privacy-technique,       |
+   |              |             |          | nonce, timestamp})).     |
+   |              |             |          | Binds all fields into a  |
+   |              |             |          | single hardware-sealed   |
+   |              |             |          | statement.               |
+   +--------------+-------------+----------+--------------------------+
+   | workload-    | string (hex |   Yes    | SHA-256 digest of the    |
 
 
 
@@ -618,44 +618,235 @@ Krishnan, et al.        Expires 2 September 2026               [Page 11]
 Internet-Draft                RATS-GEO-POR                    March 2026
 
 
-   *  The Workload Host assembles the outer bundle, including the full
-      lah-bundle, and produces outer-seal.
-   *  The Workload Identity Management Plane provides n_fusion and
-      evaluates the verifier result before issuing or renewing
-      identities.
+   | identity-    | SHA-256)    |          | Workload Identity Agent  |
+   | agent-image- |             |          | (SPIRE agent) binary,    |
+   | digest       |             |          | measured at attestation  |
+   |              |             |          | time by the Host         |
+   |              |             |          | Identity Manager         |
+   |              |             |          | (Keylime).  Detects      |
+   |              |             |          | agent binary compromise  |
+   |              |             |          | on every renewal cycle.  |
+   +--------------+-------------+----------+--------------------------+
 
-10.6.  Verification (Informative)
+                                 Table 2
 
-   A verifier (or relying party) validates:
+10.1.3.  geolocation-payload Variants
 
-   *  inner-seal against lah-tpm-ak and freshness (n_platform, timestamp
-      policy).
-   *  outer-seal against host-tpm-ak and freshness (n_fusion, timestamp
-      policy).
-   *  That the Workload Host quote covers the PCRs needed to support the
-      asserted agent-image-digest.
-   *  That host-proximity-proof-hash and lah-geolocation-proof-hash
-      satisfy domain policy (e.g., allowlist, thresholding, or other
-      policy mechanisms).
-   *  That the outer seal staples the inner bundle (by verifying the
-      qualifyingData binding to the canonicalized outer bundle).
+   *When privacy-technique = "none" (raw coordinates):*
 
-10.7.  Scalable Fleet Management
+      +==========+==================+==========+===================+
+      | Field    | Type             | Required | Description       |
+      +==========+==================+==========+===================+
+      | lat      | number (float64) |   Yes    | Latitude, WGS-84  |
+      |          |                  |          | decimal degrees   |
+      +----------+------------------+----------+-------------------+
+      | lon      | number (float64) |   Yes    | Longitude, WGS-84 |
+      |          |                  |          | decimal degrees   |
+      +----------+------------------+----------+-------------------+
+      | accuracy | number (float64) |   Yes    | Accuracy radius   |
+      |          |                  |          | in metres         |
+      +----------+------------------+----------+-------------------+
 
-   Large deployments need lifecycle management for the attestation keys
-   referenced by V-GAP (e.g., host-tpm-ak and lah-tpm-ak) and for the
-   policies that authorize them.
+                                 Table 3
 
-10.8.  Key Registry and Synchronization
+   geolocation-proof-hash = Base64URL(SHA-256(JCS({lat, lon,
+   accuracy})))
+
+   *When privacy-technique = "zkp" (zero-knowledge proof):*
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Krishnan, et al.        Expires 2 September 2026               [Page 12]
+
+Internet-Draft                RATS-GEO-POR                    March 2026
+
+
+   +===============+========+==========+==============================+
+   | Field         | Type   | Required | Description                  |
+   +===============+========+==========+==============================+
+   | zkp-proof-uri | string |   Yes    | URI to fetch full ZKP proof  |
+   |               | (URI)  |          | bytes from the proof         |
+   |               |        |          | depository.  Verifier        |
+   |               |        |          | fetches bytes, computes SHA- |
+   |               |        |          | 256(bytes), checks against   |
+   |               |        |          | geolocation-proof-hash.      |
+   +---------------+--------+----------+------------------------------+
+   | zkp-format    | string |   Yes    | ZKP proof system.            |
+   |               | enum   |          | Currently: "plonky2".        |
+   +---------------+--------+----------+------------------------------+
+
+                                 Table 4
+
+   geolocation-proof-hash = Base64URL(SHA-256(zkp-proof-bytes))
+
+10.1.4.  mno-endorsement (Optional, Top-Level Sibling)
+
+   +==============+=============+==========+==========================+
+   | Field        | Type        | Required | Description              |
+   +==============+=============+==========+==========================+
+   | mno-key-cert | string      |   Yes    | MNO signing certificate. |
+   |              | (Base64URL  |          |                          |
+   |              | DER)        |          |                          |
+   +--------------+-------------+----------+--------------------------+
+   | mno-sig      | string      |   Yes    | ECDSA/EdDSA signature    |
+   |              | (Base64URL) |          | over JCS(geolocation-    |
+   |              |             |          | payload) only.  The MNO  |
+   |              |             |          | attests location within  |
+   |              |             |          | carrier visibility —     |
+   |              |             |          | does not sign host       |
+   |              |             |          | fields (tpm-ak, nonce,   |
+   |              |             |          | tpm-quote-seal).         |
+   +--------------+-------------+----------+--------------------------+
+
+                                 Table 5
+
+10.1.5.  workload (Top-Level Sibling)
+
+       +=============+=========+==========+=======================+
+       | Field       | Type    | Required | Description           |
+       +=============+=========+==========+=======================+
+       | workload-id | string  |   Yes    | The workload's SPIFFE |
+       |             | (SPIFFE |          | identity URI (e.g.,   |
+       |             | ID)     |          | spiffe://example.org/ |
+       |             |         |          | python-app).          |
+
+
+
+Krishnan, et al.        Expires 2 September 2026               [Page 13]
+
+Internet-Draft                RATS-GEO-POR                    March 2026
+
+
+       +-------------+---------+----------+-----------------------+
+       | key-source  | string  |   Yes    | Origin of the         |
+       |             |         |          | workload's key        |
+       |             |         |          | material (e.g., tpm-  |
+       |             |         |          | app-key).             |
+       +-------------+---------+----------+-----------------------+
+
+                                 Table 6
+
+10.1.6.  Sensor Type Input Recipes (Opaque to Verifier)
+
+      +=================+==========================================+
+      | Sensor Type     | geolocation-id-hash Input                |
+      +=================+==========================================+
+      | Mobile (CAMARA) | SHA-256(tpm-ak-bytes \|\| IMEI-bytes     |
+      |                 | \|\| IMSI-bytes)                         |
+      +-----------------+------------------------------------------+
+      | GNSS receiver   | SHA-256(tpm-ak-bytes \|\| sensor-serial- |
+      |                 | bytes \|\| sensor-class-id-bytes)        |
+      +-----------------+------------------------------------------+
+
+                                 Table 7
+
+   The verifier sees only the opaque hash — never the raw identifiers.
+
+10.1.7.  TPM Quote Verification Procedure
+
+   1.  Decode tpm-quote-seal (Base64URL → bytes)
+   2.  Parse TPMS_ATTEST structure
+   3.  Assert TPMS_ATTEST.type == TPM_ST_ATTEST_QUOTE
+   4.  Compute expected_qd = SHA-256(JCS({tpm-ak, geolocation-id-hash,
+       geolocation-proof-hash, privacy-technique, nonce, timestamp}))
+   5.  Assert TPMS_ATTEST.qualifyingData == expected_qd
+   6.  Verify signature over TPMS_ATTEST bytes using tpm-ak public key
+       (RSASSA-PKCS1-v1_5 or ECDSA)
+
+10.1.8.  Example Instance (privacy-technique = "zkp")
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+Krishnan, et al.        Expires 2 September 2026               [Page 14]
+
+Internet-Draft                RATS-GEO-POR                    March 2026
+
+
+   {
+     "lah-bundle": {
+       "tpm-ak": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG...\n-----END PUBLIC KEY-----",
+       "geolocation-id-hash": "7f4a2c1b9e3d8f0a6b5c4d2e1f0a9b8c...",
+       "geolocation-proof-hash": "c8bc2ed62a7a650d99e0884197cdf345...",
+       "privacy-technique": "zkp",
+       "geolocation-payload": {
+         "zkp-proof-uri": "https://verifier.example/v1/proof/c8bc2ed6...",
+         "zkp-format": "plonky2"
+       },
+       "nonce": "ZmUyZjdmMzlmZGVlZWQxOTM1YjY0Mjk0...",
+       "timestamp": 1740693456,
+       "tpm-quote-seal": "ARoAAQALAAUACwEA...",
+       "workload-identity-agent-image-digest": "a1b2c3d4e5f6...64-char-hex-sha256"
+     },
+     "mno-endorsement": {
+       "mno-key-cert": "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8A...",
+       "mno-sig": "MEYCIQDx9z2k..."
+     },
+     "workload": {
+       "workload-id": "spiffe://example.org/python-app",
+       "key-source": "tpm-app-key"
+     }
+   }
+
+10.1.9.  Nonce Chain and Merkle Audit Log
+
+   chain[n] = SHA-256(chain[n-1] || SHA-256(JCS(bundle[n])))
+   nonce[n]  = HMAC(secret, n || chain[n-1])
+
+    +===========+====================================================+
+    | Mechanism | Role                                               |
+    +===========+====================================================+
+    | Chained   | Input control — agent cannot submit without        |
+    | nonce     | responding to the management plane's current state |
+    +-----------+----------------------------------------------------+
+    | Merkle    | Audit output — proves inclusion of past bundles,   |
+    | chain     | detects gaps, enables regulatory audit             |
+    +-----------+----------------------------------------------------+
+
+                                 Table 8
+
+10.2.  Key Registry and Synchronization
 
    *  A Cloud (central) Host Identity Management Plane maintains a
       registry of accepted AK public keys and associated metadata (e.g.,
       EK certificate chain, hardware identity, and status).
+
+
+
+
+Krishnan, et al.        Expires 2 September 2026               [Page 15]
+
+Internet-Draft                RATS-GEO-POR                    March 2026
+
+
    *  An Edge Host Identity Management Plane MAY maintain a local
       registry to support disconnected operation and periodically
       synchronizes updates to the central registry.
 
-10.9.  Key Rotation
+10.3.  Key Rotation
 
    To prevent rogue key injection during rotation:
 
@@ -666,15 +857,7 @@ Internet-Draft                RATS-GEO-POR                    March 2026
       previously accepted AK (or, if available, validated by a fresh
       hardware-rooted OOB quote).
 
-
-
-
-Krishnan, et al.        Expires 2 September 2026               [Page 12]
-
-Internet-Draft                RATS-GEO-POR                    March 2026
-
-
-10.9.1.  Example Rotation Proof (Informative)
+10.3.1.  Example Rotation Proof (Informative)
 
    {
     "new-ak-pub": "Base64URL_Encoded_Public_Key",
@@ -684,7 +867,7 @@ Internet-Draft                RATS-GEO-POR                    March 2026
     "signature": "Base64URL_Signature_from_Previous_AK"
    }
 
-10.10.  Credential Activation and Re-Verification
+10.4.  Credential Activation and Re-Verification
 
    Credential activation (e.g., TPM2_MakeCredential) is expensive to run
    on every request.  Verifiers SHOULD perform it on events such as:
@@ -699,14 +882,23 @@ Internet-Draft                RATS-GEO-POR                    March 2026
    Between full activations, verifiers MAY accept fresh quotes from
    registered AKs as proof of continued compliance, subject to policy.
 
-10.11.  Revocation and Health Signals
+10.5.  Revocation and Health Signals
 
    *  The edge plane SHOULD maintain a per-node health signal (e.g.,
       tamper, firmware policy violations).
    *  On severe health signals, the verifier MUST revoke the relevant
       AK(s) and reject identities derived from them according to policy.
 
-10.12.  Disconnected Operation (Leased Identity)
+
+
+
+
+Krishnan, et al.        Expires 2 September 2026               [Page 16]
+
+Internet-Draft                RATS-GEO-POR                    March 2026
+
+
+10.6.  Disconnected Operation (Leased Identity)
 
    For intermittent connectivity, the verifier MAY issue identities with
    extended validity (a lease) under policy.  If a lease is used:
@@ -716,133 +908,7 @@ Internet-Draft                RATS-GEO-POR                    March 2026
    *  The workload MUST re-attest and satisfy current policy on
       reconnection before renewal or release of high-value secrets.
 
-11.  Verification Procedure
-
-   This section defines the required verification checks for a V-GAP
-   evidence bundle.
-
-   A verifier (or a relying party acting on verifier output) MUST:
-
-
-
-Krishnan, et al.        Expires 2 September 2026               [Page 13]
-
-Internet-Draft                RATS-GEO-POR                    March 2026
-
-
-   1.  *Parse evidence*: Extract the V-GAP bundle (embedded or
-       referenced) and identify the host-tpm-ak, lah-tpm-ak, outer-seal,
-       inner-seal, and associated nonces/timestamps.
-   2.  *Verify LAH seal*: Verify inner-seal using lah-tpm-ak and confirm
-       freshness per verifier policy (for example, n_platform and/or
-       timestamp window).
-   3.  *Verify Workload Host seal*: Verify outer-seal using host-tpm-ak
-       and confirm freshness per verifier policy (for example, n_fusion
-       and/or timestamp window).
-   4.  *Verify stapling*: Confirm the outer seal cryptographically binds
-       (staples) the exact lah-bundle included in the evidence so that
-       location evidence cannot be swapped.
-   5.  *Verify agent measurement*: Confirm the agent-image-digest is
-       consistent with the PCR(s) quoted by the Workload Host, per the
-       platform profile (for example, PCRs populated by measured boot
-       and/or IMA).  If this check fails, the verifier MUST reject the
-       bundle.
-   6.  *Verify proximity binding*: Evaluate host-proximity-proof-hash
-       according to the deployment policy:
-       *  For *Unified Host* deployments (LAH == Workload Host), host-
-          proximity-proof-hash MUST equal SHA-256("V-GAP-LOCAL-BUS-
-          PROXIMITY").
-       *  For non-unified deployments, the verifier MUST validate the
-          hash against policy (for example, allowlist membership,
-          expected peer pairing, and freshness binding).
-   7.  *Verify residency*: Validate lah-geolocation-proof-hash according
-       to policy:
-       *  If privacy-technique == 1, the verifier MUST validate the ZKP
-          (or a verifier-approved proof result) and confirm it is bound
-          to the current attestation session (freshness values and the
-          geolocation hash).
-       *  If privacy-technique == 0, the verifier MUST validate the
-          location evidence (or its hash) and confirm the host is inside
-          the configured boundary.
-   8.  *Produce an attestation result*: Output a signed result
-       containing the decision (pass/fail), the verified claims
-       (integrity, residency, and relevant identifiers), and the
-       freshness window used.  This result is the input to identity
-       issuance and downstream authorization.
-
-   Freshness: Verifiers MUST use nonces and MUST enforce a bounded
-   acceptance window.  If freshness checks fail, the verifier SHOULD
-   require a re-attestation and MAY revoke previously accepted results
-   according to policy.
-
-
-
-
-
-
-
-Krishnan, et al.        Expires 2 September 2026               [Page 14]
-
-Internet-Draft                RATS-GEO-POR                    March 2026
-
-
-12.  Evidence Sources and Attestation Mechanics
-
-   This section summarizes how platforms produce integrity and residency
-   evidence.  It is primarily informative; normative requirements are
-   stated where needed for interoperability.
-
-12.1.  Platform Integrity Evidence (Layer 2)
-
-   Platform integrity evidence binds the Workload Identity Agent to an
-   approved host state.
-
-   At minimum, a conforming implementation MUST support:
-
-   *  *Hardware-rooted attestation*: Evidence anchored in a hardware
-      root of trust (for example, TPM-based attestation keys and
-      quotes).
-   *  *Measured state*: A verifier policy that checks measurements for
-      the boot chain and for the Workload Identity Agent (for example,
-      IMA measurements or equivalent).
-   *  *Agent binding*: The outer-seal MUST quote PCRs sufficient to
-      evaluate the asserted agent-image-digest claim.
-
-12.2.  Residency Evidence (Layer 3)
-
-   Residency evidence asserts that the attested host is within an
-   approved geographic boundary.
-
-   *  The LAH provides lah-bundle containing a geolocation proof (or
-      hash), freshness, and inner-seal.
-   *  Location sources and corroboration are deployment-specific (for
-      example, GNSS, modem/network-assisted location, or other trusted
-      sources).  This document standardizes the evidence interface and
-      verification checks, not the sensor protocol details.
-
-12.3.  Privacy-Preserving Residency (ZKP)
-
-   Where supported, V-GAP MAY use privacy-technique == 1 and carry a
-   ZKP-derived hash.
-
-   A ZKP-based design MUST ensure:
-
-   *  The verifier learns only the compliance outcome (inside/outside
-      the boundary), not coordinates.
-   *  The proof is *session-bound* (freshness values and the geolocation
-      hash).
-   *  The proof is conveyed efficiently (for example, referenced by
-      hash/URI rather than embedded in size-constrained credentials).
-
-
-
-
-Krishnan, et al.        Expires 2 September 2026               [Page 15]
-
-Internet-Draft                RATS-GEO-POR                    March 2026
-
-
-12.4.  Deployment Patterns (Informative)
+10.7.  Deployment Patterns (Informative)
 
    Implementations commonly fall into these patterns:
 
@@ -855,9 +921,9 @@ Internet-Draft                RATS-GEO-POR                    March 2026
       class or shielded-instance approaches, including OCI-style
       shielded instances).
 
-13.  Operational Considerations
+11.  Operational Considerations
 
-13.1.  Distributed Identity Issuance and Scaling
+11.1.  Distributed Identity Issuance and Scaling
 
    To support edge deployments and intermittent connectivity, identity
    issuance may be distributed within a sovereign boundary.
@@ -872,17 +938,27 @@ Internet-Draft                RATS-GEO-POR                    March 2026
       when the verifier result for integrity and residency is valid for
       the requested freshness window.
 
-13.2.  Mobility and Sovereign Handover (Informative)
+11.2.  Mobility and Sovereign Handover (Informative)
 
    When a workload moves between anchors or boundaries, the Workload
    Identity Agent MUST obtain a new V-GAP bundle that reflects the new
    LAH and current residency.
 
+
+
+
+
+
+Krishnan, et al.        Expires 2 September 2026               [Page 17]
+
+Internet-Draft                RATS-GEO-POR                    March 2026
+
+
    Verifiers SHOULD treat this as a normal re-attestation event: -
    platform integrity continuity can remain stable, but - proximity and
    residency checks MUST be re-evaluated for the new anchor/boundary.
 
-13.3.  Location Anchor Hosts (Informative)
+11.3.  Location Anchor Hosts (Informative)
 
    To scale location sensing, a deployment may use dedicated anchors:
 
@@ -890,20 +966,12 @@ Internet-Draft                RATS-GEO-POR                    March 2026
       as an LAH for a nearby client device using a proximity mechanism
       (for example, BLE/UWB).  The proximity mechanism is out of scope;
       only the resulting proximity evidence hash is standardized.
-
-
-
-Krishnan, et al.        Expires 2 September 2026               [Page 16]
-
-Internet-Draft                RATS-GEO-POR                    March 2026
-
-
    *  *Data center anchors*: A small set of hosts can act as LAHs for a
       cluster.  Proximity measurement mechanisms may vary; if a PTP-
       derived mechanism is used, its protocol details should be profiled
       separately (see [[I-D.ramki-ptp-hardware-rooted-attestation]]).
 
-14.  Policy Use (Informative)
+12.  Policy Use (Informative)
 
    Relying parties and identity issuers can use V-GAP results as inputs
    to authorization.
@@ -917,7 +985,7 @@ Internet-Draft                RATS-GEO-POR                    March 2026
       and marked CRITICAL, any implementation that does not understand
       the extension will reject the credential.
 
-15.  Security Considerations
+13.  Security Considerations
 
    V-GAP reduces reliance on spoofable location signals and stolen
    tokens by making integrity and residency verifiable.  Implementers
@@ -934,6 +1002,14 @@ Internet-Draft                RATS-GEO-POR                    March 2026
       anchors can be moved.  Mitigate with tight proximity windows where
       possible, anchor health checks, and disagreement policies when
       multiple anchors are observed.
+
+
+
+Krishnan, et al.        Expires 2 September 2026               [Page 18]
+
+Internet-Draft                RATS-GEO-POR                    March 2026
+
+
    *  *Management plane compromise*: OOB paths reduce dependence on the
       host OS but introduce dependence on the management controller and
       its network.  Protect this plane with secure boot/updates, strong
@@ -946,15 +1022,7 @@ Internet-Draft                RATS-GEO-POR                    March 2026
    *  *Privacy*: Avoid unnecessary collection or retention of precise
       location.  Prefer “in-zone” proofs (ZKP) where policy permits.
 
-
-
-
-Krishnan, et al.        Expires 2 September 2026               [Page 17]
-
-Internet-Draft                RATS-GEO-POR                    March 2026
-
-
-15.1.  Proximity and Anchor Displacement (Informative)
+13.1.  Proximity and Anchor Displacement (Informative)
 
    Proximity-based designs (for example, phone-as-anchor or ranging-
    based methods) are vulnerable to relay and displacement.  Mitigations
@@ -962,7 +1030,7 @@ Internet-Draft                RATS-GEO-POR                    March 2026
    requiring anchor attestation and health checks, and - policy that
    treats inconsistent anchor observations as unverified.
 
-16.  IANA Considerations
+14.  IANA Considerations
 
    IANA is requested to register the following Object Identifier (OID)
    in the "SMI Numbers" registry under the "SMI Private Enterprise
@@ -979,48 +1047,48 @@ Internet-Draft                RATS-GEO-POR                    March 2026
       Evidence Bundle
    *  *Reference*: This document.
 
-17.  Appendix - Items to Follow Up
+15.  Appendix - Items to Follow Up
 
-17.1.  OPEN ISSUE: IMA restart behavior
+15.1.  OPEN ISSUE: IMA restart behavior
 
    Define an interoperable way to detect and handle Workload Identity
    Agent restarts without requiring a host reboot, while preserving
    measurement integrity.
 
-17.2.  OPEN ISSUE: Location privacy options
+
+
+
+
+
+
+Krishnan, et al.        Expires 2 September 2026               [Page 19]
+
+Internet-Draft                RATS-GEO-POR                    March 2026
+
+
+15.2.  OPEN ISSUE: Location privacy options
 
    Clarify the set of supported privacy techniques and how policy
    selects between precise location, coarse location, and ZKP-based “in-
    zone” proofs.
 
-17.3.  OPEN ISSUE: Proximity profiles
+15.3.  OPEN ISSUE: Proximity profiles
 
    Specify one or more proximity evidence profiles (for example, PTP-
    derived, BLE/UWB-derived, or other mechanisms) as separate documents,
    while keeping V-GAP evidence fields stable.
 
-
-
-
-
-
-
-Krishnan, et al.        Expires 2 September 2026               [Page 18]
-
-Internet-Draft                RATS-GEO-POR                    March 2026
-
-
-17.4.  OPEN ISSUE: Geotagging textual data
+15.4.  OPEN ISSUE: Geotagging textual data
 
    There no widely deployed standard for geotagging arbitrary textual
    data objects.
 
-17.5.  OPEN ISSUE: Attesting geotags
+15.5.  OPEN ISSUE: Attesting geotags
 
    There is no widely deployed standard for signing geotags to prevent
    manipulation.
 
-18.  Appendix - Public References for Strict Data Residency Rules
+16.  Appendix - Public References for Strict Data Residency Rules
 
    India -- Reserve Bank of India (RBI): Payment System Data
    Localization (2018): From RBI Circular RBI/2017-18/153 (April 6,
@@ -1046,6 +1114,14 @@ Authors' Addresses
    Email: ned.smith@intel.com
 
 
+
+
+
+Krishnan, et al.        Expires 2 September 2026               [Page 20]
+
+Internet-Draft                RATS-GEO-POR                    March 2026
+
+
    Diego R. Lopez
    Telefonica
    Email: diego.r.lopez@telefonica.com
@@ -1058,14 +1134,6 @@ Authors' Addresses
 
    Srinivasa Addepalli
    Aryaka
-
-
-
-Krishnan, et al.        Expires 2 September 2026               [Page 19]
-
-Internet-Draft                RATS-GEO-POR                    March 2026
-
-
    Email: srinivasa.addepalli@aryaka.com
 
 
@@ -1105,16 +1173,4 @@ Internet-Draft                RATS-GEO-POR                    March 2026
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-Krishnan, et al.        Expires 2 September 2026               [Page 20]
+Krishnan, et al.        Expires 2 September 2026               [Page 21]
