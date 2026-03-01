@@ -902,13 +902,13 @@ Internet-Draft                RATS-GEO-POR                    March 2026
       (for example, Keylime-style deployments).  In this pattern, the
       Workload Identity Management Plane (for example, SPIRE Server)
       generates N_fusion and shares it with the Host Identity Management
-      Plane (for example, Keylime Server) over a server-to-server
-      channel.  The Host Identity Management Plane then delivers
-      N_fusion to the Keylime agent running on the host, which collects
-      TPM and geolocation evidence, assembles the lah-bundle, and
-      returns it via the host-side channel.  This pattern is well-suited
-      to commodity servers and cloud VMs where a BMC path is not
-      available or not required.
+      Plane (for example, the Keylime Verifier) over a server-to-server
+      channel.  The Keylime Verifier then delivers N_fusion to the
+      Keylime Agent running on the host, which collects TPM and
+      geolocation evidence, assembles the lah-bundle, and returns it via
+      the host-side channel.  This pattern is well-suited to commodity
+      servers and cloud VMs where a BMC path is not available or not
+      required.
 
    *  *Out-of-band management*: Evidence collected via a management
       controller / BMC path (for example, iLO-class OOB management such
