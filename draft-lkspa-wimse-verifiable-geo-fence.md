@@ -100,11 +100,11 @@ By binding software identities to persistent silicon identities and verified phy
 
 # Introduction
 
-The **Workload Identity Agent** (e.g., SPIRE Agent) acts as the local-on-host intermediary responsible for managing and issuing identities to workloads. It serves as a "vetting" mechanism, ensuring that a workload's execution environment meets required security and residency policies before granting it the cryptographic credentials necessary for network communication. This **High-Assurance Profile** (a specialized RATS Profile) provides the technical mechanics to cryptographically bind this agent to the underlying hardware-verified platform and its privacy preserving physical location.
+The **Workload Identity Agent** (e.g., SPIRE Agent) acts as the local-on-host intermediary responsible for managing and issuing identities to workloads. It serves as a vetting mechanism, ensuring that a workload's execution environment meets required security and residency policies before granting it the cryptographic credentials necessary for network communication. This High-Assurance Profile (a specialized RATS Profile) provides the technical mechanics to cryptographically bind this agent to the underlying hardware-verified platform and its privacy-preserving physical location.
 
-The architecture follows the **RATS Architecture [[RFC9334]]**, defining the interactions between **Provers**, **Verifiers**, and **Relying Parties** to generate and validate **High-Confidence Evidence** regarding the **Workload Identity Agent's** status. It provides the hardware-rooted "Evidence Layer" required by the high-level **WIMSE Architecture [[I-D.ietf-wimse-architecture]]**, establishing a **"Silicon-to-Workload"** chain of trust that ensures sensitive data is only processed by authorized workloads in approved, integral environments.
+The architecture follows the RATS Architecture [[RFC9334]], defining the interactions between Provers, Verifiers, and Relying Parties to generate and validate high-confidence evidence regarding the Workload Identity Agent's status. It provides the hardware-rooted evidence layer required by the WIMSE Architecture [[I-D.ietf-wimse-architecture]], establishing a "Silicon-to-Workload" chain of trust that ensures sensitive data is only processed by authorized workloads in approved, measured environments.
 
-To maintain **Location Privacy** while providing cryptographic verifiability, this profile leverages **Transparent Zero-Knowledge Proofs (ZKPs)**. Unlike traditional ZKP systems, transparent ZKPs require no "Trusted Third Party" or complex "Trusted Setup" phase. They achieve mathematical transparency through non-interactive, hash-based protocols, allowing a platform to prove it is resident within an approved geographic boundary without disclosing the exact coordinates of the underlying hardware.
+To maintain location privacy while providing cryptographic verifiability, this profile leverages Transparent Zero-Knowledge Proofs (ZKPs). Unlike traditional ZKP systems, transparent ZKPs require no trusted third party or complex trusted setup phase. They achieve mathematical transparency through non-interactive, hash-based protocols, allowing a platform to prove it is resident within an approved geographic boundary without disclosing the exact coordinates of the underlying hardware.
 
 # Conventions and Definitions
 
@@ -173,10 +173,10 @@ V-GAP (Verifiable Geofencing Attestation Profile):
 : Nested evidence format defined in this document for binding identity to verified platform integrity and verified residency.
 
 N_platform (Platform Quote Nonce):
-: Fresh nonce used for platform attestation. For OOB, this is delivered via a path that does not require the Workload Host OS to observe it.
+: Fresh nonce used for platform attestation, delivered by the Host Identity Management Plane. Corresponds to the `nonce` field in the `lah-bundle`.
 
 N_fusion (Workload Fusion Nonce):
-: Fresh nonce used to bind identity issuance of the workload identity agent to a specific attestation interval.
+: Fresh nonce used to bind identity issuance to a specific attestation interval, delivered by the Workload Identity Management Plane.
 
 # Use Cases
 
@@ -256,13 +256,6 @@ Where policy requires it, the verifier can additionally require that an agent so
 
 In intermittently connected edge deployments, local operation can continue during outages, while centralized policy can be enforced on renewal and on release of high-value secrets once connectivity is available.
 
-# Deployment Patterns (Informative)
-
-This profile supports multiple ways to collect and verify evidence for Layers 2 and 3:
-
-- **In-band host attestation:** Evidence collected by host software (e.g., Keylime-style deployments).
-- **Out-of-band management:** Evidence collected via a management controller / BMC path (e.g., HPE iLO-class OOB management).
-- **Cloud-hosted attestation environments:** Provider mechanisms that expose measured boot / TPM-backed claims (e.g., Nitro-class or shielded-instance approaches).
 
 # High-Assurance Profile - Verifiable Geofencing Attestation Profile (V-GAP)
 
@@ -390,6 +383,9 @@ nonce[n]  = HMAC(secret, n || chain[n-1])
 | Chained nonce | Input control — agent cannot submit without responding to the management plane's current state |
 | Merkle chain | Audit output — proves inclusion of past bundles, detects gaps, enables regulatory audit |
 
+## Scalable Fleet Management
+
+Large deployments need lifecycle management for the attestation keys referenced by V-GAP (for example, `tpm-ak`) and for the policies that authorize them.
 
 ## Key Registry and Synchronization
 
