@@ -98,9 +98,9 @@
 <dt>V-GAP (Verifiable Geofencing Attestation Profile):</dt>
 <dd>Nested evidence format defined in this document for binding identity to verified platform integrity and verified residency.</dd>
 <dt>N_platform (Platform Quote Nonce):</dt>
-<dd>Fresh nonce used for platform attestation, delivered by the Host Identity Management Plane. Corresponds to the <tt>nonce</tt> field in the <tt>lah-bundle</tt>.</dd>
+<dd>Fresh nonce used for platform attestation, delivered by the Host Identity Management Plane via an OOB path that does not require the Workload Host OS to observe it.</dd>
 <dt>N_fusion (Workload Fusion Nonce):</dt>
-<dd>Fresh nonce used to bind identity issuance to a specific attestation interval, delivered by the Workload Identity Management Plane.</dd>
+<dd>Fresh nonce used to bind identity issuance to a specific attestation interval, delivered by the Workload Identity Management Plane. Corresponds to the <tt>nonce</tt> field in the <tt>lah-bundle</tt>.</dd>
 </dl>
 </section>
 
@@ -279,7 +279,7 @@
 <td align="left"><tt>nonce</tt></td>
 <td align="left">string (Base64URL)</td>
 <td align="center">Yes</td>
-<td align="left">Freshness nonce issued by the management plane. Chained: <tt>HMAC(secret, n \|\| chain[n-1])</tt>. Detects skipped/reordered attestations.</td>
+<td align="left">N_fusion freshness nonce issued by the Workload Identity Management Plane. Chained: <tt>HMAC(secret, n \|\| chain[n-1])</tt>. Detects skipped/reordered attestations.</td>
 </tr>
 
 <tr>

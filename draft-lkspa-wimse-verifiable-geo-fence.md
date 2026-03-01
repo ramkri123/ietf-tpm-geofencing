@@ -173,10 +173,10 @@ V-GAP (Verifiable Geofencing Attestation Profile):
 : Nested evidence format defined in this document for binding identity to verified platform integrity and verified residency.
 
 N_platform (Platform Quote Nonce):
-: Fresh nonce used for platform attestation, delivered by the Host Identity Management Plane. Corresponds to the `nonce` field in the `lah-bundle`.
+: Fresh nonce used for platform attestation, delivered by the Host Identity Management Plane via an OOB path that does not require the Workload Host OS to observe it.
 
 N_fusion (Workload Fusion Nonce):
-: Fresh nonce used to bind identity issuance to a specific attestation interval, delivered by the Workload Identity Management Plane.
+: Fresh nonce used to bind identity issuance to a specific attestation interval, delivered by the Workload Identity Management Plane. Corresponds to the `nonce` field in the `lah-bundle`.
 
 # Use Cases
 
@@ -284,7 +284,7 @@ The `lah-bundle` is a hardware-sealed evidence structure embedded as an X.509 ex
 | `geolocation-proof-hash` | string (Base64URL) | Yes | SHA-256 commitment over `geolocation-payload`. Required in both privacy modes. When `privacy-technique=zkp`: `SHA-256(zkp-proof-bytes)`. When `privacy-technique=none`: `SHA-256(JCS({lat, lon, accuracy}))`. |
 | `privacy-technique` | string enum | Yes | `"none"` = raw lat/lon/accuracy in payload. `"zkp"` = zero-knowledge proof URI in payload. Controls location privacy only; device identity privacy is always protected via `geolocation-id-hash`. |
 | `geolocation-payload` | object | Yes | Inner location data. Structure depends on `privacy-technique` (see Payload Variants below). Committed to by `geolocation-proof-hash` and optionally signed by `mno-endorsement.mno-sig`. |
-| `nonce` | string (Base64URL) | Yes | Freshness nonce issued by the management plane. Chained: `HMAC(secret, n \|\| chain[n-1])`. Detects skipped/reordered attestations. |
+| `nonce` | string (Base64URL) | Yes | N_fusion freshness nonce issued by the Workload Identity Management Plane. Chained: `HMAC(secret, n \|\| chain[n-1])`. Detects skipped/reordered attestations. |
 | `timestamp` | integer (int64) | Yes | Unix epoch seconds. Set by the LAH agent at bundle construction time. |
 | `tpm-quote-seal` | string (Base64URL) | Yes | `TPM2_Quote` produced by the AK in `tpm-ak`. Qualifying data = `SHA-256(JCS({tpm-ak, geolocation-id-hash, geolocation-proof-hash, privacy-technique, nonce, timestamp}))`. Binds all fields into a single hardware-sealed statement. |
 | `workload-identity-agent-image-digest` | string (hex SHA-256) | Yes | SHA-256 digest of the Workload Identity Agent (SPIRE agent) binary, measured at attestation time by the Host Identity Manager (Keylime). Detects agent binary compromise on every renewal cycle. |
