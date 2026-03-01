@@ -133,14 +133,14 @@ Internet-Draft                RATS-GEO-POR                    March 2026
      9.8.  Deployment Patterns (Informative) . . . . . . . . . . . .  16
    10. Operational Considerations  . . . . . . . . . . . . . . . . .  17
      10.1.  Distributed Identity Issuance and Scaling  . . . . . . .  17
-     10.2.  Mobility and Sovereign Handover (Informative)  . . . . .  17
+     10.2.  Mobility and Sovereign Handover (Informative)  . . . . .  18
      10.3.  Location Anchor Hosts (Informative)  . . . . . . . . . .  18
    11. Policy Use (Informative)  . . . . . . . . . . . . . . . . . .  18
    12. Security Considerations . . . . . . . . . . . . . . . . . . .  18
    13. IANA Considerations . . . . . . . . . . . . . . . . . . . . .  19
    14. Appendix - Items to Follow Up . . . . . . . . . . . . . . . .  19
      14.1.  OPEN ISSUE: IMA restart behavior . . . . . . . . . . . .  19
-     14.2.  OPEN ISSUE: Location privacy options . . . . . . . . . .  19
+     14.2.  OPEN ISSUE: Location privacy options . . . . . . . . . .  20
      14.3.  OPEN ISSUE: Proximity profiles . . . . . . . . . . . . .  20
      14.4.  OPEN ISSUE: Geotagging textual data  . . . . . . . . . .  20
      14.5.  OPEN ISSUE: Attesting geotags  . . . . . . . . . . . . .  20
@@ -907,12 +907,17 @@ Internet-Draft                RATS-GEO-POR                    March 2026
       or not required.
 
    *  *Out-of-band management*: Evidence collected via a management
-      controller / BMC path (for example, iLO-class OOB management).
-      The N_fusion nonce and attestation commands are delivered through
-      a channel that does not traverse the host OS, reducing the host's
-      ability to influence the evidence it provides.  This pattern is
-      recommended for high-assurance environments where the host OS is
-      part of the threat model.
+      controller / BMC path (for example, iLO-class OOB management such
+      as HPE OneView).  In this pattern, the Workload Identity
+      Management Plane (for example, SPIRE Server) generates N_fusion
+      and shares it with the Host Identity Management Plane (for
+      example, HPE OneView) over a server-to-server channel.  The Host
+      Identity Management Plane then delivers N_fusion to the host via
+      the BMC / OOB path — bypassing the host OS entirely.  The host TPM
+      seals the lah-bundle with that nonce, and the sealed bundle is
+      returned via the same OOB path.  This pattern is recommended for
+      high-assurance environments where the host OS is part of the
+      threat model.
 
    *  *Cloud-hosted attestation environments*: Provider mechanisms
       exposing measured boot and TPM-backed claims (for example, Nitro-
@@ -940,11 +945,6 @@ Internet-Draft                RATS-GEO-POR                    March 2026
       when the verifier result for integrity and residency is valid for
       the requested freshness window.
 
-10.2.  Mobility and Sovereign Handover (Informative)
-
-   When a workload moves between anchors or boundaries, the Workload
-   Identity Agent MUST obtain a new V-GAP bundle that reflects the new
-   LAH and current residency.
 
 
 
@@ -953,6 +953,12 @@ Krishnan, et al.        Expires 2 September 2026               [Page 17]
 
 Internet-Draft                RATS-GEO-POR                    March 2026
 
+
+10.2.  Mobility and Sovereign Handover (Informative)
+
+   When a workload moves between anchors or boundaries, the Workload
+   Identity Agent MUST obtain a new V-GAP bundle that reflects the new
+   LAH and current residency.
 
    Verifiers SHOULD treat this as a normal re-attestation event: -
    platform integrity continuity can remain stable, but - residency
@@ -995,12 +1001,6 @@ Internet-Draft                RATS-GEO-POR                    March 2026
    *  *Replay and mix-and-match*: Use nonces and stapling so old
       location evidence cannot be combined with a fresh platform quote
       (or vice versa).
-   *  *Location spoofing*: Treat sensor and network inputs as
-      adversarial.  Prefer multiple sources or corroboration where
-      feasible, and apply conservative policy when evidence quality
-      degrades.
-
-
 
 
 
@@ -1010,6 +1010,10 @@ Krishnan, et al.        Expires 2 September 2026               [Page 18]
 Internet-Draft                RATS-GEO-POR                    March 2026
 
 
+   *  *Location spoofing*: Treat sensor and network inputs as
+      adversarial.  Prefer multiple sources or corroboration where
+      feasible, and apply conservative policy when evidence quality
+      degrades.
    *  *Relay and displacement*: When proximity mechanisms are introduced
       in future profiles, implementers should be aware that they are
       vulnerable to relay attacks and anchor displacement.  Mitigations
@@ -1052,11 +1056,7 @@ Internet-Draft                RATS-GEO-POR                    March 2026
    Agent restarts without requiring a host reboot, while preserving
    measurement integrity.
 
-14.2.  OPEN ISSUE: Location privacy options
 
-   Clarify the set of supported privacy techniques and how policy
-   selects between precise location, coarse location, and ZKP-based “in-
-   zone” proofs.
 
 
 
@@ -1065,6 +1065,12 @@ Krishnan, et al.        Expires 2 September 2026               [Page 19]
 
 Internet-Draft                RATS-GEO-POR                    March 2026
 
+
+14.2.  OPEN ISSUE: Location privacy options
+
+   Clarify the set of supported privacy techniques and how policy
+   selects between precise location, coarse location, and ZKP-based “in-
+   zone” proofs.
 
 14.3.  OPEN ISSUE: Proximity profiles
 
@@ -1108,18 +1114,17 @@ Internet-Draft                RATS-GEO-POR                    March 2026
 
 Authors' Addresses
 
-   Ram Krishnan
-   JPMorgan Chase & Co.
-   Email: ramkri123@gmail.com
-
-
-
 
 
 
 Krishnan, et al.        Expires 2 September 2026               [Page 20]
 
 Internet-Draft                RATS-GEO-POR                    March 2026
+
+
+   Ram Krishnan
+   JPMorgan Chase & Co.
+   Email: ramkri123@gmail.com
 
 
    Ned Smith
@@ -1140,11 +1145,6 @@ Internet-Draft                RATS-GEO-POR                    March 2026
    Srinivasa Addepalli
    Aryaka
    Email: srinivasa.addepalli@aryaka.com
-
-
-
-
-
 
 
 
