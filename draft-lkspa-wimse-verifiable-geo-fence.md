@@ -277,7 +277,7 @@ The `lah-bundle` is a hardware-sealed evidence structure embedded as an X.509 ex
 | Field | Type | Required | Description |
 |:------|:-----|:--------:|:------------|
 | `tpm-ak` | string (Base64URL) | Yes | TPM Attestation Key public key (PEM-encoded). Hardware identity anchor. The TPM enforces that only this key can produce `tpm-quote-seal` — proving co-residency. |
-| `geolocation-id-hash` | string (Base64URL) | Yes | `SHA-256(tpm-ak-bytes \|\| sensor-unique-id-bytes)`. Binds TPM identity to sensor identity without exposing IMEI/IMSI/serial. Input recipe is an agent implementation detail (see Sensor Types below). |
+| `geolocation-id-hash` | string (Base64URL) | Yes | `SHA-256(tpm-ak-bytes)`. Binds TPM identity to sensor identity - assumption is sensor integrity is handled by OOB host management plane |
 | `geolocation-proof-hash` | string (Base64URL) | Yes | SHA-256 commitment over `geolocation-payload`. Required in both privacy modes. When `privacy-technique=zkp`: `SHA-256(zkp-proof-bytes)`. When `privacy-technique=none`: `SHA-256(JCS({lat, lon, accuracy}))`. |
 | `privacy-technique` | string enum | Yes | `"none"` = raw lat/lon/accuracy in payload. `"zkp"` = zero-knowledge proof URI in payload. Controls location privacy only; device identity privacy is always protected via `geolocation-id-hash`. |
 | `geolocation-payload` | object | Yes | Inner location data. Structure depends on `privacy-technique` (see Payload Variants below). Committed to by `geolocation-proof-hash` and optionally signed by `mno-endorsement.mno-sig`. |
