@@ -54,7 +54,7 @@ organization = "Aryaka"
   [author.address]
   email = "srinivasa.addepalli@aryaka.com"
 
-[[contributor]]
+{{contributor}}
 initials = "B."
 surname = "Malepati"
 fullname = "Bala Siva Sai Akhil Malepati"
@@ -62,7 +62,7 @@ organization = "Independent"
   [contributor.address]
   email = "saiakhil2012@yahoo.com"
 
-[[contributor]]
+{{contributor}}
 initials = "G."
 surname = "Arfaoui"
 fullname = "Ghada Arfaoui"
@@ -70,7 +70,7 @@ organization = "Orange"
   [contributor.address]
   email = "ghada.arfaoui@orange.com"
 
-[[contributor]]
+{{contributor}}
 initials = "M."
 surname = "Epley"
 fullname = "Michael Epley"
@@ -78,7 +78,7 @@ organization = "Red Hat"
   [contributor.address]
   email = "mepley@redhat.com"
 
-[[contributor]]
+{{contributor}}
 initials = "V."
 surname = "Masilamani"
 fullname = "Vijay Masilamani"
@@ -94,7 +94,7 @@ Modern cloud and distributed computing rely heavily on software-only identities 
 
 A host machine runs a workload identity agent for managing the workload identities on that platform. This proposal replaces implicit trust and spoofable indicators with cryptographically verifiable hardware-rooted evidence of integrity and location for this agent. Critically, this framework prioritizes **Location Privacy** by utilizing Zero-Knowledge Proofs (ZKP), allowing a workload to prove it is within a compliant "Sovereign Zone" without disclosing precise coordinates that could be used for tracking or exploitation.
 
-By binding software identities to persistent silicon identities and verified physical residency, this solution establishes a "Silicon-to-Workload" chain of trust. It ensures that sensitive operations are only performed by authorized workloads running on untampered hardware in cryptographically verified, privacy-preserving geographic boundaries, fulfilling the high-assurance requirements of the **WIMSE Architecture** [[I-D.ietf-wimse-architecture]].
+By binding software identities to persistent silicon identities and verified physical residency, this solution establishes a "Silicon-to-Workload" chain of trust. It ensures that sensitive operations are only performed by authorized workloads running on untampered hardware in cryptographically verified, privacy-preserving geographic boundaries, fulfilling the high-assurance requirements of the **WIMSE Architecture** {{I-D.ietf-wimse-architecture}}.
 
 {mainmatter}
 
@@ -102,13 +102,13 @@ By binding software identities to persistent silicon identities and verified phy
 
 The **Workload Identity Agent** (e.g., SPIRE Agent) acts as the local-on-host intermediary responsible for managing and issuing identities to workloads. It serves as a vetting mechanism, ensuring that a workload's execution environment meets required security and residency policies before granting it the cryptographic credentials necessary for network communication. This High-Assurance Profile (a specialized RATS Profile) provides the technical mechanics to cryptographically bind this agent to the underlying hardware-verified platform and its privacy-preserving physical location.
 
-The architecture follows the RATS Architecture [[RFC9334]], defining the interactions between Provers, Verifiers, and Relying Parties to generate and validate high-confidence evidence regarding the Workload Identity Agent's status. It provides the hardware-rooted evidence layer required by the WIMSE Architecture [[I-D.ietf-wimse-architecture]], establishing a "Silicon-to-Workload" chain of trust that ensures sensitive data is only processed by authorized workloads in approved, measured environments.
+The architecture follows the RATS Architecture {{!RFC9334}}, defining the interactions between Provers, Verifiers, and Relying Parties to generate and validate high-confidence evidence regarding the Workload Identity Agent's status. It provides the hardware-rooted evidence layer required by the WIMSE Architecture {{I-D.ietf-wimse-architecture}}, establishing a "Silicon-to-Workload" chain of trust that ensures sensitive data is only processed by authorized workloads in approved, measured environments.
 
 To maintain location privacy while providing cryptographic verifiability, this profile leverages Transparent Zero-Knowledge Proofs (ZKPs). Unlike traditional ZKP systems, transparent ZKPs require no trusted third party or complex trusted setup phase. They achieve mathematical transparency through non-interactive, hash-based protocols, allowing a platform to prove it is resident within an approved geographic boundary without disclosing the exact coordinates of the underlying hardware.
 
 # Conventions and Definitions
 
-The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 [[RFC2119]] [[RFC8174]] when, and only when, they appear in all capitals, as shown here.
+The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT", "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and "OPTIONAL" in this document are to be interpreted as described in BCP 14 {{!RFC2119}} {{!RFC8174}} when, and only when, they appear in all capitals, as shown here.
 
 
 ## Abbreviations
@@ -227,16 +227,16 @@ At a high level, the profile enables a relying party (or identity issuer) to req
 
 # Composition with Transitive Attestation and WIMSE
 
-This profile is designed to compose with [[I-D.mw-wimse-transitive-attestation]] and the **WIMSE Architecture** [[I-D.ietf-wimse-architecture]].
+This profile is designed to compose with {{I-D.mw-wimse-transitive-attestation}} and the **WIMSE Architecture** {{I-D.ietf-wimse-architecture}}.
 
-- **[[I-D.mw-wimse-transitive-attestation]] (Layer 1):** Binds a workload to a *local* Workload Identity Agent (co-location / PoR), treating the agent as a trust anchor.
+- **{{I-D.mw-wimse-transitive-attestation}} (Layer 1):** Binds a workload to a *local* Workload Identity Agent (co-location / PoR), treating the agent as a trust anchor.
 - **This document (Layers 2 and 3):** Defines how that Workload Identity Agent is itself verified:
   - **Layer 2 — Platform integrity:** Hardware-rooted evidence of the host state (e.g., TPM-based attestation).
   - **Layer 3 — Residency:** Cryptographically verifiable proof the attested host is inside an approved boundary (optionally privacy-preserving).
 
 | Layer | Document | Responsibility |
 | :--- | :--- | :--- |
-| **Layer 1** | [[I-D.mw-wimse-transitive-attestation]] | Bind workload to a local Workload Identity Agent (co-location / PoR). |
+| **Layer 1** | {{I-D.mw-wimse-transitive-attestation}} | Bind workload to a local Workload Identity Agent (co-location / PoR). |
 | **Layer 2** | This document | Verify Workload Host integrity for the Workload Identity Agent (platform evidence). |
 | **Layer 3** | This document | Verify Workload Host residency within an approved boundary (location evidence). |
 
@@ -467,7 +467,7 @@ Verifiers SHOULD treat this as a normal re-attestation event:
 To scale location sensing, a deployment may use dedicated anchors:
 
 - **End-user anchors**: A user device (for example, a phone) can serve as an LAH for a nearby client device. The mechanism by which the anchor establishes its own location (and any proximity evidence it may provide) is out of scope for this document.
-- **Data center anchors**: A small set of hosts can act as LAHs for a cluster. Timing-based mechanisms (for example, PTP-derived) may assist in establishing relative location; protocol details are deferred to future profiling work (see [[I-D.ramki-ptp-hardware-rooted-attestation]]).
+- **Data center anchors**: A small set of hosts can act as LAHs for a cluster. Timing-based mechanisms (for example, PTP-derived) may assist in establishing relative location; protocol details are deferred to future profiling work (see {{I-D.ramki-ptp-hardware-rooted-attestation}}).
 
 # Policy Use (Informative)
 
@@ -479,7 +479,7 @@ Relying parties and identity issuers can use V-GAP results as inputs to authoriz
 
 # Implementation Status
 
-[Note to RFC Editor: This section may be removed before publication as per {{RFC7942}}.]
+[Note to RFC Editor: This section may be removed before publication as per {{!RFC7942}}.]
 
 A reference implementation of the V-GAP profile is publicly available:
 
@@ -518,6 +518,10 @@ IANA is requested to register the following Object Identifier (OID) in the "SMI 
 - **OID**: `1.3.6.1.4.1.55744.1.1`
 - **Description**: Verifiable Geofencing Attestation Profile (V-GAP) Evidence Bundle
 - **Reference**: This document.
+
+> **Note:** The PEN 55744 is currently under a temporary IANA Private Enterprise Number
+> request (tracking number PHE1-CSY-PJ5). The OID used in this document will be updated
+> once IANA assigns a permanent enterprise number.
 
 # Appendix: Open Issues
 
