@@ -214,7 +214,7 @@
 <t>V-GAP is a RATS/WIMSE attestation profile that binds a <strong>Workload Identity Agent</strong> to (1) hardware-rooted host integrity and (2) verified residency within a configured geofence. It does this with an evidence bundle from a <strong>Location Anchor Host (LAH)</strong>.</t>
 
 <section anchor="lah-bundle-location-anchor-host-evidence-structure"><name>LAH-Bundle: Location Anchor Host Evidence Structure</name>
-<t>The <tt>lah-bundle</tt> is a hardware-sealed evidence structure embedded as an X.509 extension (OID <tt>1.3.6.1.4.1.55744.1.1</tt>) in a SPIRE SVID. It binds a workload identity to physically verifiable claims — TPM hardware identity, privacy-preserving geolocation, and agent binary integrity — without exposing PII.</t>
+<t>The <tt>lah-bundle</tt> is a hardware-sealed evidence structure embedded as an X.509 extension (OID <tt>1.3.6.1.4.1.65284.1.1</tt>) in a SPIRE SVID. It binds a workload identity to physically verifiable claims — TPM hardware identity, privacy-preserving geolocation, and agent binary integrity — without exposing PII.</t>
 
 <section anchor="top-level-structure"><name>Top-Level Structure</name>
 
@@ -649,7 +649,7 @@ nonce[n]  = HMAC(secret, n || chain[n-1])
 
 <ul spacing="compact">
 <li><strong>TPM 2.0</strong> hardware root of trust (AK-based quotes, PCR 15 TOCTOU protection)</li>
-<li><strong>SPIRE</strong> (Workload Identity Management Plane) with a custom <tt>unifiedidentity</tt> plugin that embeds the <tt>lah-bundle</tt> as an X.509 extension (OID <tt>1.3.6.1.4.1.55744.1.1</tt>)</li>
+<li><strong>SPIRE</strong> (Workload Identity Management Plane) with a custom <tt>unifiedidentity</tt> plugin that embeds the <tt>lah-bundle</tt> as an X.509 extension (OID <tt>1.3.6.1.4.1.65284.1.1</tt>)</li>
 <li><strong>Keylime</strong> (Host Identity Management Plane) with IMA measurement of the SPIRE agent binary (<tt>workload-identity-agent-image-digest</tt>)</li>
 <li><strong>Plonky2</strong> STARK prover for <tt>privacy-technique = &quot;zkp&quot;</tt> geofence proofs</li>
 <li><strong>Geolocation sensor cascade</strong>: Mobile/CAMARA, GNSS/GPS, and config-file fallback with IMEI/IMSI binding for <tt>geolocation-id-hash</tt></li>
@@ -676,7 +676,7 @@ nonce[n]  = HMAC(secret, n || chain[n-1])
 <t><strong>Mandatory Criticality:</strong> Implementations of this profile MUST mark the X.509 extension containing the V-GAP Evidence Bundle as <strong>CRITICAL</strong>. This ensures that non-compliant gateways fail closed rather than granting access to residency-constrained workloads.</t>
 
 <ul spacing="compact">
-<li><strong>OID</strong>: <tt>1.3.6.1.4.1.55744.1.1</tt></li>
+<li><strong>OID</strong>: <tt>1.3.6.1.4.1.65284.1.1</tt></li>
 <li><strong>Description</strong>: Verifiable Geofencing Attestation Profile (V-GAP) Evidence Bundle</li>
 <li><strong>Reference</strong>: This document.</li>
 </ul>

@@ -260,7 +260,7 @@ V-GAP is a RATS/WIMSE attestation profile that binds a **Workload Identity Agent
 
 ## LAH-Bundle: Location Anchor Host Evidence Structure
 
-The `lah-bundle` is a hardware-sealed evidence structure embedded as an X.509 extension (OID `1.3.6.1.4.1.55744.1.1`) in a SPIRE SVID. It binds a workload identity to physically verifiable claims — TPM hardware identity, privacy-preserving geolocation, and agent binary integrity — without exposing PII.
+The `lah-bundle` is a hardware-sealed evidence structure embedded as an X.509 extension (OID `1.3.6.1.4.1.65284.1.1`) in a SPIRE SVID. It binds a workload identity to physically verifiable claims — TPM hardware identity, privacy-preserving geolocation, and agent binary integrity — without exposing PII.
 
 ### Top-Level Structure
 
@@ -490,7 +490,7 @@ A reference implementation of the V-GAP profile is publicly available:
 The implementation demonstrates the **in-band host attestation** deployment pattern ({{deployment-patterns-informative}}) using:
 
 - **TPM 2.0** hardware root of trust (AK-based quotes, PCR 15 TOCTOU protection)
-- **SPIRE** (Workload Identity Management Plane) with a custom `unifiedidentity` plugin that embeds the `lah-bundle` as an X.509 extension (OID `1.3.6.1.4.1.55744.1.1`)
+- **SPIRE** (Workload Identity Management Plane) with a custom `unifiedidentity` plugin that embeds the `lah-bundle` as an X.509 extension (OID `1.3.6.1.4.1.65284.1.1`)
 - **Keylime** (Host Identity Management Plane) with IMA measurement of the SPIRE agent binary (`workload-identity-agent-image-digest`)
 - **Plonky2** STARK prover for `privacy-technique = "zkp"` geofence proofs
 - **Geolocation sensor cascade**: Mobile/CAMARA, GNSS/GPS, and config-file fallback with IMEI/IMSI binding for `geolocation-id-hash`
@@ -515,13 +515,10 @@ IANA is requested to register the following Object Identifier (OID) in the "SMI 
 
 **Mandatory Criticality:** Implementations of this profile MUST mark the X.509 extension containing the V-GAP Evidence Bundle as **CRITICAL**. This ensures that non-compliant gateways fail closed rather than granting access to residency-constrained workloads.
 
-- **OID**: `1.3.6.1.4.1.55744.1.1`
+- **OID**: `1.3.6.1.4.1.65284.1.1`
 - **Description**: Verifiable Geofencing Attestation Profile (V-GAP) Evidence Bundle
 - **Reference**: This document.
-
-> **Note:** The PEN 55744 is currently under a temporary IANA Private Enterprise Number
-> request (tracking number PHE1-CSY-PJ5). The OID used in this document will be updated
-> once IANA assigns a permanent enterprise number.
+- **PEN**: 65284 (IANA Private Enterprise Number assigned to Ram Krishnan)
 
 # Appendix: Open Issues
 
