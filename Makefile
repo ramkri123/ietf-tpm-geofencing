@@ -1,6 +1,6 @@
 # Makefile for IETF Draft
 
-DRAFT := draft-lkspa-wimse-verifiable-geo-fence-04
+DRAFT := draft-lkspa-wimse-verifiable-geo-fence-05
 MMARK := $(HOME)/go/bin/mmark
 XML2RFC := $(HOME)/local/bin/xml2rfc
 

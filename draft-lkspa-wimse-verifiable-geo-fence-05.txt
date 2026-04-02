@@ -5,19 +5,19 @@
 RATS                                                         R. Krishnan
 Internet-Draft                                      JPMorgan Chase & Co.
 Intended status: Informational                                  N. Smith
-Expires: 10 September 2026                                         Intel
+Expires: 5 October 2026                                            Intel
                                                                 D. Lopez
                                                               Telefonica
                                                                A. Prasad
                                                                   Oracle
                                                             S. Addepalli
                                                                   Aryaka
-                                                            9 March 2026
+                                                            3 April 2026
 
 
    Privacy Preserving Verifiable Geofencing with Residency Proofs for
                           Sovereign Workloads
-               draft-lkspa-wimse-verifiable-geo-fence-04
+               draft-lkspa-wimse-verifiable-geo-fence-05
 
 Abstract
 
@@ -47,15 +47,15 @@ Abstract
    only performed by authorized workloads running on untampered hardware
    in cryptographically verified, privacy-preserving geographic
    boundaries, fulfilling the high-assurance requirements of the *WIMSE
-   Architecture* [[I-D.ietf-wimse-architecture]].
+   Architecture* {{I-D.ietf-wimse-architecture}}.
 
 
 
 
 
-Krishnan, et al.        Expires 10 September 2026               [Page 1]
+Krishnan, et al.         Expires 5 October 2026                 [Page 1]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
 Status of This Memo
@@ -73,7 +73,7 @@ Status of This Memo
    time.  It is inappropriate to use Internet-Drafts as reference
    material or to cite them other than as "work in progress."
 
-   This Internet-Draft will expire on 10 September 2026.
+   This Internet-Draft will expire on 5 October 2026.
 
 Copyright Notice
 
@@ -109,9 +109,9 @@ Table of Contents
 
 
 
-Krishnan, et al.        Expires 10 September 2026               [Page 2]
+Krishnan, et al.         Expires 5 October 2026                 [Page 2]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
        9.1.1.  Top-Level Structure . . . . . . . . . . . . . . . . .   9
@@ -147,7 +147,8 @@ Internet-Draft                    V-GAP                       March 2026
      15.5.  Attesting Geotags  . . . . . . . . . . . . . . . . . . .  22
    16. Appendix: Public References for Strict Data Residency
            Rules . . . . . . . . . . . . . . . . . . . . . . . . . .  22
-   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  22
+   Appendix A.  Contributors . . . . . . . . . . . . . . . . . . . .  22
+   Authors' Addresses  . . . . . . . . . . . . . . . . . . . . . . .  23
 
 1.  Introduction
 
@@ -164,18 +165,17 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-
-Krishnan, et al.        Expires 10 September 2026               [Page 3]
+Krishnan, et al.         Expires 5 October 2026                 [Page 3]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
-   The architecture follows the RATS Architecture [[RFC9334]], defining
+   The architecture follows the RATS Architecture {{!RFC9334}}, defining
    the interactions between Provers, Verifiers, and Relying Parties to
    generate and validate high-confidence evidence regarding the Workload
    Identity Agent's status.  It provides the hardware-rooted evidence
-   layer required by the WIMSE Architecture [[I-D.ietf-wimse-
-   architecture]], establishing a "Silicon-to-Workload" chain of trust
+   layer required by the WIMSE Architecture {{I-D.ietf-wimse-
+   architecture}}, establishing a "Silicon-to-Workload" chain of trust
    that ensures sensitive data is only processed by authorized workloads
    in approved, measured environments.
 
@@ -193,7 +193,7 @@ Internet-Draft                    V-GAP                       March 2026
    The key words "MUST", "MUST NOT", "REQUIRED", "SHALL", "SHALL NOT",
    "SHOULD", "SHOULD NOT", "RECOMMENDED", "NOT RECOMMENDED", "MAY", and
    "OPTIONAL" in this document are to be interpreted as described in BCP
-   14 [[RFC2119]] [[RFC8174]] when, and only when, they appear in all
+   14 {{!RFC2119}} {{!RFC8174}} when, and only when, they appear in all
    capitals, as shown here.
 
 2.1.  Abbreviations
@@ -221,9 +221,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026               [Page 4]
+Krishnan, et al.         Expires 5 October 2026                 [Page 4]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
 3.  Key Terms
@@ -277,9 +277,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026               [Page 5]
+Krishnan, et al.         Expires 5 October 2026                 [Page 5]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
 4.1.  Server-centric Enforcement
@@ -333,9 +333,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026               [Page 6]
+Krishnan, et al.         Expires 5 October 2026                 [Page 6]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
 4.3.  Compliance and Risk Reduction
@@ -389,18 +389,18 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026               [Page 7]
+Krishnan, et al.         Expires 5 October 2026                 [Page 7]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
 7.  Composition with Transitive Attestation and WIMSE
 
-   This profile is designed to compose with [[I-D.mw-wimse-transitive-
-   attestation]] and the *WIMSE Architecture* [[I-D.ietf-wimse-
-   architecture]].
+   This profile is designed to compose with {{I-D.mw-wimse-transitive-
+   attestation}} and the *WIMSE Architecture* {{I-D.ietf-wimse-
+   architecture}}.
 
-   *  *[I-D.mw-wimse-transitive-attestation] (Layer 1):* Binds a
+   *  *{{I-D.mw-wimse-transitive-attestation}} (Layer 1):* Binds a
       workload to a _local_ Workload Identity Agent (co-location / PoR),
       treating the agent as a trust anchor.
    *  *This document (Layers 2 and 3):* Defines how that Workload
@@ -414,7 +414,7 @@ Internet-Draft                    V-GAP                       March 2026
    +======+=========================================+==================+
    |Layer | Document                                | Responsibility   |
    +======+=========================================+==================+
-   |*Layer| [[I-D.mw-wimse-transitive-attestation]] | Bind workload    |
+   |*Layer| {{I-D.mw-wimse-transitive-attestation}} | Bind workload    |
    |1*    |                                         | to a local       |
    |      |                                         | Workload         |
    |      |                                         | Identity Agent   |
@@ -445,9 +445,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026               [Page 8]
+Krishnan, et al.         Expires 5 October 2026                 [Page 8]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
 8.  Operational Use: Gating Credentials on Verified Evidence
@@ -501,9 +501,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026               [Page 9]
+Krishnan, et al.         Expires 5 October 2026                 [Page 9]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
 9.1.2.  lah-bundle Fields
@@ -557,9 +557,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026              [Page 10]
+Krishnan, et al.         Expires 5 October 2026                [Page 10]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
     |              |             |          | by geolocation-proof-   |
@@ -613,9 +613,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026              [Page 11]
+Krishnan, et al.         Expires 5 October 2026                [Page 11]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
 9.1.3.  geolocation-payload Variants
@@ -669,9 +669,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026              [Page 12]
+Krishnan, et al.         Expires 5 October 2026                [Page 12]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
 9.1.4.  mno-endorsement (Optional, Top-Level Sibling)
@@ -725,9 +725,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026              [Page 13]
+Krishnan, et al.         Expires 5 October 2026                [Page 13]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
 9.1.6.  Sensor Type Input Recipes (Opaque to Verifier)
@@ -781,9 +781,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026              [Page 14]
+Krishnan, et al.         Expires 5 October 2026                [Page 14]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
    {
@@ -837,9 +837,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026              [Page 15]
+Krishnan, et al.         Expires 5 October 2026                [Page 15]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
 9.2.  Scalable Fleet Management
@@ -893,9 +893,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026              [Page 16]
+Krishnan, et al.         Expires 5 October 2026                [Page 16]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
    Between full activations, verifiers MAY accept fresh quotes from
@@ -949,9 +949,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026              [Page 17]
+Krishnan, et al.         Expires 5 October 2026                [Page 17]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
    *  *Out-of-band management*: Evidence collected via a management
@@ -1005,9 +1005,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026              [Page 18]
+Krishnan, et al.         Expires 5 October 2026                [Page 18]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
 10.3.  Location Anchor Hosts (Informative)
@@ -1021,8 +1021,8 @@ Internet-Draft                    V-GAP                       March 2026
    *  *Data center anchors*: A small set of hosts can act as LAHs for a
       cluster.  Timing-based mechanisms (for example, PTP-derived) may
       assist in establishing relative location; protocol details are
-      deferred to future profiling work (see [[I-D.ramki-ptp-hardware-
-      rooted-attestation]]).
+      deferred to future profiling work (see {{I-D.ramki-ptp-hardware-
+      rooted-attestation}}).
 
 11.  Policy Use (Informative)
 
@@ -1041,7 +1041,7 @@ Internet-Draft                    V-GAP                       March 2026
 12.  Implementation Status
 
    [Note to RFC Editor: This section may be removed before publication
-   as per {{RFC7942}}.]
+   as per {{!RFC7942}}.]
 
    A reference implementation of the V-GAP profile is publicly
    available:
@@ -1061,9 +1061,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026              [Page 19]
+Krishnan, et al.         Expires 5 October 2026                [Page 19]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
    *  *SPIRE* (Workload Identity Management Plane) with a custom
@@ -1117,9 +1117,9 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-Krishnan, et al.        Expires 10 September 2026              [Page 20]
+Krishnan, et al.         Expires 5 October 2026                [Page 20]
 
-Internet-Draft                    V-GAP                       March 2026
+Internet-Draft                    V-GAP                       April 2026
 
 
    *  *Privacy*: Avoid unnecessary collection or retention of precise
@@ -1142,6 +1142,8 @@ Internet-Draft                    V-GAP                       March 2026
    *  *Description*: Verifiable Geofencing Attestation Profile (V-GAP)
       Evidence Bundle
    *  *Reference*: This document.
+   *  *PEN*: 65284 (IANA Private Enterprise Number assigned to Ram
+      Krishnan)
 
 15.  Appendix: Open Issues
 
@@ -1168,16 +1170,16 @@ Internet-Draft                    V-GAP                       March 2026
    *  Defining one or more proximity evidence profiles (for example,
       PTP-derived, BLE/UWB ranging, or network-RTT-based) as separate
       documents.
+
+
+
+Krishnan, et al.         Expires 5 October 2026                [Page 21]
+
+Internet-Draft                    V-GAP                       April 2026
+
+
    *  Specifying how proximity evidence is represented and bound to the
       V-GAP bundle (for example, as an additional hash field).
-
-
-
-Krishnan, et al.        Expires 10 September 2026              [Page 21]
-
-Internet-Draft                    V-GAP                       March 2026
-
-
    *  Addressing relay and displacement threats, including RTT-based
       acceptance windows, anchor health attestation, and disagreement
       policies for multi-anchor deployments.
@@ -1208,6 +1210,34 @@ Internet-Draft                    V-GAP                       March 2026
    Management Act (Spatial Data Act): Article 16, Paragraph 1: Prohibits
    the export of state-led survey data.
 
+Appendix A.  Contributors
+
+   The following individuals have contributed to this document:
+
+   Bala Siva Sai Akhil Malepati
+   Independent
+   Email: saiakhil2012@yahoo.com
+
+   Ghada Arfaoui
+   Orange
+   Email: ghada.arfaoui@orange.com
+
+   Michael Epley
+   Red Hat
+   Email: mepley@redhat.com
+
+
+
+
+Krishnan, et al.         Expires 5 October 2026                [Page 22]
+
+Internet-Draft                    V-GAP                       April 2026
+
+
+   Vijay Masilamani
+   Independent
+   Email: saanvijay20@gmail.com
+
 Authors' Addresses
 
    Ram Krishnan
@@ -1223,15 +1253,6 @@ Authors' Addresses
    Diego R. Lopez
    Telefonica
    Email: diego.r.lopez@telefonica.com
-
-
-
-
-
-
-Krishnan, et al.        Expires 10 September 2026              [Page 22]
-
-Internet-Draft                    V-GAP                       March 2026
 
 
    A Prasad
@@ -1264,25 +1285,4 @@ Internet-Draft                    V-GAP                       March 2026
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-Krishnan, et al.        Expires 10 September 2026              [Page 23]
+Krishnan, et al.         Expires 5 October 2026                [Page 23]

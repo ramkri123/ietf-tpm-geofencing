@@ -1,12 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!-- name="GENERATOR" content="github.com/mmarkdown/mmark Mmark Markdown Processor - mmark.miek.nl" -->
-<rfc version="3" ipr="trust200902" submissionType="IETF" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true">
+<rfc version="3" ipr="trust200902" docName="draft-lkspa-wimse-verifiable-geo-fence-05" submissionType="IETF" category="info" xml:lang="en" xmlns:xi="http://www.w3.org/2001/XInclude" indexInclude="true">
 
 <front>
-<title></title><seriesInfo></seriesInfo>
-<date/>
-<area>Internet</area>
-<workgroup></workgroup>
+<title abbrev="V-GAP">Privacy Preserving Verifiable Geofencing with Residency Proofs for Sovereign Workloads</title><seriesInfo value="draft-lkspa-wimse-verifiable-geo-fence-05" stream="IETF" status="informational" name="Internet-Draft"></seriesInfo>
+<author initials="R." surname="Krishnan" fullname="Ram Krishnan"><organization>JPMorgan Chase &amp; Co.</organization><address><postal><street></street>
+</postal><email>ramkri123@gmail.com</email>
+</address></author><author initials="N." surname="Smith" fullname="Ned Smith"><organization>Intel</organization><address><postal><street></street>
+</postal><email>ned.smith@intel.com</email>
+</address></author><author initials="D." surname="Lopez" fullname="Diego R. Lopez"><organization>Telefonica</organization><address><postal><street></street>
+</postal><email>diego.r.lopez@telefonica.com</email>
+</address></author><author initials="A." surname="Prasad" fullname="A Prasad"><organization>Oracle</organization><address><postal><street></street>
+</postal><email>a.prasad@oracle.com</email>
+</address></author><author initials="S." surname="Addepalli" fullname="Srinivasa Addepalli"><organization>Aryaka</organization><address><postal><street></street>
+</postal><email>srinivasa.addepalli@aryaka.com</email>
+</address></author><date year="2026" month="April" day="3"></date>
+<area>Security</area>
+<workgroup>RATS</workgroup>
+<keyword>geofencing</keyword>
+<keyword>attestation</keyword>
+<keyword>workload identity</keyword>
+<keyword>residency</keyword>
+<keyword>TPM</keyword>
+<keyword>GNSS</keyword>
 
 <abstract>
 <t>Modern cloud and distributed computing rely heavily on software-only identities and bearer tokens that are easily stolen, replayed, or used from unauthorized locations. Furthermore, traditional methods of location verification - such as IP-address-based geolocation - are easily spoofed via VPNs or proxies and significantly compromise infrastructure security and privacy for <strong>Sovereign Workloads</strong> and high-assurance environments. This document defines a <strong>High-Assurance Profile</strong> designed to solve these challenges through hardware-rooted cryptographic verifiability.</t>
@@ -706,6 +722,22 @@ nonce[n]  = HMAC(secret, n || chain[n-1])
 </middle>
 
 <back>
+
+<section anchor="contributors"><name>Contributors</name>
+<t>The following individuals have contributed to this document:</t>
+<t>Bala Siva Sai Akhil Malepati<br />
+Independent<br />
+Email: saiakhil2012@yahoo.com</t>
+<t>Ghada Arfaoui<br />
+Orange<br />
+Email: ghada.arfaoui@orange.com</t>
+<t>Michael Epley<br />
+Red Hat<br />
+Email: mepley@redhat.com</t>
+<t>Vijay Masilamani<br />
+Independent<br />
+Email: saanvijay20@gmail.com</t>
+</section>
 
 </back>
 

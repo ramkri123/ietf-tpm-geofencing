@@ -2,15 +2,16 @@
 title = "Privacy Preserving Verifiable Geofencing with Residency Proofs for Sovereign Workloads"
 abbrev = "V-GAP"
 category = "info"
-docName = "draft-lkspa-wimse-verifiable-geo-fence-04"
+docName = "draft-lkspa-wimse-verifiable-geo-fence-05"
 ipr = "trust200902"
 area = "Security"
 workgroup = "RATS"
 keyword = ["geofencing", "attestation", "workload identity", "residency", "TPM", "GNSS"]
+date = 2026-04-03
 
 [seriesInfo]
 name = "Internet-Draft"
-value = "draft-lkspa-wimse-verifiable-geo-fence-04"
+value = "draft-lkspa-wimse-verifiable-geo-fence-05"
 stream = "IETF"
 status = "informational"
 
@@ -53,38 +54,6 @@ fullname = "Srinivasa Addepalli"
 organization = "Aryaka"
   [author.address]
   email = "srinivasa.addepalli@aryaka.com"
-
-{{contributor}}
-initials = "B."
-surname = "Malepati"
-fullname = "Bala Siva Sai Akhil Malepati"
-organization = "Independent"
-  [contributor.address]
-  email = "saiakhil2012@yahoo.com"
-
-{{contributor}}
-initials = "G."
-surname = "Arfaoui"
-fullname = "Ghada Arfaoui"
-organization = "Orange"
-  [contributor.address]
-  email = "ghada.arfaoui@orange.com"
-
-{{contributor}}
-initials = "M."
-surname = "Epley"
-fullname = "Michael Epley"
-organization = "Red Hat"
-  [contributor.address]
-  email = "mepley@redhat.com"
-
-{{contributor}}
-initials = "V."
-surname = "Masilamani"
-fullname = "Vijay Masilamani"
-organization = "Independent"
-  [contributor.address]
-  email = "saanvijay20@gmail.com"
 
 %%%
 
@@ -556,3 +525,23 @@ India -- Reserve Bank of India (RBI): Payment System Data Localization (2018): F
 South Korea's Data Localization Regulations -- Geospatial Information Management Act (Spatial Data Act): Article 16, Paragraph 1: Prohibits the export of state-led survey data.
 
 {backmatter}
+
+# Contributors
+
+The following individuals have contributed to this document:
+
+Bala Siva Sai Akhil Malepati  
+Independent  
+Email: saiakhil2012@yahoo.com
+
+Ghada Arfaoui  
+Orange  
+Email: ghada.arfaoui@orange.com
+
+Michael Epley  
+Red Hat  
+Email: mepley@redhat.com
+
+Vijay Masilamani  
+Independent  
+Email: saanvijay20@gmail.com
